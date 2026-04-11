@@ -28,6 +28,8 @@
 	<string>Gratitude uses your microphone so you can speak your journal entries aloud.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Gratitude uses speech recognition to transcribe your spoken journal entries.</string>
+	<key>NSUserNotificationsUsageDescription</key>
+	<string>Gratitude sends you a daily reminder to journal.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
