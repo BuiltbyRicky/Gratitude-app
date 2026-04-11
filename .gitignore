@@ -1,0 +1,5 @@
+node_modules/
+www/
+gratitude-netlify.zip
+.DS_Store
+ios/App/App/public/
