@@ -1,0 +1,1791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Gratitude — Daily Voice Journal</title>
+  <meta name="description" content="A mindful daily journaling experience. Speak your gratitude, track your growth, and transform your mindset — 5 minutes a day."/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://gratitudeapp.netlify.app/"/>
+  <meta property="og:title" content="Gratitude — Daily Voice Journal"/>
+  <meta property="og:description" content="A mindful daily journaling experience. Speak your gratitude, track your growth, and transform your mindset — 5 minutes a day."/>
+  <meta property="og:image" content="https://gratitudeapp.netlify.app/og-image.png"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="Gratitude — Daily Voice Journal"/>
+  <meta name="twitter:description" content="A mindful daily journaling experience. Speak your gratitude, track your growth, and transform your mindset — 5 minutes a day."/>
+  <meta name="twitter:image" content="https://gratitudeapp.netlify.app/og-image.png"/>
+  <link rel="canonical" href="https://gratitudeapp.netlify.app/"/>
+  <link rel="manifest" href="/manifest.json"/>
+  <meta name="theme-color" content="#2D7A5F"/>
+  <link rel="apple-touch-icon" href="/icon-192.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --sage:       #2D7A5F;
+      --sage-mid:   #4A9B7F;
+      --sage-light: #EDF5F1;
+      --sage-dark:  #1E5C46;
+      --amber:      #9A6520;
+      --amber-light:#FDF3E3;
+      --ink:        #1C1A17;
+      --ink-80:     rgba(28,26,23,0.8);
+      --ink-60:     rgba(28,26,23,0.6);
+      --ink-30:     rgba(28,26,23,0.3);
+      --ink-10:     rgba(28,26,23,0.07);
+      --cream:      #FAF8F4;
+      --cream-mid:  #F0EDE6;
+      --cream-dark: #E8E4DC;
+      --white:      #ffffff;
+      --red:        #C0392B;
+      --font-serif: 'Lora', Georgia, serif;
+      --font-sans:  'DM Sans', system-ui, sans-serif;
+      --radius-sm:  8px;
+      --radius-md:  14px;
+      --radius-lg:  22px;
+      --radius-pill:9999px;
+      --shadow-sm:  0 1px 3px rgba(28,26,23,0.08), 0 1px 2px rgba(28,26,23,0.06);
+      --shadow-md:  0 4px 16px rgba(28,26,23,0.10), 0 2px 6px rgba(28,26,23,0.06);
+      --shadow-lg:  0 12px 40px rgba(28,26,23,0.13), 0 4px 12px rgba(28,26,23,0.07);
+      --transition: 0.2s ease;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--cream);
+      color: var(--ink);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+      height: 64px;
+      background: rgba(250,248,244,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(28,26,23,0.07);
+      transition: box-shadow 0.3s;
+    }
+    nav.scrolled { box-shadow: var(--shadow-sm); }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--ink);
+    }
+    .nav-logo-mark {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+    .nav-brand-name {
+      font-family: var(--font-serif);
+      font-size: 18px;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+    }
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+    }
+    .nav-links a {
+      font-size: 14px;
+      color: var(--ink-60);
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+    .nav-links a:hover { color: var(--ink); }
+    .nav-cta {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .btn-ghost {
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--ink-80);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: var(--radius-pill);
+      text-decoration: none;
+      transition: color var(--transition), background var(--transition);
+    }
+    .btn-ghost:hover { color: var(--ink); background: var(--ink-10); }
+    .btn-primary {
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 500;
+      color: white;
+      background: var(--sage);
+      border: none;
+      cursor: pointer;
+      padding: 8px 20px;
+      border-radius: var(--radius-pill);
+      text-decoration: none;
+      transition: background var(--transition), transform 0.15s;
+      white-space: nowrap;
+    }
+    .btn-primary:hover { background: var(--sage-dark); transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 1.5rem 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Subtle grain texture overlay */
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      opacity: 0.5;
+    }
+
+    /* Decorative blobs */
+    .hero-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      pointer-events: none;
+      opacity: 0.45;
+    }
+    .hero-blob-1 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, #b4ddd0 0%, transparent 70%);
+      top: -100px; right: -100px;
+    }
+    .hero-blob-2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, #fde8c4 0%, transparent 70%);
+      bottom: 0; left: -80px;
+    }
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--sage);
+      background: var(--sage-light);
+      border: 1px solid rgba(45,122,95,0.2);
+      padding: 5px 14px;
+      border-radius: var(--radius-pill);
+      margin-bottom: 1.75rem;
+      opacity: 0;
+      animation: fadeUp 0.6s ease 0.1s forwards;
+    }
+    .hero-eyebrow-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--sage);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    .hero h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(2.6rem, 6vw, 4.5rem);
+      font-weight: 500;
+      line-height: 1.12;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      max-width: 780px;
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.7s ease 0.2s forwards;
+    }
+    .hero h1 em {
+      font-style: italic;
+      color: var(--sage);
+    }
+
+    .hero-sub {
+      font-size: clamp(1rem, 2vw, 1.15rem);
+      color: var(--ink-60);
+      max-width: 520px;
+      line-height: 1.75;
+      margin-bottom: 2.5rem;
+      opacity: 0;
+      animation: fadeUp 0.7s ease 0.3s forwards;
+    }
+
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 1.25rem;
+      opacity: 0;
+      animation: fadeUp 0.7s ease 0.4s forwards;
+    }
+    .btn-hero {
+      font-family: var(--font-sans);
+      font-size: 15px;
+      font-weight: 500;
+      color: white;
+      background: var(--sage);
+      border: none;
+      cursor: pointer;
+      padding: 14px 32px;
+      border-radius: var(--radius-pill);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: background var(--transition), transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px rgba(45,122,95,0.3);
+    }
+    .btn-hero:hover { background: var(--sage-dark); transform: translateY(-2px); box-shadow: 0 8px 28px rgba(45,122,95,0.38); }
+    .btn-hero:active { transform: translateY(0); }
+    .btn-hero-ghost {
+      font-family: var(--font-sans);
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--ink-80);
+      background: none;
+      border: 1.5px solid var(--cream-dark);
+      cursor: pointer;
+      padding: 13px 28px;
+      border-radius: var(--radius-pill);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: border-color var(--transition), background var(--transition);
+    }
+    .btn-hero-ghost:hover { border-color: var(--ink-30); background: var(--ink-10); }
+
+    .hero-trial-note {
+      font-size: 13px;
+      color: var(--ink-30);
+      opacity: 0;
+      animation: fadeUp 0.7s ease 0.5s forwards;
+    }
+    .hero-trial-note strong { color: var(--ink-60); font-weight: 500; }
+
+    /* ── SOCIAL PROOF STRIP ── */
+    .proof-strip {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      padding: 1.25rem 1.5rem;
+      background: var(--white);
+      border-top: 1px solid var(--cream-dark);
+      border-bottom: 1px solid var(--cream-dark);
+      flex-wrap: wrap;
+      opacity: 0;
+      animation: fadeUp 0.7s ease 0.6s forwards;
+    }
+    .proof-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--ink-60);
+      white-space: nowrap;
+    }
+    .proof-item strong { color: var(--ink); font-weight: 500; }
+    .proof-sep { width: 1px; height: 18px; background: var(--cream-dark); }
+
+    /* ── APP PREVIEW ── */
+    .preview-section {
+      padding: 5rem 1.5rem 4rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .preview-label {
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-30);
+      margin-bottom: 2rem;
+    }
+    .phone-frame {
+      position: relative;
+      width: 320px;
+      max-width: 100%;
+    }
+    .phone-shell {
+      background: var(--ink);
+      border-radius: 44px;
+      padding: 14px;
+      box-shadow: 0 32px 80px rgba(28,26,23,0.22), 0 8px 24px rgba(28,26,23,0.12);
+      position: relative;
+    }
+    .phone-screen {
+      background: var(--cream);
+      border-radius: 32px;
+      overflow: hidden;
+      aspect-ratio: 9/19.5;
+      position: relative;
+    }
+    .phone-notch {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100px;
+      height: 30px;
+      background: var(--ink);
+      border-radius: var(--radius-pill);
+      z-index: 10;
+    }
+
+    /* App UI mockup inside the phone */
+    .mock-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 52px 18px 12px;
+      border-bottom: 1px solid var(--cream-dark);
+    }
+    .mock-nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--font-serif);
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--ink);
+    }
+    .mock-nav-logo {
+      width: 20px; height: 20px; border-radius: 4px;
+    }
+    .mock-streak {
+      font-size: 11px;
+      background: var(--amber-light);
+      color: var(--amber);
+      padding: 2px 8px;
+      border-radius: var(--radius-pill);
+      font-weight: 500;
+    }
+    .mock-body { padding: 14px 16px; }
+    .mock-greeting {
+      font-size: 10px;
+      color: var(--ink-30);
+      margin-bottom: 2px;
+    }
+    .mock-h2 {
+      font-family: var(--font-serif);
+      font-size: 16px;
+      font-weight: 500;
+      color: var(--ink);
+      margin-bottom: 12px;
+    }
+    .mock-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .mock-stat {
+      background: var(--white);
+      border-radius: 8px;
+      padding: 8px 6px;
+      text-align: center;
+      border: 1px solid var(--cream-dark);
+    }
+    .mock-stat-val {
+      font-family: var(--font-serif);
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--sage);
+      line-height: 1;
+    }
+    .mock-stat-key {
+      font-size: 8px;
+      color: var(--ink-30);
+      margin-top: 2px;
+    }
+    .mock-cta {
+      background: var(--sage);
+      color: white;
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 500;
+      margin-bottom: 12px;
+    }
+    .mock-heatmap {
+      background: var(--white);
+      border-radius: 10px;
+      padding: 10px;
+      border: 1px solid var(--cream-dark);
+      margin-bottom: 10px;
+    }
+    .mock-heatmap-title {
+      font-size: 9px;
+      font-weight: 500;
+      color: var(--ink-60);
+      margin-bottom: 6px;
+    }
+    .mock-heatmap-grid {
+      display: flex;
+      gap: 2px;
+    }
+    .mock-heatmap-col {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .mock-heatmap-cell {
+      width: 8px; height: 8px;
+      border-radius: 1.5px;
+      background: var(--cream-dark);
+    }
+    .mock-heatmap-cell.d1 { background: #c8e6da; }
+    .mock-heatmap-cell.d2 { background: #7BBDA4; }
+    .mock-heatmap-cell.d3 { background: #2D7A5F; }
+    .mock-bottom-nav {
+      display: flex;
+      border-top: 1px solid var(--cream-dark);
+      background: var(--white);
+    }
+    .mock-tab {
+      flex: 1;
+      padding: 8px 4px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 8px;
+      color: var(--ink-30);
+    }
+    .mock-tab.active { color: var(--sage); }
+    .mock-tab svg { width: 14px; height: 14px; }
+
+    /* Floating cards around the phone */
+    .float-card {
+      position: absolute;
+      background: white;
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      box-shadow: var(--shadow-md);
+      font-size: 13px;
+      white-space: nowrap;
+      border: 1px solid rgba(28,26,23,0.06);
+      animation: float 4s ease-in-out infinite;
+    }
+    .float-card-1 {
+      left: -120px; top: 18%;
+      animation-delay: 0s;
+    }
+    .float-card-2 {
+      right: -110px; top: 36%;
+      animation-delay: -1.5s;
+    }
+    .float-card-3 {
+      left: -100px; bottom: 18%;
+      animation-delay: -3s;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+    .float-icon { font-size: 20px; margin-bottom: 4px; }
+    .float-title { font-weight: 500; color: var(--ink); font-size: 12px; }
+    .float-sub { color: var(--ink-30); font-size: 11px; margin-top: 1px; }
+
+    /* ── SECTION SHARED ── */
+    section { padding: 5rem 1.5rem; }
+    .section-inner { max-width: 1100px; margin: 0 auto; }
+    .section-eyebrow {
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--sage);
+      margin-bottom: 1rem;
+    }
+    .section-title {
+      font-family: var(--font-serif);
+      font-size: clamp(1.9rem, 3.5vw, 2.8rem);
+      font-weight: 500;
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      margin-bottom: 1rem;
+    }
+    .section-title em { font-style: italic; color: var(--sage); }
+    .section-sub {
+      font-size: 1.05rem;
+      color: var(--ink-60);
+      max-width: 520px;
+      line-height: 1.75;
+    }
+
+    /* ── HOW IT WORKS ── */
+    .steps {
+      background: var(--white);
+      border-top: 1px solid var(--cream-dark);
+      border-bottom: 1px solid var(--cream-dark);
+    }
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 0;
+      margin-top: 3.5rem;
+      border: 1px solid var(--cream-dark);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .step {
+      padding: 2.5rem 2rem;
+      border-right: 1px solid var(--cream-dark);
+      position: relative;
+      transition: background var(--transition);
+    }
+    .step:last-child { border-right: none; }
+    .step:hover { background: var(--cream); }
+    .step-num {
+      font-family: var(--font-serif);
+      font-size: 13px;
+      color: var(--ink-30);
+      margin-bottom: 1rem;
+    }
+    .step-icon {
+      font-size: 28px;
+      margin-bottom: 1rem;
+      display: block;
+    }
+    .step-title {
+      font-family: var(--font-serif);
+      font-size: 18px;
+      font-weight: 500;
+      color: var(--ink);
+      margin-bottom: 0.6rem;
+      line-height: 1.3;
+    }
+    .step-body {
+      font-size: 14px;
+      color: var(--ink-60);
+      line-height: 1.7;
+    }
+    .step-connector {
+      position: absolute;
+      top: 2.5rem;
+      right: -14px;
+      width: 28px;
+      height: 28px;
+      background: var(--sage-light);
+      border: 1.5px solid rgba(45,122,95,0.25);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      color: var(--sage);
+      z-index: 1;
+    }
+    .step:last-child .step-connector { display: none; }
+
+    /* ── FEATURES BENTO ── */
+    .features { background: var(--cream); }
+    .bento {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      grid-template-rows: auto;
+      gap: 16px;
+      margin-top: 3.5rem;
+    }
+    .bento-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      border: 1px solid rgba(28,26,23,0.07);
+      padding: 2rem;
+      overflow: hidden;
+      position: relative;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .bento-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .bento-card.span-5 { grid-column: span 5; }
+    .bento-card.span-7 { grid-column: span 7; }
+    .bento-card.span-4 { grid-column: span 4; }
+    .bento-card.span-8 { grid-column: span 8; }
+    .bento-card.span-6 { grid-column: span 6; }
+    .bento-icon {
+      font-size: 28px;
+      margin-bottom: 1rem;
+      display: block;
+    }
+    .bento-title {
+      font-family: var(--font-serif);
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--ink);
+      margin-bottom: 0.5rem;
+      line-height: 1.3;
+    }
+    .bento-body {
+      font-size: 14px;
+      color: var(--ink-60);
+      line-height: 1.7;
+    }
+    /* accent cards */
+    .bento-card.accent-sage {
+      background: var(--sage);
+      border-color: transparent;
+    }
+    .bento-card.accent-sage .bento-title,
+    .bento-card.accent-sage .bento-body { color: rgba(255,255,255,0.95); }
+    .bento-card.accent-sage .bento-body { color: rgba(255,255,255,0.75); }
+    .bento-card.accent-amber {
+      background: var(--amber-light);
+      border-color: rgba(154,101,32,0.12);
+    }
+
+    /* Breathwork mini-viz inside bento */
+    .breath-ring-demo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 120px;
+      margin-top: 1rem;
+    }
+    .breath-ring-outer {
+      width: 90px; height: 90px;
+      border-radius: 50%;
+      border: 2px solid rgba(45,122,95,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: breathe 4s ease-in-out infinite;
+    }
+    .breath-ring-inner {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: var(--sage-light);
+      border: 1.5px solid rgba(45,122,95,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--sage);
+      animation: breathe 4s ease-in-out infinite;
+    }
+    @keyframes breathe {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.12); }
+    }
+
+    /* Mood viz in bento */
+    .mood-row-demo {
+      display: flex;
+      gap: 6px;
+      margin-top: 1.25rem;
+      align-items: flex-end;
+    }
+    .mood-bar-demo {
+      flex: 1;
+      border-radius: 3px 3px 0 0;
+      min-height: 12px;
+      background: var(--sage-light);
+      position: relative;
+      overflow: hidden;
+    }
+    .mood-bar-demo::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      background: var(--sage);
+      border-radius: 3px 3px 0 0;
+      animation: grow 1.5s ease-out forwards;
+    }
+    @keyframes grow {
+      from { height: 0; }
+      to { height: var(--h, 60%); }
+    }
+
+    /* Streak heatmap demo */
+    .heatmap-demo {
+      display: flex;
+      gap: 3px;
+      margin-top: 1.25rem;
+      flex-wrap: wrap;
+    }
+    .hd-cell {
+      width: 14px; height: 14px;
+      border-radius: 3px;
+      background: var(--cream-dark);
+    }
+    .hd-cell.lit { background: var(--sage); }
+    .hd-cell.mid { background: #7BBDA4; }
+    .hd-cell.low { background: #c8e6da; }
+
+    /* ── SCIENCE SECTION ── */
+    .science {
+      background: var(--ink);
+      color: white;
+    }
+    .science .section-eyebrow { color: #7BBDA4; }
+    .science .section-title { color: white; }
+    .science .section-sub { color: rgba(255,255,255,0.6); }
+    .science-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5px;
+      margin-top: 3.5rem;
+      background: rgba(255,255,255,0.06);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .science-stat {
+      padding: 2.5rem 2rem;
+      background: var(--ink);
+      transition: background var(--transition);
+    }
+    .science-stat:hover { background: rgba(255,255,255,0.04); }
+    .science-stat-num {
+      font-family: var(--font-serif);
+      font-size: 3.5rem;
+      font-weight: 500;
+      color: #7BBDA4;
+      line-height: 1;
+      margin-bottom: 0.75rem;
+    }
+    .science-stat-label {
+      font-size: 15px;
+      color: rgba(255,255,255,0.85);
+      margin-bottom: 0.4rem;
+      font-weight: 500;
+    }
+    .science-stat-source {
+      font-size: 12px;
+      color: rgba(255,255,255,0.3);
+    }
+
+    /* ── TESTIMONIALS ── */
+    .testimonials { background: var(--white); }
+    .testi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+      margin-top: 3.5rem;
+    }
+    .testi-card {
+      background: var(--cream);
+      border-radius: var(--radius-md);
+      padding: 1.75rem;
+      border: 1px solid var(--cream-dark);
+      transition: box-shadow 0.2s;
+    }
+    .testi-card:hover { box-shadow: var(--shadow-sm); }
+    .testi-stars {
+      display: flex;
+      gap: 3px;
+      margin-bottom: 1rem;
+      color: #F4A623;
+      font-size: 14px;
+    }
+    .testi-text {
+      font-family: var(--font-serif);
+      font-size: 15px;
+      color: var(--ink);
+      line-height: 1.75;
+      font-style: italic;
+      margin-bottom: 1.25rem;
+    }
+    .testi-author {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .testi-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 500;
+      color: white;
+      flex-shrink: 0;
+    }
+    .testi-name { font-size: 13px; font-weight: 500; color: var(--ink); }
+    .testi-meta { font-size: 12px; color: var(--ink-30); }
+
+    /* ── PRICING ── */
+    .pricing { background: var(--cream); }
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+      max-width: 700px;
+      margin: 3.5rem auto 0;
+    }
+    .pricing-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 2.25rem 2rem;
+      border: 1.5px solid var(--cream-dark);
+      position: relative;
+      transition: box-shadow 0.2s;
+    }
+    .pricing-card:hover { box-shadow: var(--shadow-md); }
+    .pricing-card.featured {
+      border-color: var(--sage);
+      box-shadow: 0 0 0 4px rgba(45,122,95,0.08);
+    }
+    .pricing-badge {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--sage);
+      color: white;
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 14px;
+      border-radius: var(--radius-pill);
+      white-space: nowrap;
+    }
+    .pricing-name {
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--ink-30);
+      margin-bottom: 1rem;
+    }
+    .pricing-price {
+      font-family: var(--font-serif);
+      font-size: 3rem;
+      font-weight: 500;
+      color: var(--ink);
+      line-height: 1;
+      margin-bottom: 0.25rem;
+    }
+    .pricing-price sup {
+      font-size: 1.4rem;
+      vertical-align: top;
+      margin-top: 0.5rem;
+      font-family: var(--font-sans);
+    }
+    .pricing-period { font-size: 14px; color: var(--ink-30); margin-bottom: 1.75rem; }
+    .pricing-features { list-style: none; margin-bottom: 2rem; }
+    .pricing-features li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--ink-60);
+      padding: 6px 0;
+      line-height: 1.5;
+    }
+    .pricing-features li::before {
+      content: '✓';
+      color: var(--sage);
+      font-weight: 600;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .pricing-features li.dim { color: var(--ink-30); }
+    .pricing-features li.dim::before { color: var(--ink-30); content: '—'; }
+    .pricing-btn {
+      width: 100%;
+      font-family: var(--font-sans);
+      font-size: 15px;
+      font-weight: 500;
+      padding: 13px;
+      border-radius: var(--radius-pill);
+      border: 1.5px solid var(--cream-dark);
+      background: none;
+      color: var(--ink-80);
+      cursor: pointer;
+      text-align: center;
+      text-decoration: none;
+      display: block;
+      transition: all var(--transition);
+    }
+    .pricing-btn:hover { border-color: var(--ink-30); background: var(--ink-10); }
+    .pricing-btn.featured {
+      background: var(--sage);
+      border-color: transparent;
+      color: white;
+      box-shadow: 0 4px 16px rgba(45,122,95,0.28);
+    }
+    .pricing-btn.featured:hover { background: var(--sage-dark); }
+    .pricing-note {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 13px;
+      color: var(--ink-30);
+    }
+
+    /* ── FAQ ── */
+    .faq { background: var(--white); }
+    .faq-list {
+      max-width: 680px;
+      margin: 3rem auto 0;
+    }
+    .faq-item {
+      border-bottom: 1px solid var(--cream-dark);
+    }
+    .faq-q {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 1.25rem 0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-family: var(--font-sans);
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--ink);
+      text-align: left;
+      transition: color var(--transition);
+    }
+    .faq-q:hover { color: var(--sage); }
+    .faq-chevron {
+      font-size: 18px;
+      color: var(--ink-30);
+      transition: transform 0.25s;
+      flex-shrink: 0;
+    }
+    .faq-item.open .faq-chevron { transform: rotate(45deg); }
+    .faq-a {
+      font-size: 14px;
+      color: var(--ink-60);
+      line-height: 1.75;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s ease, padding 0.25s;
+    }
+    .faq-item.open .faq-a {
+      max-height: 300px;
+      padding-bottom: 1.25rem;
+    }
+
+    /* ── FINAL CTA ── */
+    .final-cta {
+      background: var(--sage);
+      padding: 6rem 1.5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .final-cta::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.06'/%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+    .final-cta .section-eyebrow { color: rgba(255,255,255,0.6); }
+    .final-cta h2 {
+      font-family: var(--font-serif);
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      font-weight: 500;
+      color: white;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 1rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .final-cta h2 em { font-style: italic; color: rgba(255,255,255,0.65); }
+    .final-cta p {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 2.5rem;
+    }
+    .btn-cta-white {
+      font-family: var(--font-sans);
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--sage-dark);
+      background: white;
+      border: none;
+      cursor: pointer;
+      padding: 14px 36px;
+      border-radius: var(--radius-pill);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px rgba(28,26,23,0.2);
+    }
+    .btn-cta-white:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(28,26,23,0.25); }
+    .final-trial-note {
+      font-size: 13px;
+      color: rgba(255,255,255,0.45);
+      margin-top: 1rem;
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--ink);
+      color: rgba(255,255,255,0.5);
+      padding: 3rem 1.5rem;
+    }
+    .footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: gap;
+      gap: 1.5rem;
+    }
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: white;
+    }
+    .footer-brand-name {
+      font-family: var(--font-serif);
+      font-size: 16px;
+      font-weight: 500;
+    }
+    .footer-links {
+      display: flex;
+      gap: 2rem;
+      flex-wrap: wrap;
+    }
+    .footer-links a {
+      font-size: 13px;
+      color: rgba(255,255,255,0.4);
+      text-decoration: none;
+      transition: color var(--transition);
+    }
+    .footer-links a:hover { color: rgba(255,255,255,0.8); }
+    .footer-copy {
+      font-size: 12px;
+      color: rgba(255,255,255,0.2);
+    }
+
+    /* ── SCROLL ANIMATIONS ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .bento-card.span-5,
+      .bento-card.span-7,
+      .bento-card.span-4,
+      .bento-card.span-8,
+      .bento-card.span-6 { grid-column: span 12; }
+      .float-card { display: none; }
+      .steps-grid { border-radius: var(--radius-md); }
+      .step { border-right: none; border-bottom: 1px solid var(--cream-dark); }
+      .step:last-child { border-bottom: none; }
+      .step-connector { display: none; }
+    }
+    @media (max-width: 640px) {
+      nav { padding: 0 1rem; }
+      .nav-links { display: none; }
+      .hero { padding: 100px 1.25rem 60px; }
+      section { padding: 4rem 1.25rem; }
+      .phone-frame { width: 260px; }
+      .footer-inner { flex-direction: column; align-items: flex-start; }
+    }
+    /* ── BLOG ── */
+    .blog-section { background: var(--cream); padding: 6rem 1.5rem; }
+    .blog-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-top: 1rem; }
+    @media (max-width: 700px) { .blog-grid { grid-template-columns: 1fr; } }
+    .blog-card {
+      display: flex; flex-direction: column; gap: 0.75rem;
+      background: var(--white); border: 1px solid var(--ink-15);
+      border-radius: 20px; padding: 1.75rem 1.5rem;
+      text-decoration: none; color: inherit;
+      transition: box-shadow 0.2s, transform 0.2s;
+      box-shadow: 0 1px 3px rgba(28,26,23,0.06);
+    }
+    .blog-card:hover { box-shadow: 0 8px 28px rgba(28,26,23,0.1); transform: translateY(-2px); }
+    .blog-card-tag {
+      display: inline-block; font-size: 11px; font-weight: 500;
+      letter-spacing: 0.8px; text-transform: uppercase;
+      color: var(--sage); background: #EDF5F1;
+      padding: 3px 10px; border-radius: 100px;
+      border: 1px solid rgba(45,122,95,0.15); width: fit-content;
+    }
+    .blog-card-title { font-family: 'Lora', Georgia, serif; font-size: 18px; font-weight: 500; color: var(--ink); line-height: 1.35; margin: 0; }
+    .blog-card-excerpt { font-size: 14px; color: var(--ink-60); line-height: 1.7; margin: 0; flex: 1; }
+    .blog-card-read { font-size: 13px; font-weight: 500; color: var(--sage); margin-top: auto; }
+  </style>
+</head>
+<body>
+
+<!-- ── NAV ── -->
+<nav id="main-nav">
+  <a href="/" class="nav-brand">
+    <svg class="nav-logo-mark" viewBox="0 0 104 104">
+      <rect width="104" height="104" rx="22" fill="#2D7A5F"/>
+      <path d="M52,78 C52,78 52,55 52,45" stroke="white" stroke-width="4" stroke-linecap="round" fill="none"/>
+      <path d="M52,55 C52,55 38,48 30,35 C38,32 50,38 52,55Z" fill="white"/>
+      <path d="M52,50 C52,50 66,43 74,30 C66,27 54,33 52,50Z" fill="white" opacity="0.85"/>
+      <path d="M52,65 C52,65 42,60 36,50 C42,48 52,54 52,65Z" fill="white" opacity="0.7"/>
+    </svg>
+    <span class="nav-brand-name">Gratitude</span>
+  </a>
+  <div class="nav-links">
+    <a href="#how-it-works">How it works</a>
+    <a href="#features">Features</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#faq">FAQ</a>
+  </div>
+  <div class="nav-cta">
+    <a href="/index.html" class="btn-ghost">Sign in</a>
+    <a href="/index.html" class="btn-primary">Start free trial →</a>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-blob hero-blob-1"></div>
+  <div class="hero-blob hero-blob-2"></div>
+
+  <div class="hero-eyebrow">
+    <span class="hero-eyebrow-dot"></span>
+    Voice journaling · 5 minutes a day
+  </div>
+
+  <h1>The journal you'll<br/><em>actually keep</em></h1>
+
+  <p class="hero-sub">
+    Speak your thoughts, track your mood, and watch your mindset shift.
+    Guided questions, breathwork, and science-backed streaks — all in one quiet place.
+  </p>
+
+  <div class="hero-actions">
+    <a href="/index.html" class="btn-hero">
+      Start your free trial
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+    </a>
+    <a href="#how-it-works" class="btn-hero-ghost">See how it works</a>
+  </div>
+
+  <p class="hero-trial-note"><strong>3 days free</strong> · then $1.99 / month · cancel anytime</p>
+</section>
+
+<!-- ── SOCIAL PROOF ── -->
+<div class="proof-strip reveal">
+  <div class="proof-item">
+    <span>⭐⭐⭐⭐⭐</span>
+    <span><strong>4.9</strong> average rating</span>
+  </div>
+  <div class="proof-sep"></div>
+  <div class="proof-item">🔒 <span><strong>End-to-end</strong> encrypted</span></div>
+  <div class="proof-sep"></div>
+  <div class="proof-item">📱 <span>Works on <strong>any device</strong></span></div>
+  <div class="proof-sep"></div>
+  <div class="proof-item">🧬 <span><strong>Science-backed</strong> prompts</span></div>
+</div>
+
+<!-- ── APP PREVIEW ── -->
+<div class="preview-section">
+  <p class="preview-label reveal">The app</p>
+  <div class="phone-frame reveal">
+    <!-- Floating cards -->
+    <div class="float-card float-card-1">
+      <div class="float-icon">🔥</div>
+      <div class="float-title">14-day streak</div>
+      <div class="float-sub">Keep it going →</div>
+    </div>
+    <div class="float-card float-card-2">
+      <div class="float-icon">😊→😄</div>
+      <div class="float-title">+2 mood lift</div>
+      <div class="float-sub">Today's session</div>
+    </div>
+    <div class="float-card float-card-3">
+      <div class="float-icon">🌱</div>
+      <div class="float-title">First week!</div>
+      <div class="float-sub">Badge unlocked</div>
+    </div>
+
+    <div class="phone-shell">
+      <div class="phone-screen">
+        <div class="phone-notch"></div>
+
+        <!-- App UI mockup -->
+        <div class="mock-nav">
+          <div class="mock-nav-brand">
+            <svg class="mock-nav-logo" viewBox="0 0 104 104">
+              <rect width="104" height="104" rx="22" fill="#2D7A5F"/>
+              <path d="M52,78 C52,78 52,55 52,45" stroke="white" stroke-width="4" stroke-linecap="round" fill="none"/>
+              <path d="M52,55 C52,55 38,48 30,35 C38,32 50,38 52,55Z" fill="white"/>
+              <path d="M52,50 C52,50 66,43 74,30 C66,27 54,33 52,50Z" fill="white" opacity="0.85"/>
+            </svg>
+            Gratitude
+          </div>
+          <div class="mock-streak">🔥 14</div>
+        </div>
+
+        <div class="mock-body">
+          <div class="mock-greeting">Good morning</div>
+          <div class="mock-h2">Hello, Sarah ✨</div>
+
+          <div class="mock-stats">
+            <div class="mock-stat">
+              <div class="mock-stat-val">14</div>
+              <div class="mock-stat-key">Day streak</div>
+            </div>
+            <div class="mock-stat">
+              <div class="mock-stat-val">47</div>
+              <div class="mock-stat-key">Entries</div>
+            </div>
+            <div class="mock-stat">
+              <div class="mock-stat-val">5</div>
+              <div class="mock-stat-key">This week</div>
+            </div>
+          </div>
+
+          <div class="mock-cta">Begin today's journal →</div>
+
+          <div class="mock-heatmap">
+            <div class="mock-heatmap-title">Your journey</div>
+            <div class="mock-heatmap-grid" id="mockHeatmap"></div>
+          </div>
+        </div>
+
+        <div class="mock-bottom-nav">
+          <div class="mock-tab active">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+            Home
+          </div>
+          <div class="mock-tab">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/></svg>
+            History
+          </div>
+          <div class="mock-tab">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+            Learn
+          </div>
+          <div class="mock-tab">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            You
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── HOW IT WORKS ── -->
+<section class="steps" id="how-it-works">
+  <div class="section-inner">
+    <div class="section-eyebrow reveal">How it works</div>
+    <h2 class="section-title reveal">Five minutes.<br/>A lifetime of difference.</h2>
+    <p class="section-sub reveal">No blank pages. No pressure. Just thoughtful questions that meet you where you are.</p>
+
+    <div class="steps-grid reveal">
+      <div class="step">
+        <div class="step-num">01</div>
+        <span class="step-icon">🫁</span>
+        <div class="step-title">Ground yourself first</div>
+        <div class="step-body">Begin with a short breathwork exercise — box breathing, 4-7-8, or belly breathing. Even two minutes transforms the quality of what you write.</div>
+        <div class="step-connector">→</div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <span class="step-icon">😐</span>
+        <div class="step-title">Check in with your mood</div>
+        <div class="step-body">A quick mood rating before and after. Watching that shift over time — session after session — is one of the most motivating things you'll ever track.</div>
+        <div class="step-connector">→</div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <span class="step-icon">🎙️</span>
+        <div class="step-title">Speak or type</div>
+        <div class="step-body">Answer five guided questions out loud, or type them. Voice transcription means you never have to stare at a blank page wondering what to write.</div>
+        <div class="step-connector">→</div>
+      </div>
+      <div class="step">
+        <div class="step-num">04</div>
+        <span class="step-icon">📈</span>
+        <div class="step-title">Watch your growth</div>
+        <div class="step-body">Streaks, heatmaps, mood trends, and milestone badges track your consistency. Your history becomes a record of who you were becoming.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FEATURES BENTO ── -->
+<section class="features" id="features">
+  <div class="section-inner">
+    <div class="section-eyebrow reveal">Everything you need</div>
+    <h2 class="section-title reveal">Built around how<br/><em>habits actually form</em></h2>
+    <p class="section-sub reveal">Every feature exists for a reason — informed by the psychology of consistency, not app-store checkbox lists.</p>
+
+    <div class="bento reveal">
+      <!-- Row 1 -->
+      <div class="bento-card span-7 accent-sage">
+        <span class="bento-icon">🎙️</span>
+        <div class="bento-title">Voice-first journaling</div>
+        <div class="bento-body">Speak naturally and watch your words appear. No typing friction means lower barriers — and lower barriers means you actually show up. Works in any English accent.</div>
+      </div>
+      <div class="bento-card span-5">
+        <span class="bento-icon">🫁</span>
+        <div class="bento-title">Built-in breathwork</div>
+        <div class="bento-body">Three scientifically-grounded exercises before every session. Box breathing, 4-7-8, and belly breathing — with voice guidance and an animated ring.</div>
+        <div class="breath-ring-demo">
+          <div class="breath-ring-outer">
+            <div class="breath-ring-inner">Breathe</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Row 2 -->
+      <div class="bento-card span-4">
+        <span class="bento-icon">📊</span>
+        <div class="bento-title">Mood tracking</div>
+        <div class="bento-body">Rate how you feel before and after every session. The average lift across your history is one of the most rewarding numbers you'll ever watch go up.</div>
+        <div class="mood-row-demo">
+          <div class="mood-bar-demo" style="--h:30%;"><div style="height:30%;background:#c8e6da;border-radius:3px 3px 0 0;"></div></div>
+          <div class="mood-bar-demo" style="--h:55%;"><div style="height:55%;background:#7BBDA4;border-radius:3px 3px 0 0;"></div></div>
+          <div class="mood-bar-demo" style="--h:45%;"><div style="height:45%;background:#7BBDA4;border-radius:3px 3px 0 0;"></div></div>
+          <div class="mood-bar-demo" style="--h:70%;"><div style="height:70%;background:#2D7A5F;border-radius:3px 3px 0 0;"></div></div>
+          <div class="mood-bar-demo" style="--h:80%;"><div style="height:80%;background:#2D7A5F;border-radius:3px 3px 0 0;"></div></div>
+          <div class="mood-bar-demo" style="--h:60%;"><div style="height:60%;background:#7BBDA4;border-radius:3px 3px 0 0;"></div></div>
+          <div class="mood-bar-demo" style="--h:90%;"><div style="height:90%;background:#1E5C46;border-radius:3px 3px 0 0;"></div></div>
+        </div>
+      </div>
+      <div class="bento-card span-4">
+        <span class="bento-icon">🔥</span>
+        <div class="bento-title">Streaks that stick</div>
+        <div class="bento-body">A daily streak counter, weekly freeze protection, and milestone badges at 7, 14, 30, 60, and 100 days. Losing a streak hurts just enough to matter.</div>
+        <div class="heatmap-demo">
+          <!-- Fake heatmap data -->
+          <script>
+            document.addEventListener('DOMContentLoaded', () => {
+              const hd = document.querySelector('.heatmap-demo');
+              if (!hd) return;
+              const pattern = [0,1,2,3,2,1,0,2,3,3,2,3,1,0,3,3,2,3,3,1,2,3,3,3,2,3,3,3,3,1,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3];
+              const cls = ['','low','mid','lit'];
+              pattern.forEach(v => {
+                const d = document.createElement('div');
+                d.className = 'hd-cell' + (v ? ' ' + cls[v] : '');
+                hd.appendChild(d);
+              });
+            });
+          </script>
+        </div>
+      </div>
+      <div class="bento-card span-4 accent-amber">
+        <span class="bento-icon">💡</span>
+        <div class="bento-title">Learn tab</div>
+        <div class="bento-body">20 evidence-based wellness techniques — breathing, mindfulness, sleep, movement, journaling — with step-by-step instructions and a completion tracker.</div>
+      </div>
+
+      <!-- Row 3 -->
+      <div class="bento-card span-6">
+        <span class="bento-icon">☁️</span>
+        <div class="bento-title">Encrypted cloud sync</div>
+        <div class="bento-body">Your entries live securely in the cloud. Sign in from any device — phone, tablet, desktop — and your journal is always there. Only you can read it.</div>
+      </div>
+      <div class="bento-card span-6">
+        <span class="bento-icon">🌙</span>
+        <div class="bento-title">Dark mode & AI voice</div>
+        <div class="bento-body">Auto dark mode that follows your system. Optional ElevenLabs voice narration reads questions aloud in a calm, natural voice — perfect for eyes-closed journaling.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SCIENCE ── -->
+<section class="science">
+  <div class="section-inner">
+    <div class="section-eyebrow reveal">The science</div>
+    <h2 class="section-title reveal">Gratitude isn't just<br/>a feeling. It's a practice.</h2>
+    <p class="section-sub reveal">Decades of peer-reviewed research show that consistent reflective writing changes how your brain processes the world.</p>
+
+    <div class="science-grid reveal">
+      <div class="science-stat">
+        <div class="science-stat-num">28%</div>
+        <div class="science-stat-label">Reduction in anxiety</div>
+        <div class="science-stat-source">with consistent expressive writing · Pennebaker, 1997</div>
+      </div>
+      <div class="science-stat">
+        <div class="science-stat-num">23%</div>
+        <div class="science-stat-label">Lower cortisol levels</div>
+        <div class="science-stat-source">in regular gratitude practice participants · UC Davis, 2003</div>
+      </div>
+      <div class="science-stat">
+        <div class="science-stat-num">19%</div>
+        <div class="science-stat-label">Improved sleep quality</div>
+        <div class="science-stat-source">from pre-bed gratitude journaling · Applied Psychology, 2011</div>
+      </div>
+      <div class="science-stat">
+        <div class="science-stat-num">66</div>
+        <div class="science-stat-label">Days to form a habit</div>
+        <div class="science-stat-source">on average, not 21 · UCL / Phillippa Lally, 2010</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── TESTIMONIALS ── -->
+<section class="testimonials">
+  <div class="section-inner">
+    <div class="section-eyebrow reveal">What people say</div>
+    <h2 class="section-title reveal">Small habit.<br/><em>Real change.</em></h2>
+
+    <div class="testi-grid reveal">
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">"I've tried every journaling app. This is the first one I've kept coming back to after week one. The voice input is a game-changer — I journal in bed without turning on a light."</div>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:#2D7A5F;">MK</div>
+          <div>
+            <div class="testi-name">Maya K.</div>
+            <div class="testi-meta">42-day streak</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">"The mood tracking before and after each session made me realise how much the journaling actually shifts my state. I thought it was placebo. The data proved me wrong."</div>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:#9A6520;">JR</div>
+          <div>
+            <div class="testi-name">James R.</div>
+            <div class="testi-meta">78 entries logged</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <div class="testi-text">"The breathwork before writing is genius. By the time I get to the questions I'm actually calm enough to be honest. $1.99 for this is genuinely absurd value."</div>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:#5B4A8A;">AL</div>
+          <div>
+            <div class="testi-name">Aisha L.</div>
+            <div class="testi-meta">30-day badge earned</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── PRICING ── -->
+<section class="pricing" id="pricing">
+  <div class="section-inner" style="text-align:center;">
+    <div class="section-eyebrow reveal">Pricing</div>
+    <h2 class="section-title reveal" style="margin:0 auto 1rem;">Less than a<br/>coffee a month.</h2>
+    <p class="section-sub reveal" style="margin:0 auto;">No tricks, no tiers, no "unlock more with Pro." Everything is included from day one.</p>
+
+    <div class="pricing-grid reveal">
+      <div class="pricing-card">
+        <div class="pricing-name">Free trial</div>
+        <div class="pricing-price"><sup>$</sup>0</div>
+        <div class="pricing-period">for 3 days</div>
+        <ul class="pricing-features">
+          <li>Full access to all features</li>
+          <li>Unlimited journal sessions</li>
+          <li>Cloud sync across devices</li>
+          <li>No credit card required</li>
+        </ul>
+        <a href="/index.html" class="pricing-btn">Start free trial</a>
+      </div>
+      <div class="pricing-card featured">
+        <div class="pricing-badge">Everything included</div>
+        <div class="pricing-name">Monthly</div>
+        <div class="pricing-price"><sup>$</sup>1.99</div>
+        <div class="pricing-period">per month · cancel anytime</div>
+        <ul class="pricing-features">
+          <li>Unlimited journal sessions</li>
+          <li>Voice + type input</li>
+          <li>Mood tracking & trends</li>
+          <li>Breathwork exercises</li>
+          <li>Streak & badge system</li>
+          <li>Cloud sync & encrypted backup</li>
+          <li>20 wellness techniques</li>
+          <li>AI voice narration (bring your key)</li>
+        </ul>
+        <a href="/index.html" class="pricing-btn featured">Start free trial →</a>
+      </div>
+    </div>
+    <p class="pricing-note reveal">3-day free trial included. No credit card needed to start.</p>
+  </div>
+</section>
+
+<!-- ── BLOG ── -->
+<section class="blog-section" id="blog">
+  <div class="section-inner">
+    <div class="section-eyebrow reveal" style="text-align:center;">From the journal</div>
+    <h2 class="section-title reveal" style="text-align:center;">Learn the practice</h2>
+    <p class="section-sub reveal" style="text-align:center;max-width:520px;margin:0 auto 3rem;">Research-backed guides on building habits that last, reducing stress, and getting the most from your journaling practice.</p>
+    <div class="blog-grid reveal">
+      <a href="/blog-gratitude-practice.html" class="blog-card">
+        <div class="blog-card-tag">Gratitude</div>
+        <h3 class="blog-card-title">How to Start a Gratitude Practice That Actually Sticks</h3>
+        <p class="blog-card-excerpt">Most gratitude practices fail in the first week. Here's the science-backed method that works — and why specificity is the only thing that matters.</p>
+        <span class="blog-card-read">Read article →</span>
+      </a>
+      <a href="/blog-journaling-habits.html" class="blog-card">
+        <div class="blog-card-tag">Habits</div>
+        <h3 class="blog-card-title">The Science of Building a Daily Journaling Habit</h3>
+        <p class="blog-card-excerpt">Habit researchers have identified exactly why journaling habits fail. The fix is simpler than you think — and it has nothing to do with motivation.</p>
+        <span class="blog-card-read">Read article →</span>
+      </a>
+      <a href="/blog-breathing-exercises.html" class="blog-card">
+        <div class="blog-card-tag">Breathing</div>
+        <h3 class="blog-card-title">5 Breathing Exercises That Reduce Stress in Minutes</h3>
+        <p class="blog-card-excerpt">Box breathing, 4-7-8, and the physiological sigh — a practical guide to the techniques used by Navy SEALs, therapists, and sleep scientists.</p>
+        <span class="blog-card-read">Read article →</span>
+      </a>
+      <a href="/blog-morning-routine.html" class="blog-card">
+        <div class="blog-card-tag">Morning routine</div>
+        <h3 class="blog-card-title">Why the First 10 Minutes of Your Morning Define Everything</h3>
+        <p class="blog-card-excerpt">What you do in the first ten minutes after waking sets your cortisol level, your mood baseline, and your cognitive capacity for the entire day.</p>
+        <span class="blog-card-read">Read article →</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── FAQ ── -->
+<section class="faq" id="faq">
+  <div class="section-inner">
+    <div class="section-eyebrow reveal" style="text-align:center;">Questions</div>
+    <h2 class="section-title reveal" style="text-align:center;">Common questions</h2>
+
+    <div class="faq-list reveal">
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Do I need to speak out loud, or can I type?
+          <span class="faq-chevron">+</span>
+        </button>
+        <div class="faq-a">Both, and you can switch mid-session. Voice input uses your device's speech recognition — no extra permissions or accounts needed. If you prefer typing, tap the keyboard icon. Your choice is saved per session.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Is my journal private? Who can see my entries?
+          <span class="faq-chevron">+</span>
+        </button>
+        <div class="faq-a">Only you. Entries are stored in a private Supabase database tied to your account, protected by row-level security. No one at Gratitude can read your journal. We don't train AI on your data.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          What is a streak freeze?
+          <span class="faq-chevron">+</span>
+        </button>
+        <div class="faq-a">One free freeze per week. If you miss a day, you can apply it retroactively to protect your streak. We believe in making habits forgiving, not punishing — life happens.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          What's the ElevenLabs voice option?
+          <span class="faq-chevron">+</span>
+        </button>
+        <div class="faq-a">Gratitude can read your journal questions aloud in a calm, natural AI voice using ElevenLabs. Get a free API key at elevenlabs.io and paste it into Settings. If you don't add one, the app uses your device's built-in text-to-speech instead.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Can I export my entries?
+          <span class="faq-chevron">+</span>
+        </button>
+        <div class="faq-a">PDF export is coming soon. In the meantime, your History page shows every entry with full search and filter. Your data is never locked in — you can always view and copy your entries.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          How do I cancel?
+          <span class="faq-chevron">+</span>
+        </button>
+        <div class="faq-a">Cancel anytime from the subscription settings. No hoops, no "are you sure?" email sequences, no 30-day notice period. Cancel in one tap and you won't be charged again.</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">
+          Does it work offline?
+          <span class="faq-chevron">+</span>
+        </button>
+        <div class="faq-a">Gratitude is a Progressive Web App — it loads and runs even without a connection. If you journal offline, your entry saves locally and syncs to the cloud the moment you reconnect.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FINAL CTA ── -->
+<section class="final-cta">
+  <div class="section-eyebrow reveal">Start today</div>
+  <h2 class="reveal">Your future self will<br/><em>thank you</em> for this.</h2>
+  <p class="reveal">Five minutes a day. No equipment, no expertise, no prior experience. Just you, your thoughts, and a quiet moment to reflect.</p>
+  <a href="/index.html" class="btn-cta-white reveal">
+    Start your free trial
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+  </a>
+  <p class="final-trial-note reveal">3 days free · $1.99/month after · cancel anytime</p>
+</section>
+
+<!-- ── BLOG ── -->
+<section style="padding:6rem 1.5rem;background:var(--cream-dark);" id="blog">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div style="text-align:center;margin-bottom:3rem;">
+      <div style="display:inline-block;font-size:11px;font-weight:500;letter-spacing:1.2px;text-transform:uppercase;color:var(--sage);background:var(--sage-light);padding:4px 14px;border-radius:100px;margin-bottom:1rem;border:1px solid rgba(45,122,95,0.15);">From the journal</div>
+      <h2 style="font-family:var(--font-serif);font-size:clamp(26px,4vw,36px);font-weight:500;letter-spacing:-0.3px;margin-bottom:0.5rem;">Research &amp; practice</h2>
+      <p style="font-size:16px;color:var(--ink-60);max-width:480px;margin:0 auto;">Evidence-backed guides on gratitude, journaling, and mental wellness.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;">
+      <a href="/blog-gratitude-practice.html" style="background:var(--white);border:1px solid var(--ink-15);border-radius:20px;padding:1.75rem;text-decoration:none;display:block;transition:box-shadow 0.2s,transform 0.2s;" onmouseover="this.style.boxShadow='0 4px 20px rgba(28,26,23,0.1)';this.style.transform='translateY(-3px)'" onmouseout="this.style.boxShadow='none';this.style.transform='translateY(0)'">
+        <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.8px;color:var(--sage);margin-bottom:10px;">Gratitude practice</div>
+        <div style="font-family:var(--font-serif);font-size:19px;font-weight:500;color:var(--ink);line-height:1.35;margin-bottom:10px;">How to start a gratitude practice that actually sticks</div>
+        <div style="font-size:13px;color:var(--ink-60);">6 min read</div>
+      </a>
+      <a href="/blog-journaling-habits.html" style="background:var(--white);border:1px solid var(--ink-15);border-radius:20px;padding:1.75rem;text-decoration:none;display:block;transition:box-shadow 0.2s,transform 0.2s;" onmouseover="this.style.boxShadow='0 4px 20px rgba(28,26,23,0.1)';this.style.transform='translateY(-3px)'" onmouseout="this.style.boxShadow='none';this.style.transform='translateY(0)'">
+        <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.8px;color:var(--sage);margin-bottom:10px;">Habits</div>
+        <div style="font-family:var(--font-serif);font-size:19px;font-weight:500;color:var(--ink);line-height:1.35;margin-bottom:10px;">The daily journaling habits that changed people's lives</div>
+        <div style="font-size:13px;color:var(--ink-60);">7 min read</div>
+      </a>
+      <a href="/blog-breathing-exercises.html" style="background:var(--white);border:1px solid var(--ink-15);border-radius:20px;padding:1.75rem;text-decoration:none;display:block;transition:box-shadow 0.2s,transform 0.2s;" onmouseover="this.style.boxShadow='0 4px 20px rgba(28,26,23,0.1)';this.style.transform='translateY(-3px)'" onmouseout="this.style.boxShadow='none';this.style.transform='translateY(0)'">
+        <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.8px;color:var(--sage);margin-bottom:10px;">Breathwork</div>
+        <div style="font-family:var(--font-serif);font-size:19px;font-weight:500;color:var(--ink);line-height:1.35;margin-bottom:10px;">The 5 breathing exercises that actually reduce stress</div>
+        <div style="font-size:13px;color:var(--ink-60);">8 min read</div>
+      </a>
+      <a href="/blog-anxiety-journaling.html" style="background:var(--white);border:1px solid var(--ink-15);border-radius:20px;padding:1.75rem;text-decoration:none;display:block;transition:box-shadow 0.2s,transform 0.2s;" onmouseover="this.style.boxShadow='0 4px 20px rgba(28,26,23,0.1)';this.style.transform='translateY(-3px)'" onmouseout="this.style.boxShadow='none';this.style.transform='translateY(0)'">
+        <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.8px;color:var(--sage);margin-bottom:10px;">Mental health</div>
+        <div style="font-family:var(--font-serif);font-size:19px;font-weight:500;color:var(--ink);line-height:1.35;margin-bottom:10px;">How journaling helps with anxiety — what the research says</div>
+        <div style="font-size:13px;color:var(--ink-60);">7 min read</div>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-inner">
+    <a href="/" class="footer-brand">
+      <svg width="28" height="28" viewBox="0 0 104 104" style="border-radius:7px;flex-shrink:0;">
+        <rect width="104" height="104" rx="22" fill="#2D7A5F"/>
+        <path d="M52,78 C52,78 52,55 52,45" stroke="white" stroke-width="4" stroke-linecap="round" fill="none"/>
+        <path d="M52,55 C52,55 38,48 30,35 C38,32 50,38 52,55Z" fill="white"/>
+        <path d="M52,50 C52,50 66,43 74,30 C66,27 54,33 52,50Z" fill="white" opacity="0.85"/>
+        <path d="M52,65 C52,65 42,60 36,50 C42,48 52,54 52,65Z" fill="white" opacity="0.7"/>
+      </svg>
+      <span class="footer-brand-name">Gratitude</span>
+    </a>
+    <div class="footer-links">
+      <a href="/index.html">Sign in</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+      <a href="#blog">Blog</a>
+      <a href="#blog">Blog</a>
+      <a href="/legal.html">Privacy &amp; Terms</a>
+    </div>
+    <div class="footer-copy">© 2026 Gratitude. All rights reserved.</div>
+  </div>
+</footer>
+
+<script>
+  // Nav scroll effect
+  const nav = document.getElementById('main-nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 20);
+  }, { passive: true });
+
+  // Reveal on scroll
+  const revealEls = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  revealEls.forEach(el => observer.observe(el));
+
+  // FAQ accordion
+  function toggleFaq(btn) {
+    const item = btn.parentElement;
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  }
+
+  // Build phone mockup heatmap
+  (function buildHeatmap() {
+    const wrap = document.getElementById('mockHeatmap');
+    if (!wrap) return;
+    const cols = 9, rows = 5;
+    const data = [0,2,3,2,1,3,3,2,0,1,3,3,3,2,3,3,1,0,2,3,3,3,3,3,2,0,0,1,2,3,3,3,3,2,1,0,0,1,2,3,3,3,2];
+    const cls = ['','low','mid','lit'];
+    for (let c = 0; c < cols; c++) {
+      const col = document.createElement('div');
+      col.className = 'mock-heatmap-col';
+      for (let r = 0; r < rows; r++) {
+        const v = data[c * rows + r] || 0;
+        const cell = document.createElement('div');
+        cell.className = 'mock-heatmap-cell' + (v ? ' ' + cls[v] : '');
+        col.appendChild(cell);
+      }
+      wrap.appendChild(col);
+    }
+  })();
+
+  // Smooth scroll for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+  });
+</script>
+
+</body>
+</html>

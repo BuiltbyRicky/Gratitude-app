@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover"/>
+  <meta name="color-scheme" content="light"/>
+  <title>Gratitude — Daily Voice Journal</title>
+  <meta name="description" content="A mindful daily journaling experience. Speak your gratitude, track your growth, and transform your mindset — 5 minutes a day."/>
+  <meta property="og:type" content="website"/>
+  <meta property="og:url" content="https://gratitudeapp.netlify.app/"/>
+  <meta property="og:title" content="Gratitude — Daily Voice Journal"/>
+  <meta property="og:description" content="A mindful daily journaling experience. Speak your gratitude, track your growth, and transform your mindset — 5 minutes a day."/>
+  <meta property="og:image" content="https://gratitudeapp.netlify.app/og-image.png"/>
+  <meta property="og:image:width" content="1200"/>
+  <meta property="og:image:height" content="630"/>
+  <meta property="og:site_name" content="Gratitude"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="Gratitude — Daily Voice Journal"/>
+  <meta name="twitter:description" content="A mindful daily journaling experience. Speak your gratitude, track your growth, and transform your mindset — 5 minutes a day."/>
+  <meta name="twitter:image" content="https://gratitudeapp.netlify.app/og-image.png"/>
+  <meta name="keywords" content="gratitude journal, voice journal, daily journaling, mindfulness app, mental health, stress relief, breathing exercises, wellness"/>
+  <meta name="author" content="Gratitude"/>
+  <meta name="robots" content="index, follow"/>
+  <link rel="canonical" href="https://gratitudeapp.netlify.app/"/>
+  <link rel="manifest" href="/manifest.json"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+  <meta name="apple-mobile-web-app-title" content="Gratitude"/>
+  <meta name="theme-color" content="#2D7A5F"/>
+  <link rel="apple-touch-icon" href="/icon-192.png"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="app.css"/>
+</head>
+<body>
+
+<div id="loading-screen">
+  <div style="display:flex;flex-direction:column;align-items:center;gap:16px;">
+    <svg width="56" height="56" viewBox="0 0 104 104" style="border-radius:14px;">
+      <rect width="104" height="104" rx="22" fill="#2D7A5F"/>
+      <path d="M52,78 C52,78 52,55 52,45" stroke="white" stroke-width="4" stroke-linecap="round" fill="none"/>
+        <path d="M52,55 C52,55 38,48 30,35 C38,32 50,38 52,55Z" fill="white"/>
+        <path d="M52,50 C52,50 66,43 74,30 C66,27 54,33 52,50Z" fill="white" opacity="0.85"/>
+        <path d="M52,65 C52,65 42,60 36,50 C42,48 52,54 52,65Z" fill="white" opacity="0.7"/>
+    </svg>
+    <div class="loading-logo">Gratitude</div>
+    <div class="loading-spinner"></div>
+  </div>
+</div>
+
+<div id="screen-auth">
+  <div class="auth-wrap">
+    <div class="auth-brand">
+      <div class="auth-brand-mark">
+        <svg viewBox="0 0 104 104">
+          <rect width="104" height="104" rx="22" fill="#2D7A5F"/>
+          <path d="M52,78 C52,78 52,55 52,45" stroke="white" stroke-width="4" stroke-linecap="round" fill="none"/>
+          <path d="M52,55 C52,55 38,48 30,35 C38,32 50,38 52,55Z" fill="white"/>
+          <path d="M52,50 C52,50 66,43 74,30 C66,27 54,33 52,50Z" fill="white" opacity="0.85"/>
+          <path d="M52,65 C52,65 42,60 36,50 C42,48 52,54 52,65Z" fill="white" opacity="0.7"/>
+        </svg>
+      </div>
+      <h1>Gratitude</h1>
+      <p>Your daily voice journal</p>
+    </div>
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchAuthTab('login')">Sign in</button>
+        <button class="auth-tab" onclick="switchAuthTab('signup')">Create account</button>
+      </div>
+
+      <div id="pane-login">
+        <div class="form-group">
+          <label class="form-label">Email address</label>
+          <input class="form-input" type="email" id="login-email" placeholder="you@example.com" autocomplete="email"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input class="form-input" type="password" id="login-pw" placeholder="••••••••" autocomplete="current-password"/>
+        </div>
+        <button class="auth-submit" id="login-btn" onclick="doLogin()">Sign in →</button>
+        <button class="forgot-link" onclick="switchAuthTab('reset')">Forgot your password?</button>
+      </div>
+
+      <div id="pane-signup" style="display:none;">
+        <div id="signup-form">
+          <div class="form-group">
+            <label class="form-label">Your first name</label>
+            <input class="form-input" type="text" id="signup-name" placeholder="First name" autocomplete="given-name"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email address</label>
+            <input class="form-input" type="email" id="signup-email" placeholder="you@example.com" autocomplete="email"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Password</label>
+            <input class="form-input" type="password" id="signup-pw" placeholder="At least 6 characters" autocomplete="new-password"/>
+          </div>
+          <button class="auth-submit" id="signup-btn" onclick="doSignup()">Start your free trial →</button>
+          <p class="trial-note"><span>3 days free</span> · then $1.99 / month · cancel anytime</p>
+        </div>
+
+        <div id="signup-confirm" style="display:none;text-align:center;padding:0.5rem 0;">
+          <div style="width:56px;height:56px;border-radius:50%;background:var(--sage-light);border:1.5px solid rgba(45,122,95,0.2);display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;font-size:24px;">📬</div>
+          <div style="font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--ink);margin-bottom:8px;">Check your inbox</div>
+          <p style="font-size:14px;color:var(--ink-60);line-height:1.7;margin-bottom:6px;">We sent a confirmation link to:</p>
+          <p style="font-size:14px;font-weight:500;color:var(--ink);margin-bottom:1.5rem;" id="confirm-email-display"></p>
+          <p style="font-size:13px;color:var(--ink-60);line-height:1.7;margin-bottom:1.5rem;">Click the link in that email to verify your account — then come back here and sign in. Check your spam folder if you don't see it within a minute.</p>
+          <div style="background:var(--cream-dark);border-radius:var(--radius-md);padding:1rem;margin-bottom:1.25rem;">
+            <p style="font-size:12px;color:var(--ink-60);margin-bottom:8px;">Didn't receive it?</p>
+            <button onclick="resendConfirmation()" id="resend-btn" style="font-size:13px;color:var(--sage);background:none;border:1px solid rgba(45,122,95,0.3);border-radius:var(--radius-pill);padding:6px 16px;cursor:pointer;font-family:var(--font-sans);transition:var(--transition);">Resend confirmation email</button>
+            <p style="font-size:12px;color:var(--ink-30);margin-top:8px;" id="resend-status"></p>
+          </div>
+          <button onclick="switchAuthTab('login')" style="font-size:13px;color:var(--ink-60);background:none;border:none;cursor:pointer;font-family:var(--font-sans);text-decoration:underline;">Already confirmed? Sign in →</button>
+        </div>
+      </div>
+
+      <div id="pane-reset" style="display:none;">
+        <p style="font-size:14px;color:var(--ink-60);line-height:1.6;margin-bottom:1.25rem;">Enter your email and we'll send you a reset link.</p>
+        <div class="form-group">
+          <label class="form-label">Email address</label>
+          <input class="form-input" type="email" id="reset-email" placeholder="you@example.com"/>
+        </div>
+        <button class="auth-submit" id="reset-btn" onclick="doReset()">Send reset link →</button>
+        <button class="forgot-link" onclick="switchAuthTab('login')">← Back to sign in</button>
+      </div>
+
+      <div class="auth-error" id="auth-err"></div>
+      <div class="auth-success" id="auth-ok"></div>
+    </div>
+  </div>
+</div>
+
+<div id="screen-onboard">
+  <div class="ob-wrap">
+
+    <!-- Step 0: Welcome -->
+    <div class="ob-step active" id="ob-0">
+      <div class="ob-logo-wrap">
+        <svg width="64" height="64" viewBox="0 0 104 104" style="border-radius:16px;display:block;margin:0 auto 1.25rem;">
+          <rect width="104" height="104" rx="22" fill="#2D7A5F"/>
+          <path d="M52,78 C52,78 52,55 52,45" stroke="white" stroke-width="4" stroke-linecap="round" fill="none"/>
+          <path d="M52,55 C52,55 38,48 30,35 C38,32 50,38 52,55Z" fill="white"/>
+          <path d="M52,50 C52,50 66,43 74,30 C66,27 54,33 52,50Z" fill="white" opacity="0.85"/>
+          <path d="M52,65 C52,65 42,60 36,50 C42,48 52,54 52,65Z" fill="white" opacity="0.7"/>
+        </svg>
+      </div>
+      <div class="ob-title">Welcome to Gratitude</div>
+      <div class="ob-body">A daily voice journal that helps you slow down, reflect, and build a genuinely more positive mindset — 5 minutes a day.</div>
+      <div class="ob-dots"><div class="ob-dot active"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div></div>
+      <button class="ob-btn" onclick="obNext()">Get started →</button>
+    </div>
+
+    <!-- Step 1: Goal selection -->
+    <div class="ob-step" id="ob-1">
+      <div class="ob-title">What brings you here?</div>
+      <div class="ob-body">We'll personalise your experience based on what matters most to you right now.</div>
+      <div class="ob-goals" id="ob-goals">
+        <button class="ob-goal-btn" data-goal="stress" onclick="selectGoal(this)">
+          <span class="ob-goal-icon">😮‍💨</span>
+          <span class="ob-goal-label">Reduce stress &amp; anxiety</span>
+        </button>
+        <button class="ob-goal-btn" data-goal="gratitude" onclick="selectGoal(this)">
+          <span class="ob-goal-icon">🙏</span>
+          <span class="ob-goal-label">Build a gratitude practice</span>
+        </button>
+        <button class="ob-goal-btn" data-goal="clarity" onclick="selectGoal(this)">
+          <span class="ob-goal-icon">🔮</span>
+          <span class="ob-goal-label">Gain clarity &amp; focus</span>
+        </button>
+        <button class="ob-goal-btn" data-goal="growth" onclick="selectGoal(this)">
+          <span class="ob-goal-icon">🌱</span>
+          <span class="ob-goal-label">Personal growth &amp; reflection</span>
+        </button>
+      </div>
+      <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot active"></div><div class="ob-dot"></div><div class="ob-dot"></div></div>
+      <button class="ob-btn" id="ob-goal-next" onclick="obNext()" disabled style="opacity:0.45;">Continue →</button>
+    </div>
+
+    <!-- Step 2: How it works -->
+    <div class="ob-step" id="ob-2">
+      <span class="ob-icon">🎙️</span>
+      <div class="ob-title">Speak or type</div>
+      <div class="ob-body">Answer thoughtful questions each day by speaking out loud or typing. Sessions take just 5–10 minutes and build meaningfully over time.</div>
+      <div class="ob-how-grid">
+        <div class="ob-how-item"><span>🫁</span><div><strong>Breathe first</strong><p>A short breathing exercise before each session dramatically improves your answers.</p></div></div>
+        <div class="ob-how-item"><span>📊</span><div><strong>Track your mood</strong><p>Rate how you feel before and after. Watch the shift happen over weeks.</p></div></div>
+        <div class="ob-how-item"><span>🔒</span><div><strong>Private &amp; encrypted</strong><p>Only you can read your entries. Synced securely to the cloud.</p></div></div>
+      </div>
+      <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot active"></div><div class="ob-dot"></div></div>
+      <button class="ob-btn" onclick="obNext()">Next →</button>
+    </div>
+
+    <!-- Step 3: Notifications permission -->
+    <div class="ob-step" id="ob-3">
+      <span class="ob-icon">🔔</span>
+      <div class="ob-title">Never miss a session</div>
+      <div class="ob-body">A gentle daily reminder is the single biggest predictor of building a lasting journaling habit. We'll only notify you once a day.</div>
+      <div class="ob-notif-card">
+        <div class="ob-notif-preview">
+          <div class="ob-notif-app">Gratitude</div>
+          <div class="ob-notif-msg">Good evening — time for your daily reflection ✨</div>
+          <div class="ob-notif-time">now</div>
+        </div>
+      </div>
+      <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot active"></div></div>
+      <button class="ob-btn" onclick="requestNotifAndFinish()">Enable reminders →</button>
+      <button class="ob-skip" onclick="finishOnboard()">Not now</button>
+    </div>
+
+  </div>
+</div>
+
+<div id="screen-app">
+  <nav class="app-nav">
+    <div class="nav-left">
+      <div class="streak-chip">🔥 <span id="nav-streak">0</span></div>
+    </div>
+    <span class="nav-logo" onclick="goPage('home')">
+      <svg width="26" height="26" viewBox="0 0 104 104" style="flex-shrink:0;border-radius:6px;">
+        <rect width="104" height="104" rx="22" fill="#2D7A5F"/>
+        <path d="M52,78 C52,78 52,55 52,45" stroke="white" stroke-width="4" stroke-linecap="round" fill="none"/>
+        <path d="M52,55 C52,55 38,48 30,35 C38,32 50,38 52,55Z" fill="white"/>
+        <path d="M52,50 C52,50 66,43 74,30 C66,27 54,33 52,50Z" fill="white" opacity="0.85"/>
+        <path d="M52,65 C52,65 42,60 36,50 C42,48 52,54 52,65Z" fill="white" opacity="0.7"/>
+      </svg>
+      Gratitude
+    </span>
+    <div class="nav-pills">
+      <button class="nav-pill active" onclick="goPage('home')">Home</button>
+      <button class="nav-pill" onclick="goPage('history')">History</button>
+      <button class="nav-pill" onclick="goPage('learn')">Learn</button>
+      <button class="nav-pill" onclick="goPage('settings')">Settings</button>
+    </div>
+    <div class="nav-right">
+      <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">🔈 Voice</button>
+      <button class="signout-btn" onclick="doSignout()">Sign out</button>
+    </div>
+  </nav>
+
+  <div class="mobile-tabs">
+    <button class="mobile-tab active" onclick="goPage('home')" id="mtab-home">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Home
+    </button>
+    <button class="mobile-tab" onclick="goPage('history')" id="mtab-history">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>History
+    </button>
+    <button class="mobile-tab" onclick="goPage('learn')" id="mtab-learn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>Learn
+    </button>
+    <button class="mobile-tab" onclick="goPage('settings')" id="mtab-settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings
+    </button>
+  </div>
+
+  <div class="page active" id="page-home">
+    <div class="page-wrap">
+      <div class="hero">
+        <div class="hero-eyebrow" id="hero-eyebrow">Today</div>
+        <h2 id="hero-greeting">Good morning</h2>
+        <p id="hero-date"></p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-tile"><div class="stat-val" id="st-streak">0</div><div class="stat-key">Day streak</div></div>
+        <div class="stat-tile"><div class="stat-val" id="st-total">0</div><div class="stat-key">Total entries</div></div>
+        <div class="stat-tile"><div class="stat-val" id="st-week">0</div><div class="stat-key">This week</div></div>
+      </div>
+      <button class="cta-btn" onclick="beginSession()">Begin today's journal <span class="cta-arrow">→</span></button>
+      <div id="reminder-card-wrap"></div>
+      <div id="weekly-reflection"></div>
+      <div class="heatmap-card">
+        <div class="heatmap-title">Your journey</div>
+        <div class="heatmap-sub">Every square is a day. Darker means you journaled.</div>
+        <div class="heatmap-months" id="heatmap-months"></div>
+        <div class="heatmap-grid" id="heatmap-grid"></div>
+        <div class="heatmap-legend">
+          <span>Less</span>
+          <div class="heatmap-legend-cells">
+            <div class="heatmap-legend-cell" style="background:var(--cream-mid);border-radius:2px;"></div>
+            <div class="heatmap-legend-cell" style="background:#c8e6da;border-radius:2px;"></div>
+            <div class="heatmap-legend-cell" style="background:#7BBDA4;border-radius:2px;"></div>
+            <div class="heatmap-legend-cell" style="background:#2D7A5F;border-radius:2px;"></div>
+          </div>
+          <span>More</span>
+        </div>
+      </div>
+      <div class="badges-wrap">
+        <div class="section-hed">Milestone badges</div>
+        <div class="badges-grid" id="badges-grid"></div>
+        <div id="freeze-card-wrap"></div>
+      </div>
+      <div class="section-hed" style="margin-top:2rem;">Recent entries</div>
+      <div id="recent-entries"></div>
+
+      <div id="mood-chart-wrap" style="margin-top:2rem;"></div>
+    </div>
+  </div>
+
+  <div class="page" id="page-history">
+    <div class="page-wrap">
+      <div class="history-meta-row">
+        <div class="page-head" style="margin-bottom:0;"><h2>Journal history</h2></div>
+        <div class="history-count" id="hist-count"></div>
+      </div>
+
+      <div class="search-bar-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input class="search-input" type="text" id="hist-search" placeholder="Search your entries…" oninput="onHistSearch(this.value)"/>
+        <button class="search-clear" id="hist-search-clear" onclick="clearHistSearch()">✕</button>
+      </div>
+
+      <div class="filter-row" id="hist-filters">
+        <button class="filter-chip active" onclick="setHistFilter('all')" id="hf-all">All entries</button>
+        <button class="filter-chip" onclick="setHistFilter('week')" id="hf-week">This week</button>
+        <button class="filter-chip" onclick="setHistFilter('month')" id="hf-month">This month</button>
+        <button class="filter-chip" onclick="setHistFilter('mood-up')" id="hf-mood-up">😊 Mood lifted</button>
+        <button class="filter-chip" onclick="setHistFilter('mood-down')" id="hf-mood-down">😔 Mood dipped</button>
+      </div>
+
+      <div id="hist-results-label"></div>
+      <div id="hist-list">
+        <div class="loading-state">
+          <div class="skeleton-line" style="width:40%;margin-bottom:16px;height:14px;"></div>
+          <div class="skeleton-line" style="width:100%;"></div>
+          <div class="skeleton-line" style="width:85%;"></div>
+          <div class="skeleton-line" style="width:92%;margin-bottom:20px;"></div>
+          <div class="skeleton-line" style="width:40%;margin-bottom:16px;height:14px;"></div>
+          <div class="skeleton-line" style="width:100%;"></div>
+          <div class="skeleton-line" style="width:78%;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-learn">
+    <div class="page-wrap">
+      <div id="learn-quote-wrap"></div>
+      <div id="learn-tip-wrap"></div>
+      <div class="learn-progress-bar">
+        <div class="learn-progress-bar-inner">
+          <div class="learn-progress-label"><span>Techniques completed</span><span id="learn-done-label">0 of 20</span></div>
+          <div class="learn-progress-track"><div class="learn-progress-fill" id="learn-fill" style="width:0%"></div></div>
+        </div>
+        <div class="learn-progress-pct" id="learn-pct">0%</div>
+      </div>
+      <div class="learn-cat-tabs" id="learn-cat-tabs"></div>
+      <div id="learn-cards"></div>
+    </div>
+  </div>
+
+  <div class="page" id="page-settings">
+    <div class="page-wrap">
+      <div class="page-head"><h2>Settings</h2></div>
+      <div class="settings-block">
+        <div class="settings-block-title">Account</div>
+        <div class="profile-row">
+          <div class="profile-avatar" id="profile-avatar"></div>
+          <div>
+            <div class="profile-name" id="profile-name"></div>
+            <div class="profile-email" id="profile-email"></div>
+          </div>
+        </div>
+        <button class="btn" style="width:100%;" onclick="doSignout()">Sign out</button>
+      </div>
+      <div class="settings-block">
+        <div class="settings-block-title">Voice narration</div>
+        <div class="settings-info">Tap <strong>Voice</strong> in the top bar to enable calming voice narration. Your device's built-in voice reads each question aloud — no account or key needed.</div>
+      </div>
+      <div class="settings-block">
+        <div class="settings-block-title">Your data</div>
+        <p style="font-size:13px;color:var(--ink-60);line-height:1.65;margin-bottom:0.5rem;">Your entries are encrypted and stored securely in the cloud. Only you can see them.</p>
+        <p style="font-size:13px;color:var(--ink-60);"><strong style="color:var(--ink);" id="data-summary"></strong></p>
+      </div>
+      <div class="settings-block">
+        <div class="settings-block-title" style="color:var(--red);">Danger zone</div>
+        <p style="font-size:13px;color:var(--ink-60);line-height:1.65;margin-bottom:1rem;">Permanently delete your account and all journal entries. This cannot be undone.</p>
+        <button class="btn danger" style="width:100%;" onclick="showDeleteAccountModal()">Delete my account</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-mood-before">
+    <div class="page-wrap">
+      <div class="mood-screen">
+        <div class="mood-title">How are you feeling?</div>
+        <div class="mood-sub">Before we begin — check in with yourself.</div>
+        <div class="mood-emojis" id="mood-emojis-before"></div>
+        <div class="mood-label" id="mood-label-before"></div>
+        <div class="btn-row">
+          <button class="btn" onclick="skipMood()">Skip</button>
+          <button class="btn solid" id="mood-before-next" onclick="confirmMoodBefore()" disabled>Continue →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-mood-after">
+    <div class="page-wrap">
+      <div class="mood-screen">
+        <div class="mood-title">How do you feel now?</div>
+        <div class="mood-sub">After your session — notice any shift.</div>
+        <div class="mood-emojis" id="mood-emojis-after"></div>
+        <div class="mood-label" id="mood-label-after"></div>
+        <div class="btn-row">
+          <button class="btn" onclick="skipMoodAfter()">Skip</button>
+          <button class="btn solid" id="mood-after-next" onclick="confirmMoodAfter()" disabled>See my entry →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-breath">
+    <div class="page-wrap">
+      <div class="breath-intro"><h3>Choose your breathwork</h3><p>Ground yourself before you write.</p></div>
+      <div class="breath-options" id="breath-opts"></div>
+      <div class="btn-row">
+        <button class="btn" onclick="skipToJournal()">Skip for now</button>
+        <button class="btn solid" onclick="launchBreath()">Begin →</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-breathex">
+    <div class="page-wrap">
+      <div class="breath-ex-wrap">
+        <div class="breath-ex-tag" id="bex-tag"></div>
+        <div class="breath-ex-title">Take a breath</div>
+        <div class="breath-ex-sub" id="bex-pattern"></div>
+        <div class="ring-wrap">
+          <div class="ring-outer"></div><div class="ring-mid"></div>
+          <div class="ring-circle inhale" id="ring">
+            <div class="ring-pulse" id="ring-pulse"></div>
+            <div class="ring-pulse-2" id="ring-pulse-2"></div>
+            <div class="ring-word" id="ring-word">Ready</div>
+            <div class="ring-count" id="ring-count"></div>
+          </div>
+        </div>
+        <div class="speak-anim" id="speak-anim">
+          <div class="speak-bar"></div><div class="speak-bar"></div><div class="speak-bar"></div><div class="speak-bar"></div><div class="speak-bar"></div>
+          <span style="font-size:12px;color:var(--sage);margin-left:4px;">Speaking…</span>
+        </div>
+        <div class="round-dots" id="round-dots"></div>
+        <div class="breath-hint-txt" id="bex-hint">Press start when you're ready</div>
+        <div class="btn-row">
+          <button class="btn" onclick="skipToJournal()">Skip</button>
+          <button class="btn solid" id="bex-start" onclick="startBreath()">Start</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-journal"><div class="page-wrap"><div id="journal-inner"></div></div></div>
+
+  <div class="page" id="page-summary">
+    <canvas class="cel-confetti-canvas" id="cel-canvas"></canvas>
+    <div class="page-wrap"><div id="summary-inner"></div></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="del-modal">
+  <div class="modal">
+    <div class="modal-title">Delete this entry?</div>
+    <div class="modal-body">This entry will be permanently deleted from the cloud. This cannot be undone.</div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn danger" onclick="doDelete()">Yes, delete it</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="del-account-modal">
+  <div class="modal">
+    <div class="modal-title" style="color:var(--red);">Delete your account?</div>
+    <div class="modal-body">
+      This will permanently delete your account and <strong>all your journal entries</strong>. There is absolutely no way to undo this.<br/><br/>
+      To confirm, type <strong>DELETE</strong> below:
+      <input class="form-input" type="text" id="del-account-confirm-input" placeholder="Type DELETE to confirm" style="margin-top:12px;"/>
+      <div id="del-account-err" style="font-size:12px;color:var(--red);margin-top:6px;min-height:16px;"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeDeleteAccountModal()">Cancel</button>
+      <button class="btn danger" id="del-account-btn" onclick="doDeleteAccount()">Delete everything</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="quote-card-modal">
+  <div class="quote-card-modal-inner">
+    <div class="quote-card-modal-header">
+      <div class="quote-card-modal-title">Share your reflection</div>
+      <button class="quote-card-close" onclick="closeQuoteCard()">✕</button>
+    </div>
+    <div class="quote-card-preview-wrap">
+      <img id="quote-card-preview" class="quote-card-preview-img" alt="Quote card preview"/>
+      <div class="quote-card-generating" id="quote-card-spinner">
+        <div class="loading-spinner"></div>
+        <span>Generating card…</span>
+      </div>
+    </div>
+    <div class="quote-card-actions">
+      <button class="btn solid" id="quote-share-btn" onclick="shareOrDownloadQuoteCard()">↗ Share</button>
+      <button class="btn" onclick="closeQuoteCard()">Close</button>
+    </div>
+    <canvas id="quote-card-canvas" style="display:none;"></canvas>
+  </div>
+</div>
+
+<div class="badge-modal" id="badge-modal">
+  <canvas class="confetti" id="confetti-canvas"></canvas>
+  <div class="badge-modal-inner">
+    <span class="badge-cel-icon" id="badge-cel-icon"></span>
+    <div class="badge-cel-title" id="badge-cel-title"></div>
+    <div class="badge-cel-sub" id="badge-cel-sub"></div>
+    <button class="btn solid" style="width:100%;" onclick="closeBadgeModal()">Keep going! →</button>
+  </div>
+</div>
+
+
+<script src="supabase.js"></script>
+<script src="chart.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
