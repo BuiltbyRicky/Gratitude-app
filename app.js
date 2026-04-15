@@ -4,8 +4,170 @@
 const SUPABASE_URL = 'https://epfewpuxztzbpzwmvzkx.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwZmV3cHV4enR6YnB6d212emt4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMTU5NzIsImV4cCI6MjA5MDU5MTk3Mn0.tjSyCd3lHEUcSCIbY1VGihO2KUYQ5xg_Dh6bJJAadUA';
 
-// sb is initialised inside initSupabase(), called from init() after DOM + scripts ready
-let sb = null;
+// ══════════════════════════════════════════════════
+// STRIPE PAYMENTS
+// ══════════════════════════════════════════════════
+const STRIPE_PK = 'pk_test_51TLDuxPB9SOX4mlDjWu7QZ1OVY6ZeZcufyi6EjCCWZuLL5FtJOq6J5gOwpWDIKBJmsDc5wTxgP7On1f4UCR6Y5gx00udF7DiAw';
+const STRIPE_MONTHLY_PRICE = 'price_1TLE6sPB9SOX4mlD49RPklZH';
+const STRIPE_YEARLY_PRICE  = 'price_1TLE9VPB9SOX4mlDOs6DghBq';
+const TRIAL_DAYS = 3;
+
+// Check if user is in their free trial or has active subscription
+function isPremium() {
+  const trialStart = localStorage.getItem('gj_trial_start_' + (currentUser?.id || ''));
+  if (trialStart) {
+    const elapsed = Date.now() - parseInt(trialStart);
+    const trialMs = TRIAL_DAYS * 24 * 60 * 60 * 1000;
+    if (elapsed < trialMs) return true; // still in trial
+  }
+  return localStorage.getItem('gj_premium_' + (currentUser?.id || '')) === '1';
+}
+
+function startTrial() {
+  if (!currentUser) return;
+  const key = 'gj_trial_start_' + currentUser.id;
+  if (!localStorage.getItem(key)) {
+    localStorage.setItem(key, Date.now().toString());
+  }
+}
+
+function getTrialDaysLeft() {
+  const trialStart = localStorage.getItem('gj_trial_start_' + (currentUser?.id || ''));
+  if (!trialStart) return 0;
+  const elapsed = Date.now() - parseInt(trialStart);
+  const trialMs = TRIAL_DAYS * 24 * 60 * 60 * 1000;
+  return Math.max(0, Math.ceil((trialMs - elapsed) / (24 * 60 * 60 * 1000)));
+}
+
+async function openStripeCheckout(priceId) {
+  const monthlyLink = 'https://buy.stripe.com/test_aFabJ36KW3fh7Fg6zOffy00';
+  const yearlyLink  = 'https://buy.stripe.com/test_cNibJ3fhs2bd2kW9M0ffy01';
+  const url = priceId === STRIPE_MONTHLY_PRICE ? monthlyLink : yearlyLink;
+  if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+    window.open(url, '_system');
+  } else {
+    window.open(url, '_blank');
+  }
+}
+
+function showPaywall() {
+  const daysLeft = getTrialDaysLeft();
+  const overlay = document.createElement('div');
+  overlay.id = 'paywall-overlay';
+  overlay.innerHTML = `
+    <div class="paywall-inner">
+      <div class="paywall-icon">🌱</div>
+      <div class="paywall-title">Your free trial has ended</div>
+      <div class="paywall-sub">Subscribe to keep journaling and building your practice.</div>
+      <div class="paywall-plans">
+        <button class="paywall-plan featured" onclick="openStripeCheckout('${STRIPE_MONTHLY_PRICE}')">
+          <div class="paywall-plan-name">Monthly</div>
+          <div class="paywall-plan-price">$4.99<span>/month</span></div>
+          <div class="paywall-plan-note">Billed monthly · cancel anytime</div>
+        </button>
+        <button class="paywall-plan" onclick="openStripeCheckout('${STRIPE_YEARLY_PRICE}')">
+          <div class="paywall-plan-badge">Save 43%</div>
+          <div class="paywall-plan-name">Annual</div>
+          <div class="paywall-plan-price">$34.99<span>/year</span></div>
+          <div class="paywall-plan-note">That's $2.92/month</div>
+        </button>
+      </div>
+      <button class="paywall-restore" onclick="restorePurchase()">I've already subscribed → Unlock</button>
+      <div class="paywall-legal">By subscribing you agree to our <a href="https://builtbyricky.github.io/Gratitude-app/terms.html" target="_blank">Terms</a> and <a href="https://builtbyricky.github.io/Gratitude-app/privacy.html" target="_blank">Privacy Policy</a>.</div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+}
+
+function hidePaywall() {
+  const el = document.getElementById('paywall-overlay');
+  if (el) el.remove();
+}
+
+async function testPaywall() {
+  // Simulate trial ended by setting trial_end to past
+  if (currentUser && sb) {
+    await sb.from('subscriptions')
+      .update({ trial_end: new Date(Date.now() - 1000).toISOString() })
+      .eq('user_id', currentUser.id);
+  }
+  showPaywall();
+}
+
+async function resetTrial() {
+  if (currentUser && sb) {
+    await sb.from('subscriptions')
+      .update({
+        status: 'trial',
+        trial_end: new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000).toISOString()
+      })
+      .eq('user_id', currentUser.id);
+    hidePaywall();
+    alert('Trial reset successfully.');
+  }
+}
+
+async function restorePurchase() {
+  const confirmed = confirm('After completing payment in your browser, tap OK to verify your subscription.');
+  if (!confirmed) return;
+  // Recheck from Supabase
+  try {
+    const { data } = await sb
+      .from('subscriptions')
+      .select('status')
+      .eq('user_id', currentUser.id)
+      .single();
+    if (data?.status === 'active') {
+      hidePaywall();
+      alert('✓ Subscription verified! Welcome to Gratitude Premium.');
+    } else {
+      alert('We could not verify your subscription yet. Please wait a few minutes and try again, or contact gratitudejournaling101@gmail.com');
+    }
+  } catch(e) {
+    alert('Could not verify. Please contact gratitudejournaling101@gmail.com');
+  }
+}
+
+// Check subscription status from Supabase — cannot be faked by users
+async function checkPremiumAccess() {
+  if (!currentUser || !sb) return;
+  try {
+    const { data, error } = await sb
+      .from('subscriptions')
+      .select('status, trial_end, current_period_end')
+      .eq('user_id', currentUser.id)
+      .single();
+
+    if (error || !data) {
+      // No subscription record — create trial
+      await sb.from('subscriptions').insert({
+        user_id: currentUser.id,
+        status: 'trial',
+        trial_start: new Date().toISOString(),
+        trial_end: new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000).toISOString()
+      });
+      return; // Still in trial
+    }
+
+    const now = new Date();
+    if (data.status === 'active') return; // Paid subscriber — all good
+    if (data.status === 'trial') {
+      const trialEnd = new Date(data.trial_end);
+      if (now < trialEnd) return; // Still in trial
+      // Trial expired — show paywall
+      showPaywall();
+      return;
+    }
+    // Any other status (cancelled, past_due, etc.) — show paywall
+    showPaywall();
+  } catch(e) {
+    console.log('Premium check error:', e.message);
+    // On error fall back to localStorage to avoid blocking legitimate users
+    if (!isPremium()) showPaywall();
+  }
+}
+
+
 
 function initSupabase() {
   try {
@@ -145,11 +307,66 @@ async function launchApp() {
   // Show home immediately — load entries in background
   goPage('home');
   loadEntries().then(() => {
-    // Re-render home once entries are loaded
     if (document.getElementById('page-home').classList.contains('active')) {
       renderHome();
     }
   });
+  // Check premium access — show paywall if trial ended
+  setTimeout(() => checkPremiumAccess(), 1500);
+
+  // Request notification permission on first launch (after short delay so UI settles)
+  if (!localStorage.getItem('gj_notif_asked')) {
+    setTimeout(() => requestNotifPermission(), 2000);
+  } else if (localStorage.getItem('gj_notif_enabled')) {
+    // Reschedule notifications to refresh the pool (runs silently in background)
+    setTimeout(() => refreshNotifSchedule(), 3000);
+  }
+}
+
+async function refreshNotifSchedule() {
+  try {
+    if (!window.Capacitor || !window.Capacitor.isNativePlatform()) return;
+    const LocalNotifications = window.Capacitor?.Plugins?.LocalNotifications;
+    if (!LocalNotifications) return;
+    const current = await LocalNotifications.checkPermissions();
+    if (current.display !== 'granted') return;
+    const timeStr = localStorage.getItem('gj_notif_time') || '20:00';
+    const [h, m] = timeStr.split(':').map(Number);
+    await scheduleLocalNotif(LocalNotifications, h, m);
+  } catch(e) { /* silently ignore */ }
+}
+
+async function requestNotifPermission() {
+  try {
+    if (!window.Capacitor || !window.Capacitor.isNativePlatform()) return;
+    const LocalNotifications = window.Capacitor?.Plugins?.LocalNotifications; if (!LocalNotifications) throw new Error('LocalNotifications plugin not available');
+    // Check current status first
+    const current = await LocalNotifications.checkPermissions();
+    if (current.display === 'granted') {
+      // Already granted — just schedule if not done yet
+      if (!localStorage.getItem('gj_notif_enabled')) {
+        await scheduleLocalNotif(LocalNotifications, 20, 0);
+        localStorage.setItem('gj_notif_enabled', '1');
+        localStorage.setItem('gj_notif_time', '20:00');
+      }
+      localStorage.setItem('gj_notif_asked', '1');
+      return;
+    }
+    if (current.display === 'denied') {
+      localStorage.setItem('gj_notif_asked', '1');
+      return;
+    }
+    // Prompt — iOS will show the native permission dialog
+    const perm = await LocalNotifications.requestPermissions();
+    localStorage.setItem('gj_notif_asked', '1');
+    if (perm.display === 'granted') {
+      await scheduleLocalNotif(LocalNotifications, 20, 0);
+      localStorage.setItem('gj_notif_enabled', '1');
+      localStorage.setItem('gj_notif_time', '20:00');
+      const ns = document.getElementById('notif-status');
+      if (ns) ns.textContent = '✓ Daily reminders enabled at 8:00 PM';
+    }
+  } catch(e) { /* silently ignore — not on native */ }
 }
 
 // ══════════════════════════════════════════════════
@@ -200,6 +417,14 @@ async function doLogin() {
 }
 
 let lastSignupEmail = '';
+
+function toggleSignupBtn() {
+  const cb = document.getElementById('legal-consent');
+  const btn = document.getElementById('signup-btn');
+  if (!btn) return;
+  btn.disabled = !cb?.checked;
+  btn.style.opacity = cb?.checked ? '1' : '0.5';
+}
 
 async function doSignup() {
   const name = document.getElementById('signup-name').value.trim();
@@ -258,60 +483,335 @@ async function doSignout() {
 // ══════════════════════════════════════════════════
 // ONBOARDING
 // ══════════════════════════════════════════════════
+// ══════════════════════════════════════════════════
+// ONBOARDING
+// ══════════════════════════════════════════════════
 let obIdx = 0;
+let userGoal = localStorage.getItem('gj_goal') || null;
+
 function showOnboarding() {
   obIdx = 0;
   document.getElementById('screen-onboard').classList.add('active');
   document.querySelectorAll('.ob-step').forEach((s, i) => s.classList.toggle('active', i === 0));
 }
+
+function selectGoal(btn) {
+  document.querySelectorAll('.ob-goal-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  userGoal = btn.dataset.goal;
+  localStorage.setItem('gj_goal', userGoal);
+  const next = document.getElementById('ob-goal-next');
+  if (next) { next.disabled = false; next.style.opacity = '1'; }
+}
+
 function obNext() {
+  const total = document.querySelectorAll('.ob-step').length;
+  if (obIdx >= total - 1) return;
   document.getElementById('ob-' + obIdx).classList.remove('active');
   obIdx++;
   document.getElementById('ob-' + obIdx).classList.add('active');
 }
+
+async function requestNotifAndFinish() {
+  try {
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+      // Use Capacitor Local Notifications — works without a server
+      const LocalNotifications = window.Capacitor?.Plugins?.LocalNotifications; if (!LocalNotifications) throw new Error('LocalNotifications plugin not available');
+      const perm = await LocalNotifications.requestPermissions();
+      if (perm.display === 'granted') {
+        await scheduleLocalNotif(LocalNotifications);
+        localStorage.setItem('gj_notif_enabled', '1');
+      }
+    } else if ('Notification' in window) {
+      const result = await Notification.requestPermission();
+      if (result === 'granted') localStorage.setItem('gj_notif_enabled', '1');
+    }
+  } catch(e) { /* silently ignore */ }
+  finishOnboard();
+}
+
+function getNotifMessages(hour) {
+  const goal = localStorage.getItem('gj_goal') || 'gratitude';
+  const currentStreak = streak();
+  const isMorning = hour < 12;
+  const isAfternoon = hour >= 12 && hour < 17;
+  // isEvening = hour >= 17
+
+  // Streak-specific titles
+  const title = currentStreak >= 7
+    ? `${currentStreak} day streak 🔥`
+    : currentStreak >= 3
+    ? `${currentStreak} days in a row`
+    : 'Gratitude';
+
+  const goalMessages = {
+    stress: [
+      "Your nervous system needs 5 minutes. You've got this. 🫁",
+      "Feeling the weight of the day? Let's set it down together. 🌿",
+      "A short reflection now means a calmer mind tonight. 🕯️",
+      "Stress shrinks when you name it. Open your journal. 📖",
+      "You handled a lot today. Take a moment to acknowledge it. 💙",
+      "Breathe. Reflect. Release. Your journal is ready. ✨",
+      "Even 3 minutes of reflection rewires your stress response. 🧠",
+      "The hardest part is opening the app. That's it. 🌿",
+      "What's one thing from today you can let go of right now? 🍃",
+      "Your thoughts deserve more than your head. Write them down. 📝",
+    ],
+    gratitude: [
+      "Something good happened today. Don't let it slip away. ✨",
+      "Gratitude compounds. Five minutes now pays off all week. 🌱",
+      "What made you smile today, even briefly? 🌿",
+      "The specific things — not the generic ones. That's where gratitude lives. 📖",
+      "Your brain is scanning for problems. Redirect it. 🧠",
+      "Name three things. Just three. That's all it takes. 🙏",
+      "What ordinary thing do you have that someone else wishes for? 💙",
+      "A grateful mind is a stronger mind. Let's build yours. ✨",
+      "Don't let a good day go unrecorded. 📝",
+      "The more specific your gratitude, the more real it feels. 🌿",
+    ],
+    clarity: [
+      "Your mind is full. Let's empty it onto the page. 📖",
+      "What decision have you been avoiding? Name it. 🔮",
+      "Five minutes of honest reflection beats hours of rumination. 🧠",
+      "What does the clearest part of you already know? ✨",
+      "Clarity doesn't come from thinking more. It comes from writing. 📝",
+      "What's one thing you need to stop doing? Say it out loud. 🌿",
+      "Your journal is the place where confusion becomes direction. 🔮",
+      "The answer is usually already there. Writing finds it. 💙",
+      "What would the most honest version of you say right now? 📖",
+      "Stop carrying it in your head. Put it on paper. ✨",
+    ],
+    growth: [
+      "Who are you becoming? Check in. 🌱",
+      "Growth happens in the small moments of reflection. Don't skip this one. 📖",
+      "What did today teach you that yesterday couldn't? 🧠",
+      "The version of you from a year ago would be proud. Keep going. ✨",
+      "Patterns only become visible when you write them down. 📝",
+      "What boundary did you hold today — or wish you had? 💙",
+      "You are not who you were. Journal the distance. 🌿",
+      "Reflection is the difference between experience and wisdom. 📖",
+      "What's one thing you did better than you would have a year ago? 🌱",
+      "The most important conversation you'll have today is with yourself. ✨",
+    ],
+  };
+
+  // Universal fallback messages (used as filler or if goal not set)
+  const universal = [
+    isMorning ? "Start your day with intention. 5 minutes of reflection. 🌅"
+    : isAfternoon ? "Midday check-in — how are you actually doing? 🌿"
+    : "Your day deserves to be remembered. Open your journal. 🕯️",
+    currentStreak >= 7 ? `${currentStreak} days. You're building something real. Don't stop now. 🔥`
+    : currentStreak >= 3 ? `${currentStreak} days in a row. Keep the momentum going. 🌱`
+    : "Every entry is a gift to your future self. 📖",
+    "5 minutes. That's all. You've spent longer on less. ✨",
+    "The people who journal consistently aren't more disciplined. They just show up. 🌿",
+    isMorning ? "Before the noise starts — write one thing you're grateful for. 🌅"
+    : "Before you sleep — write one thing worth remembering. 🕯️",
+    "Your streak is waiting. Don't let today be the day it breaks. 🔥",
+    "What happened today that's worth keeping? 📝",
+    "Reflection isn't navel-gazing. It's how you actually learn from life. 🧠",
+    "Open Gratitude. Just open it. The rest takes care of itself. 🌿",
+    "You showed up yesterday. Show up again today. 💙",
+  ];
+
+  const pool = [...(goalMessages[goal] || goalMessages.gratitude), ...universal];
+  // Shuffle deterministically based on day so messages feel fresh but consistent
+  return { title, pool };
+}
+
+async function scheduleLocalNotif(LocalNotifications, hour = 20, minute = 0) {
+  // Cancel existing before rescheduling
+  try {
+    const pending = await LocalNotifications.getPending();
+    if (pending.notifications.length) {
+      await LocalNotifications.cancel({ notifications: pending.notifications });
+    }
+  } catch(e) {}
+
+  const { title, pool } = getNotifMessages(hour);
+  const shuffled = [...pool].sort(() => Math.random() - 0.5);
+
+  // Schedule 30 notifications spread across next 30 days
+  // Each fires at the exact chosen time and never repeats the same message
+  // On iOS, schedule: { on: { hour, minute } } repeats daily forever — but only allows 1 message
+  // So we use 30 individual dates for message variety, and reschedule when app opens
+  const notifications = [];
+  for (let i = 0; i < 30; i++) {
+    const d = new Date();
+    d.setDate(d.getDate() + i + 1);
+    d.setHours(hour, minute, 0, 0);
+    notifications.push({
+      id: 1000 + i,
+      title,
+      body: shuffled[i % shuffled.length],
+      schedule: { at: d, allowWhileIdle: true },
+      sound: 'default',
+    });
+  }
+  await LocalNotifications.schedule({ notifications });
+
+  // Also schedule a single repeating notification as backup — fires daily forever
+  // This ensures the user still gets reminded even after 30 days without opening the app
+  try {
+    await LocalNotifications.schedule({ notifications: [{
+      id: 9999,
+      title,
+      body: shuffled[0],
+      schedule: {
+        on: { hour, minute },
+        repeats: true,
+        allowWhileIdle: true,
+      },
+      sound: 'default',
+    }]});
+  } catch(e) { /* repeating schedule may not be supported on all versions */ }
+}
+
+async function enableNotifications() {
+  const status = document.getElementById('notif-status');
+  try {
+    if (!window.Capacitor || !window.Capacitor.isNativePlatform()) {
+      if (status) status.textContent = 'Notifications require the iOS app';
+      return;
+    }
+    const LocalNotifications = window.Capacitor?.Plugins?.LocalNotifications; if (!LocalNotifications) throw new Error('LocalNotifications plugin not available');
+    const current = await LocalNotifications.checkPermissions();
+    if (current.display === 'denied') {
+      if (status) status.textContent = 'Go to iPhone Settings → Notifications → Gratitude → Allow';
+      return;
+    }
+    const perm = await LocalNotifications.requestPermissions();
+    if (perm.display === 'granted') {
+      const t = document.getElementById('settings-notif-time');
+      const [h, m] = t ? t.value.split(':').map(Number) : [20, 0];
+      await scheduleLocalNotif(LocalNotifications, h, m);
+      localStorage.setItem('gj_notif_enabled', '1');
+      localStorage.setItem('gj_notif_time', t ? t.value : '20:00');
+      localStorage.setItem('gj_notif_asked', '1');
+      if (status) status.textContent = '✓ Reminders enabled';
+    } else {
+      if (status) status.textContent = 'Go to iPhone Settings → Notifications → Gratitude → Allow';
+    }
+  } catch(e) {
+    if (status) status.textContent = 'Error: ' + e.message;
+  }
+}
+
+async function saveNotifTime() {
+  const t = document.getElementById('settings-notif-time');
+  const status = document.getElementById('notif-status');
+  if (!t) return;
+  const [h, m] = t.value.split(':').map(Number);
+  localStorage.setItem('gj_notif_time', t.value);
+  await rescheduleNotif(h, m);
+  if (status) status.textContent = '✓ Reminder time updated to ' + t.value;
+}
+
+async function rescheduleNotif(hour, minute) {
+  if (!localStorage.getItem('gj_notif_enabled')) return;
+  try {
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+      const LocalNotifications = window.Capacitor?.Plugins?.LocalNotifications; if (!LocalNotifications) throw new Error('LocalNotifications plugin not available');
+      await scheduleLocalNotif(LocalNotifications, hour, minute);
+    }
+  } catch(e) {}
+}
+
 function finishOnboard() {
   document.getElementById('screen-onboard').classList.remove('active');
   if (currentUser) localStorage.setItem('gj_onboarded_' + currentUser.id, '1');
+  // Personalise greeting on first load
+  if (userGoal) applyGoalPersonalization();
+}
+
+function applyGoalPersonalization() {
+  // Personalize the hero greeting and session CTA based on goal
+  const goalMessages = {
+    stress: { greeting: 'Let’s find some calm', cta: 'Begin stress-relief session →' },
+    gratitude: { greeting: 'Let’s count your blessings', cta: 'Begin gratitude session →' },
+    clarity: { greeting: 'Let’s clear your mind', cta: 'Begin reflection session →' },
+    growth: { greeting: 'Let’s reflect and grow', cta: 'Begin reflection session →' },
+  };
+  const msg = goalMessages[userGoal];
+  if (!msg) return;
+  const cta = document.getElementById('cta-btn-text');
+  if (cta) cta.textContent = msg.cta;
 }
 
 // ══════════════════════════════════════════════════
-// THEME
-// ══════════════════════════════════════════════════
-function initTheme(){
-  const saved = localStorage.getItem('gj_theme');
-  if(saved === 'dark') document.documentElement.setAttribute('data-theme','dark');
-  else if(saved === 'light') document.documentElement.setAttribute('data-theme','light');
-  updateThemeBtn();
-}
-function toggleTheme(){
-  const current = document.documentElement.getAttribute('data-theme');
-  const isDark = current === 'dark' || (!current && window.matchMedia('(prefers-color-scheme:dark)').matches);
-  const next = isDark ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', next);
-  localStorage.setItem('gj_theme', next);
-  updateThemeBtn();
-}
-function updateThemeBtn(){
-  const btn = document.getElementById('themeBtn'); if(!btn) return;
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
-    (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme:dark)').matches);
-  btn.textContent = isDark ? '☀️' : '🌙';
-  btn.title = isDark ? 'Switch to light mode' : 'Switch to dark mode';
-}
-
 // ══════════════════════════════════════════════════
 // VOICE
 // ══════════════════════════════════════════════════
-const EL_VOICE = 'EXAVITQu4vr4xnSDxMaL';
-let voiceOn = false, elKey = localStorage.getItem('gj_el_key') || '', activeAudio = null, bVoice = null;
-function initBV() { if (!window.speechSynthesis) return; const l = () => { const vs = window.speechSynthesis.getVoices(); if (!vs.length) return; const names = ['Samantha', 'Karen', 'Moira', 'Tessa', 'Allison', 'Ava']; for (const n of names) { const v = vs.find(x => x.name.includes(n)); if (v) { bVoice = v; break; } } if (!bVoice) bVoice = vs.find(v => v.lang.startsWith('en') && v.localService) || vs.find(v => v.lang.startsWith('en')) || vs[0]; }; l(); window.speechSynthesis.onvoiceschanged = l; }
-function stopAudio() { if (activeAudio) { activeAudio.pause(); activeAudio = null; } if (window.speechSynthesis) window.speechSynthesis.cancel(); showBars(false); }
+// ── VOICE ─────────────────────────────────────────
+let voiceOn = false, activeAudio = null, bVoice = null;
+
+function initBV() {
+  if (!window.speechSynthesis) return;
+  const pick = () => {
+    const vs = window.speechSynthesis.getVoices();
+    if (!vs.length) return;
+    // Priority list — calming, natural English voices available on iOS/macOS
+    const preferred = [
+      'Samantha',   // iOS default — warm, natural
+      'Ava',        // iOS — very calm and clear
+      'Allison',    // macOS — smooth and warm
+      'Victoria',   // macOS — soft
+      'Karen',      // Australian — gentle
+      'Moira',      // Irish — warm
+      'Tessa',      // South African — calm
+      'Kate',       // British — clear
+    ];
+    for (const name of preferred) {
+      const v = vs.find(x => x.name.includes(name));
+      if (v) { bVoice = v; break; }
+    }
+    // Fallback: any local English voice
+    if (!bVoice) {
+      bVoice = vs.find(v => v.lang.startsWith('en') && v.localService)
+             || vs.find(v => v.lang.startsWith('en'))
+             || vs[0];
+    }
+  };
+  pick();
+  window.speechSynthesis.onvoiceschanged = pick;
+}
+
+function stopAudio() {
+  if (activeAudio) { activeAudio.pause(); activeAudio = null; }
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  showBars(false);
+}
+
 function say(text, done) { if (!voiceOn) { if (done) done(); return; } tts(text, done); }
-function tts(text, done) { stopAudio(); if (elKey) { showBars(true); fetch(`https://api.elevenlabs.io/v1/text-to-speech/${EL_VOICE}`, { method: 'POST', headers: { 'xi-api-key': elKey, 'Content-Type': 'application/json', 'Accept': 'audio/mpeg' }, body: JSON.stringify({ text, model_id: 'eleven_turbo_v2', voice_settings: { stability: 0.72, similarity_boost: 0.85, style: 0.22, use_speaker_boost: true } }) }).then(r => { if (!r.ok) throw 0; return r.blob(); }).then(b => { const url = URL.createObjectURL(b); activeAudio = new Audio(url); activeAudio.onended = () => { showBars(false); URL.revokeObjectURL(url); if (done) done(); }; activeAudio.onerror = () => { showBars(false); if (done) done(); }; activeAudio.play(); }).catch(() => bTTS(text, done)); } else bTTS(text, done); }
-function bTTS(text, done) { if (!window.speechSynthesis) { if (done) done(); return; } showBars(true); setTimeout(() => { const u = new SpeechSynthesisUtterance(text); u.rate = 0.78; u.pitch = 0.9; u.volume = 1; if (bVoice) u.voice = bVoice; u.onend = () => { showBars(false); if (done) done(); }; u.onerror = () => { showBars(false); if (done) done(); }; window.speechSynthesis.speak(u); }, 80); }
+
+function tts(text, done) { bTTS(text, done); }
+
+function bTTS(text, done) {
+  if (!window.speechSynthesis) { if (done) done(); return; }
+  showBars(true);
+  // Small delay lets the browser catch up before speaking
+  setTimeout(() => {
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate  = 0.82;   // slightly slower — more calming
+    u.pitch = 0.95;   // slightly lower — warmer
+    u.volume = 1;
+    if (bVoice) u.voice = bVoice;
+    u.onend  = () => { showBars(false); if (done) done(); };
+    u.onerror = () => { showBars(false); if (done) done(); };
+    window.speechSynthesis.speak(u);
+  }, 80);
+}
+
 function showBars(v) { const el = document.getElementById('speak-anim'); if (el) el.classList.toggle('show', v); }
-function toggleVoice() { voiceOn = !voiceOn; const b = document.getElementById('voiceBtn'); b.textContent = voiceOn ? '🔊 Voice on' : '🔈 Voice'; b.classList.toggle('on', voiceOn); if (!voiceOn) stopAudio(); else say(elKey ? 'Voice narration is on.' : 'Voice is on. Add your ElevenLabs key in Settings for the best experience.'); }
-function persistKey() { const v = document.getElementById('key-input').value.trim(); const s = document.getElementById('key-status'); if (!v) { s.textContent = 'Please enter a key.'; s.className = 'key-status err'; return; } localStorage.setItem('gj_el_key', v); elKey = v; s.textContent = '✓ Key saved.'; s.className = 'key-status ok'; }
+
+function toggleVoice() {
+  voiceOn = !voiceOn;
+  const b = document.getElementById('voiceBtn');
+  b.textContent = voiceOn ? '🔊 Voice on' : '🔈 Voice';
+  b.classList.toggle('on', voiceOn);
+  if (!voiceOn) stopAudio();
+  else say('Voice narration is on.');
+}
 
 // ══════════════════════════════════════════════════
 // SUPABASE DATA LAYER
@@ -584,6 +1084,42 @@ function celebrateBadge(b) {
 }
 function closeBadgeModal() { document.getElementById('badge-modal').classList.remove('open'); }
 
+// ── MILESTONE CELEBRATIONS ─────────────────────────
+const MILESTONES = [
+  { count: 1,   icon: '🌱', title: 'First entry',        message: 'The hardest one is always the first. You just did something your future self will thank you for.' },
+  { count: 7,   icon: '🔥', title: '7 entries',          message: 'One week of showing up for yourself. Most people never make it this far. You are in rare company.' },
+  { count: 14,  icon: '⚡', title: '14 entries',         message: 'Two weeks in. The habit is forming. Your brain is literally rewiring around this practice.' },
+  { count: 30,  icon: '🏆', title: '30 entries',         message: 'Thirty reflections. Research shows it takes 21 days to form a habit — you have just surpassed it. This is yours now.' },
+  { count: 50,  icon: '💎', title: '50 entries',         message: 'Fifty moments of honest reflection. You have built something most people only talk about building.' },
+  { count: 100, icon: '🌟', title: '100 entries',        message: 'One hundred entries. You have created a record of your inner life that almost no one in history has ever had. This is extraordinary.' },
+  { count: 200, icon: '🦋', title: '200 entries',        message: 'Two hundred. You are not building a habit anymore — you have built a practice. This is who you are.' },
+  { count: 365, icon: '👑', title: 'A year of entries',  message: 'A full year of reflection. Whatever happened this year, you showed up for it with honesty and intention. That is rare. That is powerful.' },
+];
+
+function checkMilestone(total) {
+  const milestone = MILESTONES.find(m => m.count === total);
+  if (!milestone) return;
+  const seenKey = 'gj_milestone_seen_' + total;
+  if (localStorage.getItem(seenKey)) return;
+  localStorage.setItem(seenKey, '1');
+  showMilestone(milestone);
+}
+
+function showMilestone(m) {
+  // Create a full-screen milestone overlay on top of the summary page
+  const overlay = document.createElement('div');
+  overlay.className = 'milestone-overlay';
+  overlay.innerHTML = '<div class="milestone-inner">'
+    + '<div class="milestone-icon">' + m.icon + '</div>'
+    + '<div class="milestone-title">' + m.title + '</div>'
+    + '<div class="milestone-message">' + m.message + '</div>'
+    + '<button class="ob-btn" onclick="this.closest(\'.milestone-overlay\').remove()">Keep going →</button>'
+    + '</div>';
+  document.body.appendChild(overlay);
+  launchConfetti();
+  if (voiceOn) setTimeout(() => say(m.message), 400);
+}
+
 function launchConfetti() {
   const canvas = document.getElementById('confetti-canvas'); const ctx = canvas.getContext('2d');
   canvas.width = window.innerWidth; canvas.height = window.innerHeight;
@@ -615,15 +1151,51 @@ function renderWeeklyReflection() {
   const avgB = we.filter(e => e.mood_before != null).length ? Math.round(we.filter(e => e.mood_before != null).reduce((s, e) => s + e.mood_before, 0) / we.filter(e => e.mood_before != null).length) : null;
   const avgA = we.filter(e => e.mood_after != null).length ? Math.round(we.filter(e => e.mood_after != null).reduce((s, e) => s + e.mood_after, 0) / we.filter(e => e.mood_after != null).length) : null;
   const lift = withBoth.length ? +(withBoth.reduce((s, e) => s + (e.mood_after - e.mood_before), 0) / withBoth.length).toFixed(1) : null;
+
+  // Find the best highlight quote from this week
   let highlight = null, highlightDate = null;
   we.forEach(e => { (e.answers || []).forEach(a => { if (a && a.length > 30 && (!highlight || a.length > highlight.length)) { highlight = a; highlightDate = e.date; } }); });
-  const msgs = [[7, 'You showed up every single day this week. That kind of commitment is rare and powerful.'], [5, "Five days this week. You're building something real — one entry at a time."], [3, "Three sessions this week. Consistency is a practice, not a perfection. You're doing it."], [2, 'Two entries this week. Every reflection counts.'], [0, 'You journaled this week. That alone is worth celebrating.']];
+
+  // Extract top meaningful words from this week's entries (word cloud insight)
+  const stopWords = new Set(['the','a','an','and','or','but','in','on','at','to','for','of','with','my','i','me','was','is','are','were','have','had','has','that','this','it','be','been','not','so','if','as','do','did','what','how','just','like','very','from','about','when','who','which','can','will','would','could','should','than','then','there','their','they','we','our','your','you','he','she','his','her','him','its','all','one','out','up','by','more','also','am','into','get','got','no','any']);
+  const wordCount = {};
+  we.forEach(e => {
+    (e.answers || []).forEach(a => {
+      if (!a) return;
+      a.toLowerCase().replace(/[^a-z\s]/g, '').split(/\s+/).forEach(w => {
+        if (w.length > 3 && !stopWords.has(w)) wordCount[w] = (wordCount[w] || 0) + 1;
+      });
+    });
+  });
+  const topWords = Object.entries(wordCount).sort((a,b) => b[1]-a[1]).slice(0, 5).map(([w]) => w);
+
+  const msgs = [[7,'You showed up every single day this week. That kind of commitment is rare and powerful.'],[5,"Five days this week. You're building something real — one entry at a time."],[3,"Three sessions this week. Consistency is a practice, not a perfection. You're doing it."],[2,'Two entries this week. Every reflection counts.'],[0,'You journaled this week. That alone is worth celebrating.']];
   const msg = msgs.find(([d]) => days >= d)[1];
+
   const moodHtml = avgB != null && avgA != null ? '<div class="weekly-mood-row"><div class="weekly-mood-block"><span class="weekly-mood-emoji">' + MOODS[avgB].e + '</span><div class="weekly-mood-label">avg before</div></div><div class="weekly-mood-arrow">→</div><div class="weekly-mood-block"><span class="weekly-mood-emoji">' + MOODS[avgA].e + '</span><div class="weekly-mood-label">avg after</div></div>' + (lift != null && lift > 0 ? '<span class="weekly-mood-lift">↑ ' + lift + ' avg lift</span>' : '') + '</div>' : '';
-  const quoteHtml = highlight ? `<div class="weekly-quote"><div class="weekly-quote-text">"${esc(highlight.length > 120 ? highlight.slice(0, 120).trim() + '…' : highlight)}"</div><div class="weekly-quote-attr">— Your entry, ${new Date(highlightDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div></div>` : '';
+
+  const quoteHtml = highlight ? '<div class="weekly-quote"><div class="weekly-quote-text">\u201C' + esc(highlight.length > 120 ? highlight.slice(0, 120).trim() + '\u2026' : highlight) + '\u201D</div><div class="weekly-quote-attr">\u2014 Your entry, ' + new Date(highlightDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + '</div></div>' : '';
+
+  const wordsHtml = topWords.length >= 3 ? '<div class="weekly-words"><div class="weekly-words-label">Words on your mind this week</div><div class="weekly-words-chips">' + topWords.map(w => '<span class="weekly-word-chip">' + w + '</span>').join('') + '</div></div>' : '';
+
   const now2 = new Date(), wa2 = new Date(); wa2.setDate(wa2.getDate() - 6);
-  const range = wa2.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' – ' + now2.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  el.innerHTML = `<div class="weekly-card"><div class="weekly-eyebrow">Weekly reflection · ${range}</div><div class="weekly-stats"><div class="weekly-stat"><span class="weekly-stat-val">${days}</span><span class="weekly-stat-key">days journaled</span></div><div class="weekly-stat"><span class="weekly-stat-val">${we.length}</span><span class="weekly-stat-key">total entries</span></div><div class="weekly-stat"><span class="weekly-stat-val">${streak()}</span><span class="weekly-stat-key">day streak</span></div></div>${moodHtml}<div class="weekly-message">${msg}</div>${quoteHtml}<button class="weekly-dismiss" onclick="dismissWeekly()">Dismiss for this week</button></div>`;
+  const range = wa2.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' \u2013 ' + now2.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+  const goalInsight = getGoalInsight(we);
+
+  el.innerHTML = '<div class="weekly-card"><div class="weekly-eyebrow">Weekly reflection \xb7 ' + range + '</div><div class="weekly-stats"><div class="weekly-stat"><span class="weekly-stat-val">' + days + '</span><span class="weekly-stat-key">days journaled</span></div><div class="weekly-stat"><span class="weekly-stat-val">' + we.length + '</span><span class="weekly-stat-key">total entries</span></div><div class="weekly-stat"><span class="weekly-stat-val">' + streak() + '</span><span class="weekly-stat-key">day streak</span></div></div>' + moodHtml + '<div class="weekly-message">' + msg + '</div>' + (goalInsight ? '<div class="weekly-goal-insight">' + goalInsight + '</div>' : '') + wordsHtml + quoteHtml + '<button class="weekly-dismiss" onclick="dismissWeekly()">Dismiss for this week</button></div>';
+}
+
+function getGoalInsight(entries) {
+  const goal = localStorage.getItem('gj_goal');
+  if (!goal || !entries.length) return null;
+  const insights = {
+    stress: 'Your breathing sessions this week are actively rewiring your stress response. Keep going.',
+    gratitude: 'Each specific thing you wrote down is training your brain to scan for the good. It compounds.',
+    clarity: 'Writing things out forces your brain to organise what feels chaotic. That clarity is real.',
+    growth: 'Every entry is a data point about who you are and who you\'re becoming. You\'re paying attention.'
+  };
+  return insights[goal] || null;
 }
 
 function dismissWeekly() {
@@ -1177,9 +1749,9 @@ function renderSettings() {
     const pn = document.getElementById('profile-name'); if (pn) pn.textContent = name;
     const pe = document.getElementById('profile-email'); if (pe) pe.textContent = u.email;
   }
-  const ki = document.getElementById('key-input'); if (ki && elKey) ki.value = elKey;
-  const ks = document.getElementById('key-status'); if (ks) { ks.textContent = elKey ? '✓ Key saved' : ''; ks.className = elKey ? 'key-status ok' : ''; }
   const ds = document.getElementById('data-summary'); if (ds) { const n = getEntries().length; ds.textContent = `${n} journal entr${n === 1 ? 'y' : 'ies'} synced to cloud.`; }
+  const nt = document.getElementById('settings-notif-time'); if (nt) nt.value = localStorage.getItem('gj_notif_time') || '20:00';
+  const ns = document.getElementById('notif-status'); if (ns) ns.textContent = localStorage.getItem('gj_notif_enabled') ? '✓ Reminders enabled' : '';
 }
 
 // ══════════════════════════════════════════════════
@@ -1285,6 +1857,81 @@ const LEARN_CONTENT = [
     desc: 'Animals shake after stress to discharge adrenaline and cortisol. Humans can reclaim this instinct.',
     steps: ['Stand with feet shoulder-width apart. Bend your knees slightly.','Begin to gently bounce, letting your whole body vibrate. Start small — just your legs.','Allow the vibration to travel up through your hips, belly, chest, shoulders.','Let your arms hang loose and shake. Let your jaw drop open slightly.','After 2 minutes, increase the shaking for 30 seconds — big, free movement.','Then gradually slow down, returning to stillness over 30 seconds.','Stand completely still for 1 minute. Notice the tingling and warmth throughout your body.'],
     tip: "<strong>This works:</strong> Dr. Peter Levine's somatic research shows that animals shake to discharge the freeze response after stress. Humans override this instinct socially, which keeps stress locked in the body." },
+
+  { id: 'l21', cat: 'Mindfulness', icon: '🎯', bg: '#F0EDF7', color: '#5B4A8A', title: 'Single-Tasking', time: '25 min',
+    desc: 'Multitasking is a myth — it reduces performance by 40%. Single-tasking is a trainable skill that rebuilds focus.',
+    steps: ['Choose one task. Write it on a piece of paper and place it where you can see it.','Close every tab, app, and window not related to that task. Put your phone face-down.','Set a timer for 25 minutes. This is your only job until the timer goes off.','When your mind wanders — and it will — gently return to the task without judgment.','If a thought or to-do arrives, write it on a separate list and return to the task.','When the timer ends, take a 5-minute break before starting again.','Track how many 25-minute blocks you complete in a day. This number will grow.'],
+    tip: '<strong>The Pomodoro Technique:</strong> This method was developed by Francesco Cirillo in the late 1980s. The name comes from a tomato-shaped kitchen timer. The technique works because it makes time visible and finite.' },
+
+  { id: 'l22', cat: 'Journaling', icon: '📝', bg: '#E8F4F8', color: '#1E6A8A', title: 'Unsent Letter', time: '15 min',
+    desc: 'Write a letter you will never send. One of the most powerful emotional processing tools in therapy.',
+    steps: ['Choose a person, situation, or even a version of yourself you need to address.','Begin with "Dear ___." Give yourself full permission to say everything you have held back.','Write without editing, without being fair, without worrying about their perspective.','Say what you needed them to understand. What you needed them to do. What their actions cost you.','If it turns to forgiveness, let it. If it stays in anger, that is also fine. Follow where it leads.','When you feel complete — not when you run out of words, but when you feel the release — stop.','You do not need to keep it. You can burn it, shred it, or delete it. The act of writing was the point.'],
+    tip: '<strong>Used in therapy for:</strong> grief, anger, unresolved relationships, past trauma, and difficult conversations you cannot have in real life. The research on expressive writing is extensive and consistent.' },
+
+  { id: 'l23', cat: 'Sleep', icon: '🌡️', bg: '#FDF3E3', color: '#9A6520', title: 'Temperature Regulation for Sleep', time: '30 min',
+    desc: 'Your core body temperature must drop 1-3 degrees to initiate sleep. Most people fight this process without knowing.',
+    steps: ['Set your bedroom temperature between 65-68°F (18-20°C). This is colder than most people keep their rooms.','Take a warm shower or bath 1-2 hours before bed. This sounds counterintuitive but works by pulling heat to your skin surface, then rapidly cooling your core when you step out.','Keep your feet warm — cold feet constrict blood vessels and prevent the heat-dumping your body needs. Wear socks if needed.','Use layered bedding you can kick off rather than a single heavy blanket.','Avoid exercise within 2 hours of bed — it raises core temperature significantly.','If you wake up hot in the night, expose one foot outside the covers. Your foot is a radiator.'],
+    tip: "<strong>Why this works:</strong> The body clock (circadian rhythm) and sleep onset are directly linked to core temperature drop. Matthew Walker's research shows temperature is one of the most underrated sleep levers." },
+
+  { id: 'l24', cat: 'Breathing', icon: '🌬️', bg: '#EDF5F1', color: '#2D7A5F', title: 'Alternate Nostril Breathing', time: '5 min',
+    desc: 'A yogic pranayama technique shown to balance the nervous system and reduce blood pressure within minutes.',
+    steps: ['Sit comfortably with a straight spine. Rest your left hand on your left knee.','Bring your right hand to your face. Place your right thumb on your right nostril and your ring finger on your left nostril.','Close your right nostril with your thumb. Inhale slowly through your left nostril for 4 counts.','Close both nostrils. Hold for 2 counts.','Release your thumb. Exhale through your right nostril for 4 counts.','Inhale through the right nostril for 4 counts.','Close both. Hold 2 counts. Then exhale through the left nostril.','This completes one cycle. Repeat 5–10 cycles.'],
+    tip: '<strong>The research:</strong> A 2013 study found alternate nostril breathing significantly reduced heart rate and blood pressure. Left nostril breathing activates the right hemisphere; right nostril activates the left.' },
+
+  { id: 'l25', cat: 'Mindfulness', icon: '🌊', bg: '#F0EDF7', color: '#5B4A8A', title: 'RAIN Technique', time: '10 min',
+    desc: 'A mindfulness practice from Tara Brach for working with difficult emotions. Recognize, Allow, Investigate, Nurture.',
+    steps: ['R — RECOGNIZE: Pause and name what you are feeling. "There is fear here." "There is shame here." Naming it activates the prefrontal cortex and reduces the amygdala response.','A — ALLOW: Let the feeling be there without trying to fix, avoid, or suppress it. Say inwardly "yes" to its presence, even if it is uncomfortable.','I — INVESTIGATE: With gentle curiosity, ask: Where do I feel this in my body? What does it believe? What does it need?','N — NURTURE: Offer yourself what the feeling needs. A hand on your heart. Words like "this is hard" or "I am here." The compassion you would offer a dear friend.','After RAIN, rest in the open awareness that remains. Notice who is noticing.'],
+    tip: '<strong>Created by:</strong> Tara Brach, mindfulness teacher and clinical psychologist. RAIN is especially powerful for shame, fear, and self-criticism. It transforms the relationship to difficulty rather than eliminating it.' },
+
+  { id: 'l26', cat: 'Journaling', icon: '🔮', bg: '#E8F4F8', color: '#1E6A8A', title: 'Future Self Letter', time: '20 min',
+    desc: 'Write a letter from your future self to your present self. Activates identity-level change.',
+    steps: ['Choose a specific future date — one year, five years, or ten years from today.','Write as if you are that future version of yourself, writing back to who you are right now.','Describe what your life looks like. What you are proud of. What you figured out.','Tell your present self what you needed to hear, what fears were unfounded, what was worth the effort.','Be specific — vague letters have less impact. Name real things, real decisions, real feelings.','Tell your present self what to stop doing. What to start. What to hold onto.','Seal it digitally or physically. Set a calendar reminder to open it on that future date.'],
+    tip: "<strong>The psychology:</strong> Research by Hal Hershfield shows that people who feel connected to their future selves make better long-term decisions. This letter builds that connection." },
+
+  { id: 'l27', cat: 'Sleep', icon: '📵', bg: '#FDF3E3', color: '#9A6520', title: 'Digital Sunset', time: '60 min',
+    desc: 'A structured screen-free hour before bed that dramatically improves sleep onset and quality.',
+    steps: ['Choose a "sunset time" — one hour before you want to be asleep. Set a recurring alarm for it.','When the alarm goes off, silence all notifications and put devices in another room.','Replace the phone with one of: physical book, journal, conversation, gentle stretching, or a warm drink.','If you must use a device, switch to night mode, minimum brightness, and blue light glasses.','Keep a notepad beside your bed. If your mind generates to-dos or worries, write them down and let them go.','Notice how your mind feels different when you start this practice consistently after 3–5 days.','Protect this hour. It compounds — the better you sleep, the better your next day, which makes the next night easier.'],
+    tip: '<strong>The data:</strong> People who use phones in the 30 minutes before bed take an average of 14 minutes longer to fall asleep and get 20 minutes less sleep per night. Over a year, that is 122 lost hours.' },
+
+  { id: 'l28', cat: 'Movement', icon: '🧗', bg: '#FDF0EF', color: '#8A3030', title: 'Cold Exposure', time: '3 min',
+    desc: 'Deliberate cold exposure builds stress resilience, boosts mood, and trains mental toughness.',
+    steps: ['Start with the last 30 seconds of your shower on cold. Not cool — cold.','Breathe slowly and deliberately through the discomfort. The urge to jump out is the point.','Focus on your breath rather than the cold sensation. Long exhale through pursed lips.','Gradually extend to 1 minute, then 2, then 3 over several weeks.','The goal is not to feel nothing — it is to remain calm while feeling discomfort.','Notice the mood elevation afterward. Most people feel an alertness and lightness that lasts hours.','Do not do this first thing if you are new — shower warm first, then switch to cold at the end.'],
+    tip: "<strong>The science:</strong> Cold exposure releases norepinephrine by up to 300% and dopamine by up to 250%. Andrew Huberman's research shows even 11 minutes per week of deliberate cold builds lasting stress resilience." },
+
+  { id: 'l29', cat: 'Mindfulness', icon: '💭', bg: '#F0EDF7', color: '#5B4A8A', title: 'Loving-Kindness Meditation', time: '10 min',
+    desc: 'Metta meditation — scientifically shown to increase positive emotions and reduce self-criticism.',
+    steps: ['Sit comfortably. Close your eyes. Take 3 slow breaths.','Begin with yourself. Silently repeat: "May I be happy. May I be healthy. May I be safe. May I live with ease."','Feel the meaning of the words — do not rush. Let each phrase settle.','Now bring to mind someone you love easily — a close friend, a pet. Repeat: "May you be happy. May you be healthy. May you be safe. May you live with ease."','Expand to a neutral person — someone you see but do not know well. Offer them the same wishes.','If you feel ready, extend to someone difficult. This is hard at first. Start with mild difficulty.','Finally, expand to all beings everywhere. "May all beings be happy. May all beings be safe."','Rest in the warmth for a moment before opening your eyes.'],
+    tip: '<strong>The research:</strong> Barbara Fredrickson found that even 7 weeks of loving-kindness meditation increased daily positive emotions and built lasting personal resources including mindfulness, purpose, and reduced illness.' },
+
+  { id: 'l30', cat: 'Journaling', icon: '⚡', bg: '#E8F4F8', color: '#1E6A8A', title: 'Values Clarification', time: '20 min',
+    desc: 'Knowing your values removes decision fatigue and creates a compass for every major life choice.',
+    steps: ['Write down 20 things that matter deeply to you — people, activities, qualities, experiences. Do not filter.','Review your list. Circle the 10 that feel most essential — things you could not imagine a meaningful life without.','From those 10, choose your top 5. This will feel uncomfortable. That discomfort is the point.','For each of your top 5, write one sentence explaining why it matters so much.','Now evaluate: Where in your current life are you living in alignment with these values? Where are you not?','Identify one specific change you could make this week to close one gap between values and actions.','Return to this exercise every 6 months. Values evolve — and so should the life you build around them.'],
+    tip: '<strong>Why this matters:</strong> Most anxiety and dissatisfaction comes from living out of alignment with values — often values absorbed from others rather than chosen deliberately. This exercise starts the reclamation.' },
+
+  { id: 'l31', cat: 'Breathing', icon: '🏔️', bg: '#EDF5F1', color: '#2D7A5F', title: 'Buteyko Breathing', time: '10 min',
+    desc: 'A breathing method developed by Russian doctor Konstantin Buteyko to reduce over-breathing and anxiety.',
+    steps: ['Sit upright and breathe normally through your nose for 2 minutes. Notice your natural rhythm.','Take a gentle breath in through your nose, then a relaxed breath out.','After the exhale, pinch your nose closed with your fingers.','Hold until you feel the first definite urge to breathe — not panic, just the first real signal.','Release and breathe normally through your nose. Try to keep breathing calm — do not gasp.','Rest for 2–3 minutes of gentle nose breathing.','Repeat 5 times. Over weeks, your control pause will lengthen — a sign of improved CO₂ tolerance.'],
+    tip: "<strong>The principle:</strong> Modern humans over-breathe chronically, expelling too much CO₂. CO₂ is not just waste — it's what signals your blood to release oxygen. Buteyko normalizes this, reducing anxiety and improving sleep." },
+
+  { id: 'l32', cat: 'Sleep', icon: '☀️', bg: '#FDF3E3', color: '#9A6520', title: 'Morning Light Anchoring', time: '10 min',
+    desc: 'Getting sunlight in your eyes within 30 minutes of waking resets your circadian clock for the entire day.',
+    steps: ['Within 30 minutes of waking, go outside. Even on a cloudy day, outdoor light is 10–50x brighter than indoor light.','Stand or sit facing the direction of the sun — you do not need to look directly at it.','Stay for 5–10 minutes. On very bright days, 2–3 minutes may be enough.','Do not wear sunglasses during this time. The light needs to reach your retina.','If it is dark when you wake up, use a 10,000 lux light therapy lamp for 10 minutes.','Combine this with something pleasant — coffee, a short walk, stretching.','Do it consistently for 7 days and notice the change in energy, mood, and how easily you fall asleep at night.'],
+    tip: "<strong>Why it works:</strong> Andrew Huberman's research shows that morning light sets a cortisol pulse at the right time, which directly determines when melatonin releases 12-14 hours later — controlling your sleep timing." },
+
+  { id: 'l33', cat: 'Mindfulness', icon: '🪞', bg: '#F0EDF7', color: '#5B4A8A', title: 'Self-Compassion Break', time: '5 min',
+    desc: "Kristin Neff's three-step practice for meeting your own pain with the care you'd offer a friend.",
+    steps: ['When you notice you are struggling — stressed, failing, overwhelmed — pause.','Step 1 — MINDFULNESS: Acknowledge the pain without exaggerating or suppressing it. "This is a moment of suffering." "This is hard right now."','Step 2 — COMMON HUMANITY: Remind yourself you are not alone. "Suffering is part of being human." "Other people feel this way too." "I am not uniquely broken."','Step 3 — KINDNESS: Place one or both hands over your heart. Offer yourself words a caring friend would say: "May I be kind to myself in this moment." "May I give myself the compassion I need."','Stay with the warmth of your hands on your chest for 30 seconds.','This takes 2–3 minutes. It interrupts the self-criticism loop that makes difficulty worse.'],
+    tip: "<strong>Kristin Neff's research</strong> shows self-compassion is more effective than self-esteem for resilience, motivation, and wellbeing — and unlike self-esteem, it does not require you to feel special or above average." },
+
+  { id: 'l34', cat: 'Movement', icon: '🧘', bg: '#FDF0EF', color: '#8A3030', title: 'Yoga Nidra', time: '20 min',
+    desc: 'Non-sleep deep rest — one hour of Yoga Nidra is said to equal 4 hours of sleep for neural recovery.',
+    steps: ['Lie flat on your back with arms slightly away from your body, palms up.','Close your eyes. Set an intention — one sentence describing what you want to cultivate.','Rotate awareness through body parts rapidly: right thumb, index finger, middle finger, ring finger, little finger, palm, back of hand, wrist, forearm, elbow...','Continue through the entire body at a steady pace, spending 2–3 seconds on each point.','Do not try to relax — just move attention. Relaxation follows automatically.','After the body scan, move through pairs of opposites: heaviness/lightness, warmth/cold, pain/pleasure.','Return to your intention. Rest in open awareness for 5 minutes before slowly returning.'],
+    tip: '<strong>Used by:</strong> the US military, professional athletes, and hospitals for recovery. Research shows it activates the same restorative brain states as sleep while maintaining a thread of consciousness.' },
+
+  { id: 'l35', cat: 'Journaling', icon: '🗺️', bg: '#E8F4F8', color: '#1E6A8A', title: 'Weekly Review', time: '20 min',
+    desc: 'A structured end-of-week reflection practice used by high performers across every field.',
+    steps: ['Choose a consistent time — Sunday evening works well for most people. Block 20 minutes.','Review your calendar and task list from the past week. What actually happened versus what you planned?','Ask: What went well this week? Be specific and give yourself genuine credit.','Ask: What did not go as planned? What was the cause — circumstances, choices, or systems?','Ask: What did I learn this week — about my work, myself, or others?','Ask: What do I want to carry into next week? One intention, one commitment, one thing to let go of.','Write briefly on each. You are not journaling a novel — you are closing one chapter and opening another.'],
+    tip: '<strong>Used by:</strong> David Allen (Getting Things Done), Tim Ferriss, and most high-output people interviewed about their systems. The weekly review is the single habit most correlated with consistent productivity and peace of mind.' },
 ];
 
 const CATS = ['All', 'Breathing', 'Mindfulness', 'Sleep', 'Movement', 'Journaling'];
@@ -1393,8 +2040,180 @@ function toggleDone(id) { if (learnDone.includes(id)) learnDone = learnDone.filt
 // ══════════════════════════════════════════════════
 // QUESTIONS
 // ══════════════════════════════════════════════════
-const POOL = ["What challenge are you thankful for, even if it was difficult?", "What's one thing about yourself you appreciate right now?", "What moment from today would you want to remember forever?", "What opportunity are you most looking forward to?", "Describe something beautiful you noticed today.", "What relationship in your life are you most grateful for, and why?"];
-function pickQs() { const s = [...POOL].sort(() => Math.random() - 0.5); return [...FIXED_QS_L, s[0], s[1]]; }
+// Rotating opening questions — 3 picked randomly each session from this pool
+const OPENING_QS = [
+  "What is one thing you're genuinely grateful for today?",
+  "Who made a positive difference in your life recently, and why?",
+  "What's something small that brought you joy or comfort today?",
+  "What's one thing that went better than expected today?",
+  "What's one person you're lucky to have in your life right now?",
+  "What's something you're looking forward to, no matter how small?",
+  "What's one thing about today you want to remember a year from now?",
+  "What made you smile today, even briefly?",
+  "What's one thing you did today that your past self would be proud of?",
+  "Who is someone you haven't thanked recently but should?",
+  "What's one simple pleasure you experienced today?",
+  "What's something working well in your life right now?",
+];
+
+const POOL = [
+  "What challenge are you thankful for, even if it was difficult?",
+  "What's one thing about yourself you appreciate right now?",
+  "What moment from today would you want to remember forever?",
+  "What opportunity are you most looking forward to?",
+  "Describe something beautiful you noticed today.",
+  "What relationship in your life are you most grateful for, and why?",
+  "What's one thing you learned today, big or small?",
+  "What's something you accomplished recently that you haven't celebrated?",
+  "What does your body need right now that you haven't given it?",
+  "What's one thing you're genuinely proud of this week?",
+];
+
+// Goal-specific question pools — 30 questions each
+const GOAL_POOLS = {
+  stress: [
+    "What's one thing that felt heavy today that you can set down right now?",
+    "What small thing brought you a moment of peace today, even briefly?",
+    "What's one worry you've been carrying that you could choose to release tonight?",
+    "Who or what helped you feel grounded today?",
+    "What physical sensation in your body right now tells you how you're doing?",
+    "What would you say to a friend going through exactly what you are?",
+    "What's one thing you handled today that you didn't think you could?",
+    "Where did you feel tension ease today, even for a moment?",
+    "What's the smallest possible step you could take tomorrow to feel less overwhelmed?",
+    "What are you catastrophizing about that probably won't happen?",
+    "What's one thing you can control right now, in this moment?",
+    "Who makes you feel safe? When did you last spend time with them?",
+    "What does your body do when it's stressed? What does it need right now?",
+    "What's one thing you've survived before that felt impossible at the time?",
+    "What would you tell yourself at the start of this difficult period, knowing what you know now?",
+    "What's the difference between what you're anxious about and what's actually happening?",
+    "What's one small act of self-care you could do in the next 10 minutes?",
+    "When was the last time you felt genuinely at peace? What was different?",
+    "What are you holding onto that you know you need to let go of?",
+    "What's one expectation of yourself you could ease up on right now?",
+    "What part of today actually went okay, even if the rest didn't?",
+    "What would a calmer version of you handle differently tomorrow?",
+    "What's draining your energy most right now — and is it something you can change?",
+    "What's one boundary you could set this week that would reduce your stress?",
+    "What does rest actually look like for you — not just sleep, but genuine restoration?",
+    "What's one thought pattern you keep coming back to that isn't helping you?",
+    "If your stress were trying to tell you something, what would it say?",
+    "What's one thing you accomplished today despite how you were feeling?",
+    "What's something you've been putting off that, once done, would relieve real pressure?",
+    "What would it feel like to go to bed tonight having fully released this day?",
+  ],
+  gratitude: [
+    "Name one specific moment from today you wouldn't trade for anything.",
+    "Who did something kind recently that you haven't acknowledged yet?",
+    "What ordinary thing do you have that many people in the world don't?",
+    "What part of your body are you grateful for today, and why?",
+    "What about your past made today possible?",
+    "What's a problem you have that is actually a sign of something good in your life?",
+    "What did you take for granted this week that you actually appreciate?",
+    "Describe a texture, smell, or sound that brought you quiet joy recently.",
+    "What's one piece of technology that makes your life dramatically easier?",
+    "What's a skill you have that took years to develop — and what does it enable you to do?",
+    "Who believed in you before you believed in yourself?",
+    "What's one conversation from this week that left you feeling better afterward?",
+    "What's something beautiful about where you live that you forget to notice?",
+    "What food or meal are you genuinely grateful exists in the world?",
+    "What's one mistake you made that taught you something you needed to learn?",
+    "What does your morning look like — and what part of it are you grateful for?",
+    "What's one piece of art, music, or writing that has genuinely moved you?",
+    "What's something your childhood self would be amazed by about your life right now?",
+    "Who in your life consistently shows up for you, even quietly?",
+    "What's one door that closed in your life that led to something better?",
+    "What's a random act of kindness someone did for you that you still remember?",
+    "What's something you used to struggle with that feels easier now?",
+    "What's one thing about your personality that you've grown to appreciate?",
+    "What's a place you've been to that you're grateful to have experienced?",
+    "What's something in nature you find genuinely awe-inspiring?",
+    "What's one opportunity you had that changed the direction of your life?",
+    "What's something a stranger did recently that surprised you with its kindness?",
+    "What's one book, podcast, or idea that shifted how you see the world?",
+    "What's something simple about today — the weather, a moment, a taste — worth appreciating?",
+    "What's one relationship in your life that has grown stronger through difficulty?",
+  ],
+  clarity: [
+    "What decision have you been postponing, and what's really holding you back?",
+    "What does the clearest, most honest part of you know that you've been ignoring?",
+    "What would you do this week if you weren't afraid of getting it wrong?",
+    "What's one thing you know you need to stop doing but haven't yet?",
+    "What does your life look like in 5 years if you stay on your current path?",
+    "What's the one thing that, if solved, would make everything else easier?",
+    "What are you saying yes to that you actually want to say no to?",
+    "What would the wiser future version of you tell you about this moment?",
+    "What's a belief you hold about yourself that might not actually be true?",
+    "What would you do differently if you knew you couldn't fail?",
+    "What's the gap between who you are and who you want to be — and what creates it?",
+    "What are you pretending not to know?",
+    "What does success actually look like to you — not anyone else's version, yours?",
+    "What's one area of your life where you're settling when you shouldn't be?",
+    "What's the most important thing you could focus on this week?",
+    "What's one relationship in your life that needs more honesty?",
+    "If a close friend described you, what would they say that you'd find hard to hear?",
+    "What do you keep thinking about that's trying to tell you something?",
+    "What's the difference between what you want and what you think you should want?",
+    "What would you do with your time if money wasn't a factor?",
+    "What's one thing you've been overcomplicating that has a simple answer?",
+    "What values do you say you have — and where are you actually living them?",
+    "What's one habit that's inconsistent with the person you want to become?",
+    "Where in your life are you being reactive instead of intentional?",
+    "What's one thing you need to forgive yourself for in order to move forward?",
+    "What conversation are you dreading that you know needs to happen?",
+    "What's one commitment you've made to yourself that you keep breaking — and why?",
+    "What would it mean to fully trust yourself? What's stopping you?",
+    "What does your gut tell you about something you've been overthinking?",
+    "What's one thing you'd regret not doing if you looked back in 10 years?",
+  ],
+  growth: [
+    "What did you learn about yourself this week that surprised you?",
+    "Where did you grow even though it felt uncomfortable?",
+    "What habit or pattern are you finally starting to see clearly?",
+    "What conversation do you need to have that you've been avoiding?",
+    "What part of yourself are you still working on accepting?",
+    "What's one boundary you maintained this week, or wish you had?",
+    "Describe a moment you handled differently than you would have a year ago.",
+    "What are you becoming that you couldn't have imagined becoming before?",
+    "What's one fear you've faced recently, even partially?",
+    "What's the most important lesson life has taught you so far?",
+    "What version of yourself do you want to be in 12 months — specifically?",
+    "Where are you growing in a way you haven't given yourself credit for?",
+    "What's one thing you've changed your mind about in the last year?",
+    "What does discipline look like in your life right now — where is it showing up?",
+    "Who do you want to be in your relationships — and how close are you to that?",
+    "What's one thing you used to be afraid of that no longer scares you?",
+    "What's the hardest feedback you've received recently — and was it right?",
+    "What's one area where you've been too hard on yourself?",
+    "What's one area where you've let yourself off the hook too easily?",
+    "What's something you've been avoiding that would actually help you grow?",
+    "What does the gap between your current self and your best self look like?",
+    "What's one relationship where you could show up better — and how?",
+    "What have you outgrown that you're still holding onto?",
+    "What's one new thing you tried recently, and what did it teach you?",
+    "What's one moment this week where you chose growth over comfort?",
+    "What's a story you tell yourself about who you are that might be limiting you?",
+    "What would it look like to operate from your values every single day?",
+    "What's one thing someone in your life models that you want to develop in yourself?",
+    "What's the biggest obstacle to your growth right now — internal or external?",
+    "If you could give your younger self one piece of advice, what would it be — and do you live by it?",
+  ],
+};
+
+function pickQs() {
+  const goal = localStorage.getItem('gj_goal');
+  const pool = (goal && GOAL_POOLS[goal]) ? GOAL_POOLS[goal] : POOL;
+
+  // Pick 2 random opening questions (never repeat in same session)
+  const openingShuffled = [...OPENING_QS].sort(() => Math.random() - 0.5);
+  const opening = [openingShuffled[0], openingShuffled[1]];
+
+  // Pick 3 goal-specific questions
+  const goalShuffled = [...pool].sort(() => Math.random() - 0.5);
+
+  return [...opening, goalShuffled[0], goalShuffled[1], goalShuffled[2]];
+}
 
 // ══════════════════════════════════════════════════
 // BREATHWORK
@@ -1407,9 +2226,17 @@ function launchBreath() { const e = EXERCISES[chosenEx]; document.getElementById
 function resetBreath() { bRound = 0; bPhase = 0; bCount = 0; bGoing = false; if (bTimer) clearInterval(bTimer); const g = id => document.getElementById(id); if (g('ring-word')) g('ring-word').textContent = 'Ready'; if (g('ring-count')) g('ring-count').textContent = ''; if (g('bex-hint')) g('bex-hint').textContent = "Press start when you're ready"; const sb = g('bex-start'); if (sb) { sb.disabled = false; sb.textContent = 'Start'; } const r = g('ring'); if (r) { r.style.transform = 'scale(1)'; r.classList.remove('exhale'); } renderRoundDots(); }
 function renderRoundDots() { const rounds = EXERCISES[chosenEx].rounds; const el = document.getElementById('round-dots'); if (!el) return; el.innerHTML = Array(rounds).fill(0).map((_, i) => `<div class="round-dot ${i < bRound ? 'lit' : ''}"></div>`).join(''); }
 function startBreath() { if (bGoing) return; bGoing = true; const sb = document.getElementById('bex-start'); if (sb) sb.disabled = true; if (voiceOn) say("Let's begin. Follow the circle.", () => setTimeout(runPhase, 500)); else setTimeout(runPhase, 300); }
-function runPhase() { const ex = EXERCISES[chosenEx]; if (bRound >= ex.rounds) { finishBreath(); return; } const p = ex.phases[bPhase]; bCount = p.d; const g = id => document.getElementById(id); if (g('ring-word')) g('ring-word').textContent = p.w; if (g('ring-count')) g('ring-count').textContent = bCount; if (g('ring')) { g('ring').style.transform = `scale(${p.scale})`; g('ring').classList.toggle('exhale', p.ex); } if (g('bex-hint')) g('bex-hint').textContent = `Round ${bRound + 1} of ${ex.rounds}`; const go = () => { bTimer = setInterval(() => { bCount--; const bc = document.getElementById('ring-count'); if (bc) bc.textContent = bCount > 0 ? bCount : ''; if (bCount <= 0) { clearInterval(bTimer); bPhase++; if (bPhase >= ex.phases.length) { bPhase = 0; bRound++; renderRoundDots(); } setTimeout(runPhase, 400); } }, 1000); }; if (voiceOn) say(p.narr, go); else go(); }
+function runPhase() { const ex = EXERCISES[chosenEx]; if (bRound >= ex.rounds) { finishBreath(); return; } const p = ex.phases[bPhase]; bCount = p.d; const g = id => document.getElementById(id); if (g('ring-word')) g('ring-word').textContent = p.w; if (g('ring-count')) g('ring-count').textContent = bCount; if (g('ring')) { g('ring').style.transform = `scale(${p.scale})`; g('ring').classList.toggle('exhale', p.ex); g('ring').style.transitionDuration = p.d + 's'; } if (g('bex-hint')) g('bex-hint').textContent = `Round ${bRound + 1} of ${ex.rounds}`; const go = () => { bTimer = setInterval(() => { bCount--; const bc = document.getElementById('ring-count'); if (bc) bc.textContent = bCount > 0 ? bCount : ''; if (bCount <= 0) { clearInterval(bTimer); bPhase++; if (bPhase >= ex.phases.length) { bPhase = 0; bRound++; renderRoundDots(); } setTimeout(runPhase, 400); } }, 1000); }; if (voiceOn) say(p.narr, go); else go(); }
 function finishBreath() { bGoing = false; const g = id => document.getElementById(id); if (g('ring-word')) g('ring-word').textContent = 'Done'; if (g('ring-count')) g('ring-count').textContent = ''; if (g('bex-hint')) g('bex-hint').textContent = 'Beautifully done.'; if (g('ring')) g('ring').style.transform = 'scale(1)'; if (voiceOn) say("Beautiful. Carry this calm into your journal.", () => goMoodBefore()); else setTimeout(goMoodBefore, 1200); }
-function skipToJournal() { stopAudio(); if (bTimer) clearInterval(bTimer); bGoing = false; goMoodBefore(); }
+function skipToJournal() {
+  stopAudio();
+  if (bTimer) clearInterval(bTimer);
+  bGoing = false;
+  voiceOn = false;
+  const b = document.getElementById('voiceBtn');
+  if (b) { b.textContent = '🔈 Voice'; b.classList.remove('on'); }
+  goMoodBefore();
+}
 
 // ══════════════════════════════════════════════════
 // SESSION FLOW
@@ -1432,15 +2259,140 @@ function renderQ() {
   stopAudio();
   const saved = qAnswers[qIdx];
   const segs = sessionQs.map((_, i) => `<div class="progress-seg ${i < qIdx ? 'done' : i === qIdx ? 'now' : ''}"></div>`).join('');
-  const voiceUI = `<div class="mic-wrap"><div class="mic-ring" id="mic-ring" onclick="toggleRec()"><svg class="mic-svg" viewBox="0 0 24 24"><path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm0 2a2 2 0 0 0-2 2v6a2 2 0 0 0 4 0V5a2 2 0 0 0-2-2zm-7 9a7 7 0 0 0 14 0h2a9 9 0 0 1-8 8.94V23h-2v-2.06A9 9 0 0 1 3 12h2z"/></svg></div><span class="mic-status" id="mic-status">${saved ? 'Tap to re-record' : 'Tap to speak'}</span></div><div class="answer-display ${saved ? '' : 'blank'}" id="answer-display">${saved || 'Your answer will appear here as you speak…'}</div>`;
+  const voiceUI = `<div class="mic-wrap">
+<div class="mic-ring-wrap">
+  <div class="mic-ring" id="mic-ring"
+    onmousedown="startRec()" onmouseup="stopRec()" onmouseleave="stopRec()"
+    ontouchstart="event.preventDefault();startRec()" ontouchend="event.preventDefault();stopRec()">
+    <svg class="mic-svg" viewBox="0 0 24 24"><path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm0 2a2 2 0 0 0-2 2v6a2 2 0 0 0 4 0V5a2 2 0 0 0-2-2zm-7 9a7 7 0 0 0 14 0h2a9 9 0 0 1-8 8.94V23h-2v-2.06A9 9 0 0 1 3 12h2z"/></svg>
+  </div>
+</div>
+<span class="mic-status" id="mic-status">${saved ? 'Hold to re-record' : 'Hold to speak'}</span>
+</div>
+<div class="answer-display ${saved ? '' : 'blank'}" id="answer-display">${saved || 'Your answer will appear here as you speak…'}</div>`;
   const typeUI = `<textarea class="answer-textarea" id="type-area" placeholder="Write your thoughts here…" oninput="qAnswers[qIdx]=this.value">${saved || ''}</textarea>`;
   document.getElementById('journal-inner').innerHTML = `<div class="progress-track">${segs}</div><div class="q-card"><div class="q-meta"><span class="q-label">Question ${qIdx + 1} of ${sessionQs.length}</span><button class="q-read-btn" id="read-btn" onclick="readQ()">🔊 Read aloud</button></div><div class="q-text">${sessionQs[qIdx]}</div></div><div class="mode-switcher"><button class="mode-pill ${inputMode === 'voice' ? 'on' : ''}" onclick="setMode('voice')">🎙 Speak</button><button class="mode-pill ${inputMode === 'type' ? 'on' : ''}" onclick="setMode('type')">⌨️ Type</button></div><div id="input-zone">${inputMode === 'voice' ? voiceUI : typeUI}</div><div class="btn-row" style="margin-top:1.5rem;"><button class="btn" id="skip-btn" onclick="skipQ()">Skip</button><button class="btn solid" id="next-btn" onclick="nextQ()">${qIdx < sessionQs.length - 1 ? 'Next →' : 'Finish'}</button></div>`;
   if (voiceOn) setTimeout(() => tts(sessionQs[qIdx]), 300);
 }
 function readQ() { const b = document.getElementById('read-btn'); if (b) b.classList.add('reading'); tts(sessionQs[qIdx], () => { const b2 = document.getElementById('read-btn'); if (b2) b2.classList.remove('reading'); }); }
 function setMode(m) { if (inputMode === 'type') { const ta = document.getElementById('type-area'); if (ta) qAnswers[qIdx] = ta.value; } if (recOn) stopRec(); inputMode = m; renderQ(); }
-function toggleRec() { if (!SR) { alert('Voice recording requires Chrome or Edge.'); return; } recOn ? stopRec() : startRec(); }
-function startRec() { stopAudio(); rec = new SR(); rec.continuous = true; rec.interimResults = true; rec.lang = 'en-US'; rec.onstart = () => { recOn = true; const r = document.getElementById('mic-ring'); if (r) r.classList.add('live'); const s = document.getElementById('mic-status'); if (s) { s.textContent = 'Recording… tap to stop'; s.classList.add('recording'); } const nb = document.getElementById('next-btn'); if (nb) nb.disabled = true; const sb = document.getElementById('skip-btn'); if (sb) sb.disabled = true; }; rec.onresult = (e) => { let fin = qAnswers[qIdx] || '', int = ''; for (let i = e.resultIndex; i < e.results.length; i++) { if (e.results[i].isFinal) fin += (fin ? ' ' : '') + e.results[i][0].transcript; else int += e.results[i][0].transcript; } qAnswers[qIdx] = fin; const ad = document.getElementById('answer-display'); if (ad) { ad.classList.remove('blank'); ad.textContent = fin + (int ? ' ' + int : ''); } }; rec.onend = () => { recOn = false; const r = document.getElementById('mic-ring'); if (r) r.classList.remove('live'); const s = document.getElementById('mic-status'); if (s) { s.textContent = qAnswers[qIdx] ? 'Tap to continue speaking' : 'Tap to speak'; s.classList.remove('recording'); } const nb = document.getElementById('next-btn'); if (nb) nb.disabled = false; const sb = document.getElementById('skip-btn'); if (sb) sb.disabled = false; const ad = document.getElementById('answer-display'); if (ad) { if (!qAnswers[qIdx]) { ad.classList.add('blank'); ad.textContent = 'Your answer will appear here as you speak…'; } else { ad.classList.remove('blank'); ad.textContent = qAnswers[qIdx]; } } }; rec.onerror = (e) => { if (e.error !== 'aborted') { recOn = false; renderQ(); } }; rec.start(); }
+function toggleRec() { recOn ? stopRec() : startRec(); }
+
+async function startRec() {
+  stopAudio();
+
+  try {
+    const { SpeechRecognition } = await import('@capacitor-community/speech-recognition');
+
+    // Request permission
+    const perm = await SpeechRecognition.requestPermissions();
+    if (perm.speechRecognition !== 'granted' && perm.microphone !== 'granted') {
+      const s = document.getElementById('mic-status');
+      if (s) s.textContent = 'Microphone access denied — enable in Settings';
+      return;
+    }
+
+    recOn = true;
+    const r = document.getElementById('mic-ring'); if (r) r.classList.add('live');
+    const s = document.getElementById('mic-status'); if (s) { s.textContent = 'Release to stop'; s.classList.add('recording'); }
+    const nb = document.getElementById('next-btn'); if (nb) nb.disabled = true;
+    const sb = document.getElementById('skip-btn'); if (sb) sb.disabled = true;
+
+    let accumulated = qAnswers[qIdx] || '';
+
+    await SpeechRecognition.start({
+      language: 'en-US',
+      maxResults: 2,
+      prompt: 'Speak your answer',
+      partialResults: true,
+      popup: false,
+    });
+
+    SpeechRecognition.addListener('partialResults', (data) => {
+      const partial = data.matches ? data.matches[0] : '';
+      const ad = document.getElementById('answer-display');
+      if (ad) { ad.classList.remove('blank'); ad.textContent = (accumulated ? accumulated + ' ' : '') + partial; }
+    });
+
+    SpeechRecognition.addListener('listeningState', (data) => {
+      if (data.status === 'stopped') {
+        recOn = false;
+        const r2 = document.getElementById('mic-ring'); if (r2) r2.classList.remove('live');
+        const s2 = document.getElementById('mic-status');
+        if (s2) { s2.textContent = qAnswers[qIdx] ? 'Hold to add more' : 'Hold to speak'; s2.classList.remove('recording'); }
+        const nb2 = document.getElementById('next-btn'); if (nb2) nb2.disabled = false;
+        const sb2 = document.getElementById('skip-btn'); if (sb2) sb2.disabled = false;
+        SpeechRecognition.removeAllListeners();
+      }
+    });
+
+    SpeechRecognition.addListener('finalResults', (data) => {
+      const final = data.matches ? data.matches[0] : '';
+      if (final) {
+        accumulated = (accumulated ? accumulated + ' ' : '') + final;
+        qAnswers[qIdx] = accumulated;
+        const ad = document.getElementById('answer-display');
+        if (ad) { ad.classList.remove('blank'); ad.textContent = accumulated; }
+      }
+    });
+
+  } catch(e) {
+    // Fallback to Web Speech API for browser testing
+    console.log('Capacitor SR not available, using Web Speech API:', e.message);
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { alert('Voice recording is not supported on this device.'); return; }
+    rec = new SR();
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.lang = 'en-US';
+    rec.onstart = () => {
+      recOn = true;
+      const r = document.getElementById('mic-ring'); if (r) r.classList.add('live');
+      const s = document.getElementById('mic-status'); if (s) { s.textContent = 'Release to stop'; s.classList.add('recording'); }
+      const nb = document.getElementById('next-btn'); if (nb) nb.disabled = true;
+      const sb = document.getElementById('skip-btn'); if (sb) sb.disabled = true;
+    };
+    rec.onresult = (e) => {
+      let fin = qAnswers[qIdx] || '', int = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) fin += (fin ? ' ' : '') + e.results[i][0].transcript;
+        else int += e.results[i][0].transcript;
+      }
+      qAnswers[qIdx] = fin;
+      const ad = document.getElementById('answer-display');
+      if (ad) { ad.classList.remove('blank'); ad.textContent = fin + (int ? ' ' + int : ''); }
+    };
+    rec.onend = () => {
+      recOn = false;
+      const r = document.getElementById('mic-ring'); if (r) r.classList.remove('live');
+      const s = document.getElementById('mic-status');
+      if (s) { s.textContent = qAnswers[qIdx] ? 'Hold to add more' : 'Hold to speak'; s.classList.remove('recording'); }
+      const nb = document.getElementById('next-btn'); if (nb) nb.disabled = false;
+      const sb = document.getElementById('skip-btn'); if (sb) sb.disabled = false;
+      const ad = document.getElementById('answer-display');
+      if (ad) {
+        if (!qAnswers[qIdx]) { ad.classList.add('blank'); ad.textContent = 'Your answer will appear here as you speak…'; }
+        else { ad.classList.remove('blank'); ad.textContent = qAnswers[qIdx]; }
+      }
+    };
+    rec.onerror = (e) => { if (e.error !== 'aborted') { recOn = false; renderQ(); } };
+    rec.start();
+  }
+}
+
+async function stopRec() {
+  if (rec) { rec.stop(); rec = null; return; }
+  try {
+    const { SpeechRecognition } = await import('@capacitor-community/speech-recognition');
+    await SpeechRecognition.stop();
+  } catch(e) { /* not running */ }
+  recOn = false;
+  const r = document.getElementById('mic-ring'); if (r) r.classList.remove('live');
+  const s = document.getElementById('mic-status');
+  if (s) { s.textContent = qAnswers[qIdx] ? 'Hold to add more' : 'Hold to speak'; s.classList.remove('recording'); }
+  const nb = document.getElementById('next-btn'); if (nb) nb.disabled = false;
+  const sb = document.getElementById('skip-btn'); if (sb) sb.disabled = false;
+}
 function stopRec() { if (rec) { rec.stop(); rec = null; } }
 function nextQ() { if (recOn) return; if (inputMode === 'type') { const ta = document.getElementById('type-area'); if (ta) qAnswers[qIdx] = ta.value; } if (qIdx < sessionQs.length - 1) { qIdx++; renderQ(); } else { goMoodAfter(); } }
 function skipQ() { if (recOn) return; if (inputMode === 'type') { const ta = document.getElementById('type-area'); if (ta) qAnswers[qIdx] = ta.value; } nextQ(); }
@@ -1465,6 +2417,8 @@ async function finishSession() {
   renderSummaryPage(saved);
   goPage('summary');
   if (voiceOn) setTimeout(() => say("Well done. Your entry has been saved to the cloud. Take a moment to appreciate yourself for showing up today."), 600);
+  // Check for milestone after a short delay so summary renders first
+  setTimeout(() => checkMilestone(getEntries().length), 1800);
 }
 
 function renderSummaryPage(entry) {
@@ -1481,7 +2435,7 @@ function renderSummaryPage(entry) {
   const messages = [
     { cond: lift >= 2,  msg: "Look at that — you came in one way and you're leaving another. That shift you just felt? That's what this practice creates." },
     { cond: lift === 1, msg: "You showed up, you reflected, and you feel a little better for it. That's the whole point. One entry at a time." },
-    { cond: s >= 30,    msg: "Thirty days or more. You've built something real — a practice that belongs to you. The science says your brain is already different for it." },
+    { cond: s >= 30,    msg: "Thirty days or more. You have built something real — a practice that belongs to you. The science says your brain is already different for it." },
     { cond: s >= 7,     msg: "A week or more of consistency. Most people never make it this far. You're in the small group that actually shows up." },
     { cond: totalEntries === 1, msg: "Your first entry. The hardest one is always the first. You did something today that your future self will thank you for." },
     { cond: true,       msg: "Every time you pause to reflect, you're rewiring your brain toward gratitude. It doesn't feel dramatic — but it is." },
@@ -1985,7 +2939,6 @@ document.addEventListener('click', e => {
 // ══════════════════════════════════════════════════
 // START
 // ══════════════════════════════════════════════════
-initTheme();
 initBV();
 // Start the app once DOM and scripts are ready
 if (document.readyState === 'loading') {

@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover"/>
+  <meta name="color-scheme" content="light"/>
   <title>Gratitude — Daily Voice Journal</title>
   <meta name="description" content="A mindful daily journaling experience. Speak your gratitude, track your growth, and transform your mindset — 5 minutes a day."/>
   <meta property="og:type" content="website"/>
@@ -54,6 +55,7 @@
     <div class="auth-brand">
       <div class="auth-brand-mark">
         <svg viewBox="0 0 104 104">
+          <rect width="104" height="104" rx="22" fill="#2D7A5F"/>
           <path d="M52,78 C52,78 52,55 52,45" stroke="white" stroke-width="4" stroke-linecap="round" fill="none"/>
           <path d="M52,55 C52,55 38,48 30,35 C38,32 50,38 52,55Z" fill="white"/>
           <path d="M52,50 C52,50 66,43 74,30 C66,27 54,33 52,50Z" fill="white" opacity="0.85"/>
@@ -96,7 +98,11 @@
             <label class="form-label">Password</label>
             <input class="form-input" type="password" id="signup-pw" placeholder="At least 6 characters" autocomplete="new-password"/>
           </div>
-          <button class="auth-submit" id="signup-btn" onclick="doSignup()">Start your free trial →</button>
+          <button class="auth-submit" id="signup-btn" onclick="doSignup()" disabled style="opacity:0.5;">Start your free trial →</button>
+          <div style="display:flex;align-items:flex-start;gap:10px;margin-top:12px;">
+            <input type="checkbox" id="legal-consent" onchange="toggleSignupBtn()" style="margin-top:3px;width:16px;height:16px;accent-color:var(--sage);flex-shrink:0;cursor:pointer;"/>
+            <label for="legal-consent" style="font-size:12px;color:var(--ink-60);line-height:1.6;cursor:pointer;">I agree to the <a href="https://builtbyricky.github.io/Gratitude-app/terms.html" target="_blank" style="color:var(--sage);text-decoration:underline;">Terms of Service</a> and <a href="https://builtbyricky.github.io/Gratitude-app/privacy.html" target="_blank" style="color:var(--sage);text-decoration:underline;">Privacy Policy</a>. I understand my data is stored securely and I can delete my account at any time.</label>
+          </div>
           <p class="trial-note"><span>3 days free</span> · then $1.99 / month · cancel anytime</p>
         </div>
 
@@ -133,39 +139,89 @@
 
 <div id="screen-onboard">
   <div class="ob-wrap">
+
+    <!-- Step 0: Welcome -->
     <div class="ob-step active" id="ob-0">
-      <span class="ob-icon">🌱</span>
+      <div class="ob-logo-wrap">
+        <svg width="64" height="64" viewBox="0 0 104 104" style="border-radius:16px;display:block;margin:0 auto 1.25rem;">
+          <rect width="104" height="104" rx="22" fill="#2D7A5F"/>
+          <path d="M52,78 C52,78 52,55 52,45" stroke="white" stroke-width="4" stroke-linecap="round" fill="none"/>
+          <path d="M52,55 C52,55 38,48 30,35 C38,32 50,38 52,55Z" fill="white"/>
+          <path d="M52,50 C52,50 66,43 74,30 C66,27 54,33 52,50Z" fill="white" opacity="0.85"/>
+          <path d="M52,65 C52,65 42,60 36,50 C42,48 52,54 52,65Z" fill="white" opacity="0.7"/>
+        </svg>
+      </div>
       <div class="ob-title">Welcome to Gratitude</div>
-      <div class="ob-body">A daily voice journal designed to help you slow down, reflect, and build a more positive mindset — one entry at a time.</div>
+      <div class="ob-body">A daily voice journal that helps you slow down, reflect, and build a genuinely more positive mindset — 5 minutes a day.</div>
       <div class="ob-dots"><div class="ob-dot active"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div></div>
       <button class="ob-btn" onclick="obNext()">Get started →</button>
     </div>
+
+    <!-- Step 1: Goal selection -->
     <div class="ob-step" id="ob-1">
+      <div class="ob-title">What brings you here?</div>
+      <div class="ob-body">We'll personalise your experience based on what matters most to you right now.</div>
+      <div class="ob-goals" id="ob-goals">
+        <button class="ob-goal-btn" data-goal="stress" onclick="selectGoal(this)">
+          <span class="ob-goal-icon">😮‍💨</span>
+          <span class="ob-goal-label">Reduce stress &amp; anxiety</span>
+        </button>
+        <button class="ob-goal-btn" data-goal="gratitude" onclick="selectGoal(this)">
+          <span class="ob-goal-icon">🙏</span>
+          <span class="ob-goal-label">Build a gratitude practice</span>
+        </button>
+        <button class="ob-goal-btn" data-goal="clarity" onclick="selectGoal(this)">
+          <span class="ob-goal-icon">🔮</span>
+          <span class="ob-goal-label">Gain clarity &amp; focus</span>
+        </button>
+        <button class="ob-goal-btn" data-goal="growth" onclick="selectGoal(this)">
+          <span class="ob-goal-icon">🌱</span>
+          <span class="ob-goal-label">Personal growth &amp; reflection</span>
+        </button>
+      </div>
+      <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot active"></div><div class="ob-dot"></div><div class="ob-dot"></div></div>
+      <button class="ob-btn" id="ob-goal-next" onclick="obNext()" disabled style="opacity:0.45;">Continue →</button>
+    </div>
+
+    <!-- Step 2: How it works -->
+    <div class="ob-step" id="ob-2">
       <span class="ob-icon">🎙️</span>
       <div class="ob-title">Speak or type</div>
-      <div class="ob-body">Answer 5 thoughtful questions each day by speaking out loud or typing. Sessions take just 5–10 minutes and build over time.</div>
-      <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot active"></div><div class="ob-dot"></div><div class="ob-dot"></div></div>
-      <button class="ob-btn" onclick="obNext()">Next →</button>
-    </div>
-    <div class="ob-step" id="ob-2">
-      <span class="ob-icon">🫁</span>
-      <div class="ob-title">Ground yourself first</div>
-      <div class="ob-body">Before each session, choose a short breathwork exercise. Even 2 minutes of intentional breathing dramatically improves your journaling.</div>
+      <div class="ob-body">Answer thoughtful questions each day by speaking out loud or typing. Sessions take just 5–10 minutes and build meaningfully over time.</div>
+      <div class="ob-how-grid">
+        <div class="ob-how-item"><span>🫁</span><div><strong>Breathe first</strong><p>A short breathing exercise before each session dramatically improves your answers.</p></div></div>
+        <div class="ob-how-item"><span>📊</span><div><strong>Track your mood</strong><p>Rate how you feel before and after. Watch the shift happen over weeks.</p></div></div>
+        <div class="ob-how-item"><span>🔒</span><div><strong>Private &amp; encrypted</strong><p>Only you can read your entries. Synced securely to the cloud.</p></div></div>
+      </div>
       <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot active"></div><div class="ob-dot"></div></div>
       <button class="ob-btn" onclick="obNext()">Next →</button>
     </div>
+
+    <!-- Step 3: Notifications permission -->
     <div class="ob-step" id="ob-3">
-      <span class="ob-icon">☁️</span>
-      <div class="ob-title">Your data is safe</div>
-      <div class="ob-body">Your journal is encrypted and synced to the cloud. Access it from any device, anytime. Only you can see your entries.</div>
+      <span class="ob-icon">🔔</span>
+      <div class="ob-title">Never miss a session</div>
+      <div class="ob-body">A gentle daily reminder is the single biggest predictor of building a lasting journaling habit. We'll only notify you once a day.</div>
+      <div class="ob-notif-card">
+        <div class="ob-notif-preview">
+          <div class="ob-notif-app">Gratitude</div>
+          <div class="ob-notif-msg">Good evening — time for your daily reflection ✨</div>
+          <div class="ob-notif-time">now</div>
+        </div>
+      </div>
       <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot active"></div></div>
-      <button class="ob-btn" onclick="finishOnboard()">Start journaling →</button>
+      <button class="ob-btn" onclick="requestNotifAndFinish()">Enable reminders →</button>
+      <button class="ob-skip" onclick="finishOnboard()">Not now</button>
     </div>
+
   </div>
 </div>
 
 <div id="screen-app">
   <nav class="app-nav">
+    <div class="nav-left">
+      <div class="streak-chip">🔥 <span id="nav-streak">0</span></div>
+    </div>
     <span class="nav-logo" onclick="goPage('home')">
       <svg width="26" height="26" viewBox="0 0 104 104" style="flex-shrink:0;border-radius:6px;">
         <rect width="104" height="104" rx="22" fill="#2D7A5F"/>
@@ -182,10 +238,8 @@
       <button class="nav-pill" onclick="goPage('learn')">Learn</button>
       <button class="nav-pill" onclick="goPage('settings')">Settings</button>
     </div>
-    <div class="nav-actions">
-      <div class="streak-chip">🔥 <span id="nav-streak">0</span></div>
+    <div class="nav-right">
       <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()">🔈 Voice</button>
-      <button class="voice-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle dark mode">🌙</button>
       <button class="signout-btn" onclick="doSignout()">Sign out</button>
     </div>
   </nav>
@@ -292,7 +346,7 @@
       <div id="learn-tip-wrap"></div>
       <div class="learn-progress-bar">
         <div class="learn-progress-bar-inner">
-          <div class="learn-progress-label"><span>Techniques completed</span><span id="learn-done-label">0 of 20</span></div>
+          <div class="learn-progress-label"><span>Techniques completed</span><span id="learn-done-label">0 of 35</span></div>
           <div class="learn-progress-track"><div class="learn-progress-fill" id="learn-fill" style="width:0%"></div></div>
         </div>
         <div class="learn-progress-pct" id="learn-pct">0%</div>
@@ -305,6 +359,7 @@
   <div class="page" id="page-settings">
     <div class="page-wrap">
       <div class="page-head"><h2>Settings</h2></div>
+
       <div class="settings-block">
         <div class="settings-block-title">Account</div>
         <div class="profile-row">
@@ -316,25 +371,35 @@
         </div>
         <button class="btn" style="width:100%;" onclick="doSignout()">Sign out</button>
       </div>
+
+      <div class="settings-block">
+        <div class="settings-block-title">Daily reminder</div>
+        <p style="font-size:13px;color:var(--ink-60);line-height:1.65;margin-bottom:1rem;">Get a gentle notification each day at your chosen time to journal.</p>
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <input type="time" id="settings-notif-time" value="20:00" class="reminder-time" style="flex:1;"/>
+          <button class="reminder-btn" onclick="saveNotifTime()">Save time</button>
+        </div>
+        <button class="btn solid" style="width:100%;font-size:14px;" onclick="enableNotifications()">Enable daily reminders</button>
+        <div id="notif-status" style="font-size:12px;color:var(--sage);margin-top:8px;min-height:16px;text-align:center;"></div>
+      </div>
+
       <div class="settings-block">
         <div class="settings-block-title">Voice narration</div>
-        <div class="settings-info">For a soothing AI voice, get a free key at <a href="https://elevenlabs.io" target="_blank">elevenlabs.io</a> → Profile → API Key. Paste it below, then tap Voice above.</div>
-        <div class="key-row">
-          <input class="key-input" type="password" id="key-input" placeholder="Paste your ElevenLabs API key"/>
-          <button class="key-save" onclick="persistKey()">Save</button>
-        </div>
-        <div class="key-status" id="key-status"></div>
+        <div class="settings-info">Tap <strong>Voice</strong> in the top bar to enable calming voice narration. Your device's built-in voice reads each question aloud — no account needed.</div>
       </div>
+
       <div class="settings-block">
         <div class="settings-block-title">Your data</div>
         <p style="font-size:13px;color:var(--ink-60);line-height:1.65;margin-bottom:0.5rem;">Your entries are encrypted and stored securely in the cloud. Only you can see them.</p>
         <p style="font-size:13px;color:var(--ink-60);"><strong style="color:var(--ink);" id="data-summary"></strong></p>
       </div>
+
       <div class="settings-block">
         <div class="settings-block-title" style="color:var(--red);">Danger zone</div>
         <p style="font-size:13px;color:var(--ink-60);line-height:1.65;margin-bottom:1rem;">Permanently delete your account and all journal entries. This cannot be undone.</p>
         <button class="btn danger" style="width:100%;" onclick="showDeleteAccountModal()">Delete my account</button>
       </div>
+
     </div>
   </div>
 
@@ -387,7 +452,9 @@
         <div class="breath-ex-sub" id="bex-pattern"></div>
         <div class="ring-wrap">
           <div class="ring-outer"></div><div class="ring-mid"></div>
-          <div class="ring-circle" id="ring">
+          <div class="ring-circle inhale" id="ring">
+            <div class="ring-pulse" id="ring-pulse"></div>
+            <div class="ring-pulse-2" id="ring-pulse-2"></div>
             <div class="ring-word" id="ring-word">Ready</div>
             <div class="ring-count" id="ring-count"></div>
           </div>

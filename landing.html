@@ -1142,6 +1142,29 @@
       .phone-frame { width: 260px; }
       .footer-inner { flex-direction: column; align-items: flex-start; }
     }
+    /* ── BLOG ── */
+    .blog-section { background: var(--cream); padding: 6rem 1.5rem; }
+    .blog-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; margin-top: 1rem; }
+    @media (max-width: 700px) { .blog-grid { grid-template-columns: 1fr; } }
+    .blog-card {
+      display: flex; flex-direction: column; gap: 0.75rem;
+      background: var(--white); border: 1px solid var(--ink-15);
+      border-radius: 20px; padding: 1.75rem 1.5rem;
+      text-decoration: none; color: inherit;
+      transition: box-shadow 0.2s, transform 0.2s;
+      box-shadow: 0 1px 3px rgba(28,26,23,0.06);
+    }
+    .blog-card:hover { box-shadow: 0 8px 28px rgba(28,26,23,0.1); transform: translateY(-2px); }
+    .blog-card-tag {
+      display: inline-block; font-size: 11px; font-weight: 500;
+      letter-spacing: 0.8px; text-transform: uppercase;
+      color: var(--sage); background: #EDF5F1;
+      padding: 3px 10px; border-radius: 100px;
+      border: 1px solid rgba(45,122,95,0.15); width: fit-content;
+    }
+    .blog-card-title { font-family: 'Lora', Georgia, serif; font-size: 18px; font-weight: 500; color: var(--ink); line-height: 1.35; margin: 0; }
+    .blog-card-excerpt { font-size: 14px; color: var(--ink-60); line-height: 1.7; margin: 0; flex: 1; }
+    .blog-card-read { font-size: 13px; font-weight: 500; color: var(--sage); margin-top: auto; }
   </style>
 </head>
 <body>
@@ -1540,6 +1563,41 @@
   </div>
 </section>
 
+<!-- ── BLOG ── -->
+<section class="blog-section" id="blog">
+  <div class="section-inner">
+    <div class="section-eyebrow reveal" style="text-align:center;">From the journal</div>
+    <h2 class="section-title reveal" style="text-align:center;">Learn the practice</h2>
+    <p class="section-sub reveal" style="text-align:center;max-width:520px;margin:0 auto 3rem;">Research-backed guides on building habits that last, reducing stress, and getting the most from your journaling practice.</p>
+    <div class="blog-grid reveal">
+      <a href="/blog-gratitude-practice.html" class="blog-card">
+        <div class="blog-card-tag">Gratitude</div>
+        <h3 class="blog-card-title">How to Start a Gratitude Practice That Actually Sticks</h3>
+        <p class="blog-card-excerpt">Most gratitude practices fail in the first week. Here's the science-backed method that works — and why specificity is the only thing that matters.</p>
+        <span class="blog-card-read">Read article →</span>
+      </a>
+      <a href="/blog-journaling-habits.html" class="blog-card">
+        <div class="blog-card-tag">Habits</div>
+        <h3 class="blog-card-title">The Science of Building a Daily Journaling Habit</h3>
+        <p class="blog-card-excerpt">Habit researchers have identified exactly why journaling habits fail. The fix is simpler than you think — and it has nothing to do with motivation.</p>
+        <span class="blog-card-read">Read article →</span>
+      </a>
+      <a href="/blog-breathing-exercises.html" class="blog-card">
+        <div class="blog-card-tag">Breathing</div>
+        <h3 class="blog-card-title">5 Breathing Exercises That Reduce Stress in Minutes</h3>
+        <p class="blog-card-excerpt">Box breathing, 4-7-8, and the physiological sigh — a practical guide to the techniques used by Navy SEALs, therapists, and sleep scientists.</p>
+        <span class="blog-card-read">Read article →</span>
+      </a>
+      <a href="/blog-morning-routine.html" class="blog-card">
+        <div class="blog-card-tag">Morning routine</div>
+        <h3 class="blog-card-title">Why the First 10 Minutes of Your Morning Define Everything</h3>
+        <p class="blog-card-excerpt">What you do in the first ten minutes after waking sets your cortisol level, your mood baseline, and your cognitive capacity for the entire day.</p>
+        <span class="blog-card-read">Read article →</span>
+      </a>
+    </div>
+  </div>
+</section>
+
 <!-- ── FAQ ── -->
 <section class="faq" id="faq">
   <div class="section-inner">
@@ -1612,6 +1670,39 @@
   <p class="final-trial-note reveal">3 days free · $1.99/month after · cancel anytime</p>
 </section>
 
+<!-- ── BLOG ── -->
+<section style="padding:6rem 1.5rem;background:var(--cream-dark);" id="blog">
+  <div style="max-width:1100px;margin:0 auto;">
+    <div style="text-align:center;margin-bottom:3rem;">
+      <div style="display:inline-block;font-size:11px;font-weight:500;letter-spacing:1.2px;text-transform:uppercase;color:var(--sage);background:var(--sage-light);padding:4px 14px;border-radius:100px;margin-bottom:1rem;border:1px solid rgba(45,122,95,0.15);">From the journal</div>
+      <h2 style="font-family:var(--font-serif);font-size:clamp(26px,4vw,36px);font-weight:500;letter-spacing:-0.3px;margin-bottom:0.5rem;">Research &amp; practice</h2>
+      <p style="font-size:16px;color:var(--ink-60);max-width:480px;margin:0 auto;">Evidence-backed guides on gratitude, journaling, and mental wellness.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1.25rem;">
+      <a href="/blog-gratitude-practice.html" style="background:var(--white);border:1px solid var(--ink-15);border-radius:20px;padding:1.75rem;text-decoration:none;display:block;transition:box-shadow 0.2s,transform 0.2s;" onmouseover="this.style.boxShadow='0 4px 20px rgba(28,26,23,0.1)';this.style.transform='translateY(-3px)'" onmouseout="this.style.boxShadow='none';this.style.transform='translateY(0)'">
+        <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.8px;color:var(--sage);margin-bottom:10px;">Gratitude practice</div>
+        <div style="font-family:var(--font-serif);font-size:19px;font-weight:500;color:var(--ink);line-height:1.35;margin-bottom:10px;">How to start a gratitude practice that actually sticks</div>
+        <div style="font-size:13px;color:var(--ink-60);">6 min read</div>
+      </a>
+      <a href="/blog-journaling-habits.html" style="background:var(--white);border:1px solid var(--ink-15);border-radius:20px;padding:1.75rem;text-decoration:none;display:block;transition:box-shadow 0.2s,transform 0.2s;" onmouseover="this.style.boxShadow='0 4px 20px rgba(28,26,23,0.1)';this.style.transform='translateY(-3px)'" onmouseout="this.style.boxShadow='none';this.style.transform='translateY(0)'">
+        <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.8px;color:var(--sage);margin-bottom:10px;">Habits</div>
+        <div style="font-family:var(--font-serif);font-size:19px;font-weight:500;color:var(--ink);line-height:1.35;margin-bottom:10px;">The daily journaling habits that changed people's lives</div>
+        <div style="font-size:13px;color:var(--ink-60);">7 min read</div>
+      </a>
+      <a href="/blog-breathing-exercises.html" style="background:var(--white);border:1px solid var(--ink-15);border-radius:20px;padding:1.75rem;text-decoration:none;display:block;transition:box-shadow 0.2s,transform 0.2s;" onmouseover="this.style.boxShadow='0 4px 20px rgba(28,26,23,0.1)';this.style.transform='translateY(-3px)'" onmouseout="this.style.boxShadow='none';this.style.transform='translateY(0)'">
+        <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.8px;color:var(--sage);margin-bottom:10px;">Breathwork</div>
+        <div style="font-family:var(--font-serif);font-size:19px;font-weight:500;color:var(--ink);line-height:1.35;margin-bottom:10px;">The 5 breathing exercises that actually reduce stress</div>
+        <div style="font-size:13px;color:var(--ink-60);">8 min read</div>
+      </a>
+      <a href="/blog-anxiety-journaling.html" style="background:var(--white);border:1px solid var(--ink-15);border-radius:20px;padding:1.75rem;text-decoration:none;display:block;transition:box-shadow 0.2s,transform 0.2s;" onmouseover="this.style.boxShadow='0 4px 20px rgba(28,26,23,0.1)';this.style.transform='translateY(-3px)'" onmouseout="this.style.boxShadow='none';this.style.transform='translateY(0)'">
+        <div style="font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:0.8px;color:var(--sage);margin-bottom:10px;">Mental health</div>
+        <div style="font-family:var(--font-serif);font-size:19px;font-weight:500;color:var(--ink);line-height:1.35;margin-bottom:10px;">How journaling helps with anxiety — what the research says</div>
+        <div style="font-size:13px;color:var(--ink-60);">7 min read</div>
+      </a>
+    </div>
+  </div>
+</section>
+
 <!-- ── FOOTER ── -->
 <footer>
   <div class="footer-inner">
@@ -1629,9 +1720,11 @@
       <a href="/index.html">Sign in</a>
       <a href="#pricing">Pricing</a>
       <a href="#faq">FAQ</a>
+      <a href="#blog">Blog</a>
+      <a href="#blog">Blog</a>
       <a href="/legal.html">Privacy &amp; Terms</a>
     </div>
-    <div class="footer-copy">© 2025 Gratitude. All rights reserved.</div>
+    <div class="footer-copy">© 2026 Gratitude. All rights reserved.</div>
   </div>
 </footer>
 
