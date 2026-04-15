@@ -42,7 +42,8 @@ function getTrialDaysLeft() {
 async function openStripeCheckout(priceId) {
   const monthlyLink = 'https://buy.stripe.com/test_aFabJ36KW3fh7Fg6zOffy00';
   const yearlyLink  = 'https://buy.stripe.com/test_cNibJ3fhs2bd2kW9M0ffy01';
-  const url = priceId === STRIPE_MONTHLY_PRICE ? monthlyLink : yearlyLink;
+  const base = priceId === STRIPE_MONTHLY_PRICE ? monthlyLink : yearlyLink;
+  const url = currentUser ? base + '?client_reference_id=' + currentUser.id : base;
   if (window.Capacitor && window.Capacitor.isNativePlatform()) {
     window.open(url, '_system');
   } else {
