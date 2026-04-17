@@ -3687,9 +3687,164 @@ function renderSettings() {
     const favs = getFavAffirmations();
     affCount.textContent = favs.length ? `(${favs.length})` : '';
   }
+
+  // Achievements count
+  const achPill = document.getElementById('ach-progress-pill');
+  if (achPill) {
+    const all = calculateAchievements();
+    const unlocked = all.filter(a => a.unlocked).length;
+    achPill.textContent = `(${unlocked}/${all.length})`;
+  }
 }
 
-// ── YEAR IN REVIEW ────────────────────────────────
+// ── ACHIEVEMENTS ──────────────────────────────────
+function calculateAchievements() {
+  const entries = getEntries();
+  const totalEntries = entries.length;
+  const currentStreak = streak();
+  const favs = getFavAffirmations();
+
+  // Best ever streak
+  const sorted = [...entries].sort((a,b) => new Date(a.date) - new Date(b.date));
+  let bestStreak = 0, currentRun = 1, prev = null;
+  for (const e of sorted) {
+    const day = new Date(e.date); day.setHours(0,0,0,0);
+    if (prev) {
+      const diff = (day - prev) / (24*60*60*1000);
+      if (diff === 0) continue;
+      if (diff === 1) currentRun++;
+      else { bestStreak = Math.max(bestStreak, currentRun); currentRun = 1; }
+    }
+    prev = day;
+  }
+  bestStreak = Math.max(bestStreak, currentRun);
+
+  // Challenge completions (using existing storage)
+  let challengesCompleted = 0;
+  if (currentUser) {
+    const ch = JSON.parse(localStorage.getItem('gj_challenge_' + currentUser.id) || '{}');
+    challengesCompleted = ch.completed || 0;
+  }
+
+  // Photos attached
+  let photoCount = 0;
+  if (currentUser) {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('gj_photo_' + currentUser.id + '_')) photoCount++;
+    }
+  }
+
+  // Tagged entries
+  let taggedCount = 0;
+  if (currentUser) {
+    const tags = JSON.parse(localStorage.getItem('gj_tags_' + currentUser.id) || '{}');
+    taggedCount = Object.keys(tags).length;
+  }
+
+  // Build all achievement definitions
+  const all = [];
+
+  // Streak milestones
+  STREAK_MILESTONES.forEach(m => {
+    all.push({
+      group: 'Streak',
+      icon: m.icon,
+      title: `${m.days}-day streak`,
+      sub: m.subtitle,
+      unlocked: bestStreak >= m.days,
+      progress: Math.min(bestStreak, m.days),
+      target: m.days,
+      gradient: m.gradient,
+    });
+  });
+
+  // Total entries milestones
+  MILESTONES.forEach(m => {
+    all.push({
+      group: 'Entries',
+      icon: m.icon,
+      title: m.title,
+      sub: m.count === 1 ? 'Your first reflection' : `Reach ${m.count} total entries`,
+      unlocked: totalEntries >= m.count,
+      progress: Math.min(totalEntries, m.count),
+      target: m.count,
+      gradient: 'linear-gradient(135deg,#7BBDA4,#2D7A5F)',
+    });
+  });
+
+  // Other achievements
+  const others = [
+    { icon: '📷', title: 'Memory Keeper',     sub: 'Attach your first photo to an entry',  unlocked: photoCount >= 1,  progress: Math.min(photoCount, 1),  target: 1 },
+    { icon: '📸', title: 'Photographer',      sub: 'Attach 10 photos to your entries',     unlocked: photoCount >= 10, progress: Math.min(photoCount, 10), target: 10 },
+    { icon: '🏷️', title: 'Organized',         sub: 'Tag 5 entries to organize them',       unlocked: taggedCount >= 5, progress: Math.min(taggedCount, 5), target: 5 },
+    { icon: '✨', title: 'Word Collector',     sub: 'Save 10 favorite affirmations',        unlocked: favs.length >= 10, progress: Math.min(favs.length, 10), target: 10 },
+    { icon: '🎯', title: 'First Challenge',   sub: 'Complete one day of a 7-day challenge',unlocked: challengesCompleted >= 1, progress: Math.min(challengesCompleted, 1), target: 1 },
+    { icon: '🏅', title: 'Challenge Champion',sub: 'Complete a full 7-day challenge',      unlocked: challengesCompleted >= 7, progress: Math.min(challengesCompleted, 7), target: 7 },
+  ];
+  others.forEach(o => all.push({ ...o, group: 'Special', gradient: 'linear-gradient(135deg,#5B4A8A,#3a2f5e)' }));
+
+  return all;
+}
+
+function openAchievements() {
+  const all = calculateAchievements();
+  const unlockedCount = all.filter(a => a.unlocked).length;
+  const totalCount = all.length;
+
+  // Group by category
+  const groups = { Streak: [], Entries: [], Special: [] };
+  all.forEach(a => groups[a.group].push(a));
+
+  const overlay = document.createElement('div');
+  overlay.id = 'achievements-overlay';
+  overlay.className = 'achievements-overlay';
+
+  const groupHtml = (groupName, items) => `
+    <div class="ach-group-title">${groupName}</div>
+    <div class="ach-grid">
+      ${items.map(a => {
+        const pct = (a.progress / a.target) * 100;
+        return `
+          <div class="ach-card ${a.unlocked ? 'unlocked' : 'locked'}" ${a.unlocked ? `style="background:${a.gradient};"` : ''}>
+            <div class="ach-icon">${a.unlocked ? a.icon : '🔒'}</div>
+            <div class="ach-title">${esc(a.title)}</div>
+            <div class="ach-sub">${esc(a.sub)}</div>
+            ${!a.unlocked ? `
+              <div class="ach-progress-bar">
+                <div class="ach-progress-fill" style="width:${pct}%;"></div>
+              </div>
+              <div class="ach-progress-text">${a.progress} / ${a.target}</div>
+            ` : '<div class="ach-unlocked-badge">✓ Earned</div>'}
+          </div>`;
+      }).join('')}
+    </div>`;
+
+  overlay.innerHTML = `
+    <div class="achievements-modal">
+      <div class="achievements-header">
+        <div class="achievements-title-block">
+          <div class="achievements-eyebrow">🏆 Achievements</div>
+          <div class="achievements-title">${unlockedCount} of ${totalCount} earned</div>
+          <div class="achievements-progress-bar"><div class="achievements-progress-fill" style="width:${(unlockedCount/totalCount)*100}%;"></div></div>
+        </div>
+        <button class="achievements-close" onclick="closeAchievements()">✕</button>
+      </div>
+      ${groupHtml('Streak Milestones', groups.Streak)}
+      ${groupHtml('Total Entries', groups.Entries)}
+      ${groupHtml('Special', groups.Special)}
+    </div>`;
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+}
+
+function closeAchievements() {
+  const o = document.getElementById('achievements-overlay');
+  if (o) o.remove();
+  document.body.style.overflow = '';
+}
+
+
 function calculateYearReview(year) {
   const now = new Date();
   const targetYear = year || now.getFullYear();

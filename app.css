@@ -670,3 +670,35 @@ html, body { overscroll-behavior: none; background: #FAF8F4; color-scheme: light
 .tag-filter-chip.active .tag-filter-dot{display:none;}
 .tag-filter-clear{background:var(--cream-dark);color:var(--ink-60);font-weight:600;}
 .tag-filter-clear:hover{background:var(--ink-15);}
+
+/* ══════════════════════════════════════════════════
+   ACHIEVEMENTS
+══════════════════════════════════════════════════ */
+.achievements-overlay{position:fixed;inset:0;background:rgba(28,26,23,0.6);backdrop-filter:blur(10px);z-index:900;display:flex;align-items:flex-end;justify-content:center;animation:fadeIn 0.3s ease;}
+@media(min-width:600px){.achievements-overlay{align-items:center;}}
+.achievements-modal{background:var(--cream);border-radius:24px 24px 0 0;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;animation:slideUp 0.4s ease;padding:1.5rem 1.5rem 3rem;}
+@media(min-width:600px){.achievements-modal{border-radius:24px;max-height:88vh;}}
+
+.achievements-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.5rem;}
+.achievements-eyebrow{font-size:11px;font-weight:600;color:var(--sage);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;}
+.achievements-title{font-family:var(--font-serif);font-size:24px;font-weight:500;color:var(--ink);letter-spacing:-0.3px;margin-bottom:10px;}
+.achievements-progress-bar{background:var(--cream-dark);height:6px;border-radius:3px;overflow:hidden;width:200px;}
+.achievements-progress-fill{background:linear-gradient(90deg,var(--sage),#7BBDA4);height:100%;border-radius:3px;transition:width 0.5s ease;}
+.achievements-close{background:var(--cream-dark);border:none;font-size:16px;color:var(--ink-60);cursor:pointer;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:var(--transition);flex-shrink:0;}
+.achievements-close:hover{background:var(--ink-15);}
+
+.ach-group-title{font-size:11px;font-weight:600;color:var(--ink-60);text-transform:uppercase;letter-spacing:1px;margin:1.5rem 0 12px;}
+.ach-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.ach-card{background:var(--white);border:1px solid var(--ink-15);border-radius:var(--radius-md);padding:1.25rem 1rem;text-align:center;position:relative;overflow:hidden;transition:var(--transition);}
+.ach-card.locked{opacity:0.6;}
+.ach-card.unlocked{color:#fff;border:none;animation:achUnlock 0.5s ease both;}
+@keyframes achUnlock{from{transform:scale(0.95);}to{transform:scale(1);}}
+.ach-icon{font-size:36px;line-height:1;margin-bottom:8px;}
+.ach-title{font-family:var(--font-serif);font-size:15px;font-weight:500;letter-spacing:-0.1px;margin-bottom:4px;}
+.ach-card.locked .ach-title{color:var(--ink);}
+.ach-sub{font-size:11px;line-height:1.4;margin-bottom:10px;opacity:0.85;}
+.ach-card.locked .ach-sub{color:var(--ink-60);}
+.ach-progress-bar{background:var(--cream-dark);height:4px;border-radius:2px;overflow:hidden;margin-bottom:6px;}
+.ach-progress-fill{background:var(--sage);height:100%;border-radius:2px;transition:width 0.5s ease;}
+.ach-progress-text{font-size:10px;color:var(--ink-60);font-weight:600;}
+.ach-unlocked-badge{font-size:11px;font-weight:600;background:rgba(255,255,255,0.25);padding:3px 10px;border-radius:var(--radius-pill);display:inline-block;}
