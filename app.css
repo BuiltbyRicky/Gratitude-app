@@ -555,3 +555,17 @@ html, body { overscroll-behavior: none; background: #FAF8F4; color-scheme: light
 .empty-rich-cta{background:var(--sage);color:#fff;border:none;border-radius:var(--radius-pill);padding:14px 28px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-sans);transition:var(--transition);box-shadow:0 4px 12px rgba(45,122,95,0.25);}
 .empty-rich-cta:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(45,122,95,0.35);background:#236047;}
 .empty-rich-trust{font-size:12px;color:var(--ink-60);margin-top:14px;font-style:italic;}
+
+/* ══════════════════════════════════════════════════
+   BREATH SETUP POLISH
+══════════════════════════════════════════════════ */
+.breath-intro{text-align:center;margin-bottom:1.75rem;}
+.breath-intro-icon{font-size:48px;display:block;margin-bottom:0.75rem;animation:breathIconPulse 4s ease-in-out infinite;}
+@keyframes breathIconPulse{0%,100%{transform:scale(1);opacity:0.95;}50%{transform:scale(1.08);opacity:1;}}
+.breath-intro h3{font-family:var(--font-serif);font-size:24px;font-weight:500;color:var(--ink);letter-spacing:-0.3px;margin-bottom:8px;}
+.breath-intro p{font-size:13px;color:var(--ink-60);line-height:1.6;max-width:340px;margin:0 auto;}
+
+.breath-opt{position:relative;}
+.breath-badge{position:absolute;top:-8px;right:14px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;padding:3px 10px;border-radius:var(--radius-pill);}
+.breath-badge-rec{background:var(--sage);color:#fff;}
+.breath-badge-last{background:var(--cream-dark);color:var(--ink-60);border:1px solid var(--ink-15);}

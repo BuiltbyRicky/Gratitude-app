@@ -4193,8 +4193,65 @@ function pickQs() {
 // ══════════════════════════════════════════════════
 const EXERCISES = { box: { name: 'Box Breathing', pattern: '4 in · 4 hold · 4 out · 4 hold', desc: 'Equal counts create perfect nervous system balance.', rounds: 4, phases: [{ w: 'Inhale', d: 4, scale: 1.13, ex: false, narr: 'Breathe in… two… three… four…' }, { w: 'Hold', d: 4, scale: 1.13, ex: false, narr: 'Hold… two… three… four…' }, { w: 'Exhale', d: 4, scale: 0.88, ex: true, narr: 'Breathe out… two… three… four…' }, { w: 'Hold', d: 4, scale: 0.88, ex: true, narr: 'Hold… two… three… four…' }] }, f478: { name: '4-7-8 Breathing', pattern: '4 in · 7 hold · 8 out', desc: 'The extended exhale activates your parasympathetic system.', rounds: 4, phases: [{ w: 'Inhale', d: 4, scale: 1.13, ex: false, narr: 'Breathe in slowly… two… three… four…' }, { w: 'Hold', d: 7, scale: 1.13, ex: false, narr: 'Hold gently… three… four… five… six… seven…' }, { w: 'Exhale', d: 8, scale: 0.88, ex: true, narr: 'Slowly breathe all the way out… five… six… seven… eight…' }] }, belly: { name: 'Belly Breathing', pattern: '5 in · 5 out · 5 rounds', desc: 'Deep diaphragmatic breaths signal safety to your nervous system.', rounds: 5, phases: [{ w: 'Inhale', d: 5, scale: 1.15, ex: false, narr: 'Breathe deep into your belly… two… three… four… five…' }, { w: 'Exhale', d: 5, scale: 0.88, ex: true, narr: 'Slowly release… two… three… four… five…' }] } };
 let chosenEx = 'box', bTimer = null, bRound = 0, bPhase = 0, bCount = 0, bGoing = false;
-function renderBreathOpts() { const el = document.getElementById('breath-opts'); if (el) el.innerHTML = Object.entries(EXERCISES).map(([k, e]) => `<button class="breath-opt ${k === chosenEx ? 'picked' : ''}" onclick="pickEx('${k}')"><div class="breath-opt-head"><span class="breath-opt-name">${e.name}</span><span class="breath-opt-pill">${e.pattern}</span></div><div class="breath-opt-desc">${e.desc}</div></button>`).join(''); }
-function pickEx(k) { chosenEx = k; renderBreathOpts(); }
+
+function getRecommendedBreath() {
+  // Recommend based on goal + time of day
+  const goal = localStorage.getItem('gj_goal');
+  const h = new Date().getHours();
+  // Stress users get 4-7-8 (most calming)
+  // Morning gets box (balanced energy)
+  // Evening/night gets 4-7-8 (sleep prep)
+  // Default gets belly (gentlest)
+  if (goal === 'stress') return 'f478';
+  if (h >= 18 || h < 5) return 'f478';
+  if (h < 12) return 'box';
+  return 'belly';
+}
+
+function renderBreathOpts() {
+  // Restore last-used choice on each render — improves repeat-user UX
+  const lastUsed = localStorage.getItem('gj_last_breath');
+  const recommended = getRecommendedBreath();
+  if (!chosenEx) {
+    // Auto-choose recommended (or last used if user has used the app before)
+    chosenEx = lastUsed && EXERCISES[lastUsed] ? lastUsed : recommended;
+  }
+
+  // Update intro sub based on time of day
+  const introSub = document.getElementById('breath-intro-sub');
+  if (introSub) {
+    const h = new Date().getHours();
+    if (h < 12) introSub.textContent = 'Morning breath sets your nervous system up for a reflective day. One minute is all it takes.';
+    else if (h < 17) introSub.textContent = 'A short breathing exercise resets the afternoon and prepares your mind for honest reflection.';
+    else if (h < 21) introSub.textContent = 'Evening breath helps you transition from doing into being — the best state for journaling.';
+    else introSub.textContent = 'Night breath signals your body it\'s safe to slow down. Your answers will come more easily.';
+  }
+
+  const el = document.getElementById('breath-opts');
+  if (!el) return;
+
+  el.innerHTML = Object.entries(EXERCISES).map(([k, e]) => {
+    const isRecommended = k === recommended;
+    const isLastUsed = k === lastUsed && k !== recommended;
+    const badge = isRecommended ? '<span class="breath-badge breath-badge-rec">Recommended for now</span>'
+                : isLastUsed ? '<span class="breath-badge breath-badge-last">Last used</span>'
+                : '';
+    return `<button class="breath-opt ${k === chosenEx ? 'picked' : ''}" onclick="pickEx('${k}')">
+      ${badge}
+      <div class="breath-opt-head">
+        <span class="breath-opt-name">${e.name}</span>
+        <span class="breath-opt-pill">${e.pattern}</span>
+      </div>
+      <div class="breath-opt-desc">${e.desc}</div>
+    </button>`;
+  }).join('');
+}
+
+function pickEx(k) {
+  chosenEx = k;
+  localStorage.setItem('gj_last_breath', k);
+  renderBreathOpts();
+}
 function launchBreath() { const e = EXERCISES[chosenEx]; document.getElementById('bex-tag').textContent = e.name; document.getElementById('bex-pattern').textContent = e.pattern; resetBreath(); goPage('breathex'); if (voiceOn) say(`Beginning ${e.name}. Press start when ready.`); }
 function resetBreath() { bRound = 0; bPhase = 0; bCount = 0; bGoing = false; if (bTimer) clearInterval(bTimer); const g = id => document.getElementById(id); if (g('ring-word')) g('ring-word').textContent = 'Ready'; if (g('ring-count')) g('ring-count').textContent = ''; if (g('bex-hint')) g('bex-hint').textContent = "Press start when you're ready"; const sb = g('bex-start'); if (sb) { sb.disabled = false; sb.textContent = 'Start'; } const r = g('ring'); if (r) { r.style.transform = 'scale(1)'; r.classList.remove('exhale'); } renderRoundDots(); }
 function renderRoundDots() { const rounds = EXERCISES[chosenEx].rounds; const el = document.getElementById('round-dots'); if (!el) return; el.innerHTML = Array(rounds).fill(0).map((_, i) => `<div class="round-dot ${i < bRound ? 'lit' : ''}"></div>`).join(''); }
@@ -4215,7 +4272,7 @@ function skipToJournal() {
 // SESSION FLOW
 // ══════════════════════════════════════════════════
 let sessionQs = [], qIdx = 0, qAnswers = [], inputMode = 'voice';
-function beginSession() { moodBefore = null; moodAfter = null; sessionQs = pickQs(); qIdx = 0; qAnswers = Array(sessionQs.length).fill(''); inputMode = 'voice'; renderBreathOpts(); goPage('breath'); }
+function beginSession() { moodBefore = null; moodAfter = null; sessionQs = pickQs(); qIdx = 0; qAnswers = Array(sessionQs.length).fill(''); inputMode = 'voice'; chosenEx = null; renderBreathOpts(); goPage('breath'); }
 function goMoodBefore() { renderMoodPicker('mood-emojis-before', 'mood-label-before'); document.getElementById('mood-label-before').textContent = ''; document.getElementById('mood-before-next').disabled = true; goPage('mood-before'); }
 function confirmMoodBefore() { goPage('journal'); renderQ(); }
 function skipMood() { moodBefore = null; goPage('journal'); renderQ(); }
