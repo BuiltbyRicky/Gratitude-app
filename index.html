@@ -523,6 +523,13 @@
         <span>Generating card…</span>
       </div>
     </div>
+    <div class="card-style-picker" id="card-style-picker">
+      <button class="card-style-btn active" data-style="forest" onclick="changeCardStyle('forest')"><span class="cs-swatch" style="background:linear-gradient(135deg,#FAF8F4,#EDF5F1);"></span><span>Forest</span></button>
+      <button class="card-style-btn" data-style="warm" onclick="changeCardStyle('warm')"><span class="cs-swatch" style="background:linear-gradient(135deg,#FFF8F0,#FFE9D6);"></span><span>Warm</span></button>
+      <button class="card-style-btn" data-style="ocean" onclick="changeCardStyle('ocean')"><span class="cs-swatch" style="background:linear-gradient(135deg,#E8F4F8,#B8DCEA);"></span><span>Ocean</span></button>
+      <button class="card-style-btn" data-style="sunset" onclick="changeCardStyle('sunset')"><span class="cs-swatch" style="background:linear-gradient(135deg,#FFE8E0,#F5A589);"></span><span>Sunset</span></button>
+      <button class="card-style-btn" data-style="midnight" onclick="changeCardStyle('midnight')"><span class="cs-swatch" style="background:linear-gradient(135deg,#1E1C2E,#2D2A47);"></span><span>Midnight</span></button>
+    </div>
     <div class="quote-card-actions">
       <button class="btn solid" id="quote-share-btn" onclick="shareOrDownloadQuoteCard()">↗ Share</button>
       <button class="btn" onclick="closeQuoteCard()">Close</button>

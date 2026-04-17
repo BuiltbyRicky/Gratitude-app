@@ -2833,8 +2833,11 @@ async function _loadQuoteFonts() {
 function openQuoteCard(text, date) {
   const modal = document.getElementById('quote-card-modal');
   if (!modal) return;
-  modal.dataset.text = text;
-  modal.dataset.date = date;
+  modal.dataset.text = JSON.stringify(text);
+  modal.dataset.date = JSON.stringify(date);
+  // Reset to default style
+  currentCardStyle = 'forest';
+  document.querySelectorAll('.card-style-btn').forEach(b => b.classList.toggle('active', b.dataset.style === 'forest'));
   // Reset preview so spinner shows while canvas draws
   const preview = document.getElementById('quote-card-preview');
   if (preview) preview.src = '';
@@ -2866,6 +2869,30 @@ function _wrapText(ctx, text, maxWidth) {
   return lines;
 }
 
+// Card style themes
+const CARD_STYLES = {
+  forest:   { bg: '#FAF8F4', card: '#FFFFFF', accent: '#2D7A5F', ink: '#1C1A17', ink60: '#6B6560', ink30: '#B5B0A8', accent2: '#7BBDA4' },
+  warm:     { bg: '#FFF8F0', card: '#FFFEFA', accent: '#C97B3D', ink: '#2A1F18', ink60: '#7A6555', ink30: '#BFA899', accent2: '#E5A876' },
+  ocean:    { bg: '#E8F4F8', card: '#FFFFFF', accent: '#1E6A8A', ink: '#0F2A3A', ink60: '#557080', ink30: '#9FB4C0', accent2: '#5BA8C4' },
+  sunset:   { bg: '#FFE8E0', card: '#FFFAF7', accent: '#D26A4F', ink: '#2A1410', ink60: '#7A4A40', ink30: '#C4998E', accent2: '#F09473' },
+  midnight: { bg: '#1E1C2E', card: '#2A2740', accent: '#A89BD9', ink: '#F0EDE8', ink60: '#A09AB8', ink30: '#5C5780', accent2: '#7E70BF' },
+};
+let currentCardStyle = 'forest';
+
+function changeCardStyle(style) {
+  currentCardStyle = style;
+  document.querySelectorAll('.card-style-btn').forEach(b => b.classList.toggle('active', b.dataset.style === style));
+  const modal = document.getElementById('quote-card-modal');
+  if (!modal) return;
+  const text = modal.dataset.text;
+  const date = modal.dataset.date;
+  if (text && date) {
+    const preview = document.getElementById('quote-card-preview');
+    if (preview) preview.src = '';
+    setTimeout(() => renderQuoteCard(JSON.parse(text), JSON.parse(date)), 60);
+  }
+}
+
 async function renderQuoteCard(text, date) {
   await _loadQuoteFonts();
 
@@ -2876,17 +2903,17 @@ async function renderQuoteCard(text, date) {
   canvas.height = SIZE;
   const ctx = canvas.getContext('2d');
 
-  const isDark = document.documentElement.getAttribute('data-theme') === 'dark' ||
-    (!document.documentElement.getAttribute('data-theme') && window.matchMedia('(prefers-color-scheme:dark)').matches);
+  const isDark = currentCardStyle === 'midnight';
+  const theme = CARD_STYLES[currentCardStyle] || CARD_STYLES.forest;
 
   // ── Background ──
-  const bg    = isDark ? '#141210' : '#FAF8F4';
-  const card  = isDark ? '#1E1C19' : '#FFFFFF';
-  const sage  = '#2D7A5F';
-  const sageMid = '#7BBDA4';
-  const ink   = isDark ? '#F0EDE8' : '#1C1A17';
-  const ink60 = isDark ? '#A09B94' : '#6B6560';
-  const ink30 = isDark ? '#5C5751' : '#B5B0A8';
+  const bg    = theme.bg;
+  const card  = theme.card;
+  const sage  = theme.accent;
+  const sageMid = theme.accent2;
+  const ink   = theme.ink;
+  const ink60 = theme.ink60;
+  const ink30 = theme.ink30;
 
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, SIZE, SIZE);
