@@ -2069,17 +2069,26 @@ function renderHome() {
   renderAffirmation();
   const es = getEntries().slice(0, 3), el = document.getElementById('recent-entries');
   if (!es.length) {
-    el.innerHTML = `<div class="empty-state">
-      <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="40" cy="40" r="38" fill="#EDF5F1" stroke="#7BBDA4" stroke-width="1.5" stroke-dasharray="4 3"/>
-        <path d="M28 50 C28 50 32 34 40 28 C48 34 52 50 52 50" stroke="#2D7A5F" stroke-width="2" stroke-linecap="round" fill="none"/>
-        <circle cx="40" cy="26" r="4" fill="#2D7A5F"/>
-        <path d="M32 44 Q40 40 48 44" stroke="#7BBDA4" stroke-width="1.5" stroke-linecap="round" fill="none"/>
-        <path d="M34 50 Q40 46 46 50" stroke="#7BBDA4" stroke-width="1.2" stroke-linecap="round" fill="none" opacity="0.6"/>
-      </svg>
-      <div class="empty-state-title">Your journal is empty</div>
-      <div class="empty-state-sub">Every great journey starts with a single entry. Your first session takes just 5 minutes.</div>
-      <button class="empty-state-btn" onclick="beginSession()">Begin your first session →</button>
+    const goal = localStorage.getItem('gj_goal') || 'gratitude';
+    const goalCopy = {
+      stress: { title: 'Ready to set down today?', sub: 'Your first session is 5 minutes. By the end you\'ll feel something shift.' },
+      gratitude: { title: 'Your gratitude practice begins now', sub: 'Just 5 minutes a day. The science says this rewires your brain — and you\'ll start feeling it within a week.' },
+      clarity: { title: 'Time to get clear', sub: 'Five minutes of honest reflection beats hours of rumination. Your mind already knows what to write.' },
+      growth: { title: 'Day one of becoming', sub: 'Every entry is a data point about who you\'re becoming. Start the practice that future-you will thank you for.' },
+    };
+    const c = goalCopy[goal];
+
+    el.innerHTML = `<div class="empty-state-rich">
+      <div class="empty-rich-icon">🌱</div>
+      <div class="empty-rich-title">${c.title}</div>
+      <div class="empty-rich-sub">${c.sub}</div>
+      <div class="empty-rich-features">
+        <div class="empty-rich-feat"><span>🫁</span><span>1 minute breathing</span></div>
+        <div class="empty-rich-feat"><span>📝</span><span>5 thoughtful questions</span></div>
+        <div class="empty-rich-feat"><span>📊</span><span>Mood tracking</span></div>
+      </div>
+      <button class="empty-rich-cta" onclick="beginSession()">Begin your first session →</button>
+      <div class="empty-rich-trust">5 minutes · Speak or type · Private to you</div>
     </div>`;
     return;
   }
@@ -3189,18 +3198,17 @@ function renderHistory() {
   if (ce) ce.textContent = allEntries.length ? `${allEntries.length} entr${allEntries.length === 1 ? 'y' : 'ies'}` : '';
 
   if (!allEntries.length) {
-    el.innerHTML = `<div class="empty-state">
-      <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="16" y="12" width="48" height="58" rx="6" fill="#EDF5F1" stroke="#7BBDA4" stroke-width="1.5"/>
-        <rect x="24" y="24" width="32" height="3" rx="1.5" fill="#2D7A5F" opacity="0.4"/>
-        <rect x="24" y="32" width="28" height="3" rx="1.5" fill="#2D7A5F" opacity="0.3"/>
-        <rect x="24" y="40" width="22" height="3" rx="1.5" fill="#2D7A5F" opacity="0.2"/>
-        <circle cx="40" cy="56" r="8" fill="#2D7A5F"/>
-        <path d="M36 56 L39 59 L44 53" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-      <div class="empty-state-title">No entries yet</div>
-      <div class="empty-state-sub">Complete your first journal session and it will appear here.</div>
-      <button class="empty-state-btn" onclick="beginSession()">Start journaling →</button>
+    el.innerHTML = `<div class="empty-state-rich">
+      <div class="empty-rich-icon">📖</div>
+      <div class="empty-rich-title">Your story starts here</div>
+      <div class="empty-rich-sub">Every entry you write becomes part of a record only you can see — searchable, sortable, and yours forever.</div>
+      <div class="empty-rich-features">
+        <div class="empty-rich-feat"><span>🔍</span><span>Search every entry</span></div>
+        <div class="empty-rich-feat"><span>📅</span><span>Calendar view</span></div>
+        <div class="empty-rich-feat"><span>🏷️</span><span>Color tags</span></div>
+      </div>
+      <button class="empty-rich-cta" onclick="beginSession()">Write your first entry →</button>
+      <div class="empty-rich-trust">Your words are encrypted and private to you</div>
     </div>`;
     return;
   }
