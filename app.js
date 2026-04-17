@@ -1686,17 +1686,104 @@ function dismissReminder() {
 // ══════════════════════════════════════════════════
 // HOME
 // ══════════════════════════════════════════════════
+const HOME_AFFIRMATIONS = [
+  "You showed up. That's the whole point.",
+  "Small moments. Real change.",
+  "One reflection at a time.",
+  "Your future self is grateful you're here.",
+  "Today is a fresh page.",
+  "Notice the good. It's there.",
+  "Your practice is shaping you.",
+  "Slow down. Breathe. Begin.",
+  "What you focus on grows.",
+  "This moment is enough.",
+  "Tiny actions. Lasting impact.",
+  "Be where your feet are.",
+  "Kindness toward yourself first.",
+  "You're building something real.",
+  "Trust the process.",
+];
+
+function getSmartGreeting(name, h, journaledToday, s) {
+  // Context-aware greetings based on time, streak, and today's status
+  const namePart = name ? `, ${name}` : '';
+
+  if (journaledToday) {
+    if (h < 12) return `Beautiful start${namePart}`;
+    if (h < 17) return `Well done${namePart}`;
+    return `Rest easy${namePart}`;
+  }
+
+  if (s >= 30 && h < 12) return `Day ${s + 1} awaits${namePart}`;
+  if (s >= 7 && h >= 18) return `One last reflection${namePart}?`;
+  if (h < 5) return `Late night${namePart}`;
+  if (h < 12) return `Good morning${namePart}`;
+  if (h < 17) return `Good afternoon${namePart}`;
+  if (h < 21) return `Good evening${namePart}`;
+  return `Quiet hours${namePart}`;
+}
+
+function getStreakProgressMessage(s, journaledToday) {
+  if (journaledToday && s >= 1) {
+    const next = [3, 7, 14, 30, 60, 100, 365].find(n => n > s);
+    if (next) {
+      const left = next - s;
+      return `${left} ${left === 1 ? 'day' : 'days'} until ${next}-day milestone 🌱`;
+    }
+    return null;
+  }
+  if (s >= 1 && !journaledToday) {
+    return s === 1 ? 'Journal today to build your streak' : `Journal today to extend your ${s}-day streak`;
+  }
+  return null;
+}
+
 function renderHome() {
   const h = new Date().getHours();
   const name = currentUser?.user_metadata?.full_name?.split(' ')[0] || '';
-  document.getElementById('hero-greeting').textContent = (h < 5 ? 'Good night' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening') + (name ? ', ' + name : '');
-  document.getElementById('hero-date').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-  document.getElementById('hero-eyebrow').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long' });
   const s = streak();
+
+  // Check if user journaled today
+  const todayStr = new Date().toDateString();
+  const journaledToday = getEntries().some(e => new Date(e.date).toDateString() === todayStr);
+
+  document.getElementById('hero-greeting').textContent = getSmartGreeting(name, h, journaledToday, s);
+  document.getElementById('hero-date').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+
+  // Daily affirmation in eyebrow (changes daily)
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+  const affirmation = HOME_AFFIRMATIONS[dayOfYear % HOME_AFFIRMATIONS.length];
+  document.getElementById('hero-eyebrow').textContent = affirmation;
+
   document.getElementById('nav-streak').textContent = s;
   document.getElementById('st-streak').textContent = s;
   document.getElementById('st-total').textContent = getEntries().length;
   document.getElementById('st-week').textContent = weekCount();
+
+  // Update CTA based on today's status
+  const ctaBtn = document.querySelector('.cta-btn');
+  if (ctaBtn) {
+    if (journaledToday) {
+      ctaBtn.innerHTML = '✓ Today\'s entry complete <span class="cta-arrow">→</span>';
+      ctaBtn.classList.add('cta-done');
+    } else {
+      ctaBtn.innerHTML = 'Begin today\'s journal <span class="cta-arrow">→</span>';
+      ctaBtn.classList.remove('cta-done');
+    }
+  }
+
+  // Streak progress message under CTA
+  let streakProgressEl = document.getElementById('streak-progress-msg');
+  if (!streakProgressEl) {
+    streakProgressEl = document.createElement('div');
+    streakProgressEl.id = 'streak-progress-msg';
+    streakProgressEl.className = 'streak-progress-msg';
+    ctaBtn?.parentNode?.insertBefore(streakProgressEl, ctaBtn.nextSibling);
+  }
+  const progressMsg = getStreakProgressMessage(s, journaledToday);
+  streakProgressEl.textContent = progressMsg || '';
+  streakProgressEl.style.display = progressMsg ? 'block' : 'none';
+
   renderWeeklyReflection();
   renderReminderCard();
   renderHeatmap();

@@ -265,3 +265,11 @@ html, body { overscroll-behavior: none; background: #FAF8F4; color-scheme: light
 .challenge-done-msg{background:rgba(45,122,95,0.1);color:var(--sage);padding:10px 14px;border-radius:var(--radius-md);font-size:13px;text-align:center;font-weight:500;}
 .challenge-progress-text{font-size:13px;color:var(--ink-60);margin-bottom:12px;}
 .challenge-done{background:linear-gradient(135deg,#edf5f1,#d8ecdf);border-color:#7BBDA4;text-align:center;}
+
+/* ══════════════════════════════════════════════════
+   HOME SCREEN POLISH
+══════════════════════════════════════════════════ */
+.cta-btn.cta-done{background:var(--sage-light);color:var(--sage);border:1.5px solid var(--sage);}
+.cta-btn.cta-done:hover{background:#dcebd4;}
+.streak-progress-msg{text-align:center;font-size:13px;color:var(--ink-60);margin-top:8px;margin-bottom:8px;font-style:italic;animation:fadeIn 0.4s ease;}
+.hero-eyebrow{font-style:italic;color:var(--sage);font-weight:500;font-size:13px;letter-spacing:0.3px;}
