@@ -2140,6 +2140,7 @@ function renderHome() {
   renderMemories();
   renderChallenge();
   renderAffirmation();
+  renderResumeDraft();
   const es = getEntries().slice(0, 3), el = document.getElementById('recent-entries');
   if (!es.length) {
     const goal = localStorage.getItem('gj_goal') || 'gratitude';
@@ -3101,7 +3102,104 @@ function restartChallenge() {
 }
 
 
-// ── PHOTO ATTACHMENTS ─────────────────────────────
+// ── DRAFT AUTO-SAVE ───────────────────────────────
+const DRAFT_EXPIRY_HOURS = 24; // drafts older than this are discarded
+
+function saveDraft() {
+  if (!currentUser || !sessionQs.length) return;
+  // Only save if there's actual content — avoid saving empty drafts
+  const hasContent = qAnswers.some(a => a && a.trim().length > 5);
+  if (!hasContent) return;
+
+  const draft = {
+    questions: sessionQs,
+    answers: qAnswers,
+    qIdx: qIdx,
+    moodBefore: moodBefore,
+    moodAfter: moodAfter,
+    inputMode: inputMode,
+    chosenEx: chosenEx,
+    savedAt: Date.now(),
+    reviveDate: reviveDate,
+    activeChallenge: window._activeChallenge || null,
+  };
+  try {
+    localStorage.setItem('gj_draft_' + currentUser.id, JSON.stringify(draft));
+  } catch(e) {}
+}
+
+function getDraft() {
+  if (!currentUser) return null;
+  try {
+    const raw = localStorage.getItem('gj_draft_' + currentUser.id);
+    if (!raw) return null;
+    const draft = JSON.parse(raw);
+    // Check expiry
+    const ageHours = (Date.now() - draft.savedAt) / (60 * 60 * 1000);
+    if (ageHours > DRAFT_EXPIRY_HOURS) {
+      clearDraft();
+      return null;
+    }
+    return draft;
+  } catch(e) { return null; }
+}
+
+function clearDraft() {
+  if (!currentUser) return;
+  localStorage.removeItem('gj_draft_' + currentUser.id);
+}
+
+function resumeDraft() {
+  const draft = getDraft();
+  if (!draft) return;
+  sessionQs = draft.questions;
+  qAnswers = draft.answers;
+  qIdx = draft.qIdx || 0;
+  moodBefore = draft.moodBefore;
+  moodAfter = draft.moodAfter;
+  inputMode = draft.inputMode || 'voice';
+  chosenEx = draft.chosenEx || null;
+  reviveDate = draft.reviveDate || null;
+  if (draft.activeChallenge) window._activeChallenge = draft.activeChallenge;
+  // Skip directly to the journal screen at the saved question
+  goPage('journal');
+  renderQ();
+}
+
+function dismissDraft() {
+  if (!confirm('Discard this draft? Your unsaved answers will be lost.')) return;
+  clearDraft();
+  renderResumeDraft();
+}
+
+function renderResumeDraft() {
+  const wrap = document.getElementById('resume-draft-wrap');
+  if (!wrap) return;
+  const draft = getDraft();
+  if (!draft) { wrap.innerHTML = ''; return; }
+
+  // Count filled answers
+  const answeredCount = (draft.answers || []).filter(a => a && a.trim().length > 5).length;
+  const totalQ = (draft.questions || []).length;
+  const ageMin = Math.floor((Date.now() - draft.savedAt) / 60000);
+  let ageLabel;
+  if (ageMin < 60) ageLabel = `${ageMin} min ago`;
+  else if (ageMin < 1440) ageLabel = `${Math.floor(ageMin / 60)}h ago`;
+  else ageLabel = 'Yesterday';
+
+  wrap.innerHTML = `
+    <div class="resume-draft-card">
+      <div class="resume-draft-eyebrow">
+        <span>📝 Unfinished session</span>
+        <button class="resume-draft-dismiss" onclick="dismissDraft()" title="Discard draft">✕</button>
+      </div>
+      <div class="resume-draft-title">Pick up where you left off</div>
+      <div class="resume-draft-sub">${answeredCount} of ${totalQ} questions answered · ${ageLabel}</div>
+      <button class="resume-draft-btn" onclick="resumeDraft()">Resume my session →</button>
+    </div>`;
+}
+
+
 function getEntryPhoto(id) {
   if (!currentUser) return null;
   return localStorage.getItem('gj_photo_' + currentUser.id + '_' + id);
@@ -4373,7 +4471,7 @@ function renderQ() {
 <span class="mic-status" id="mic-status">${saved ? 'Hold to re-record' : 'Hold to speak'}</span>
 </div>
 <div class="answer-display ${saved ? '' : 'blank'}" id="answer-display">${saved || 'Your answer will appear here as you speak…'}</div>`;
-  const typeUI = `<textarea class="answer-textarea" id="type-area" placeholder="Write your thoughts here…" oninput="qAnswers[qIdx]=this.value">${saved || ''}</textarea>`;
+  const typeUI = `<textarea class="answer-textarea" id="type-area" placeholder="Write your thoughts here…" oninput="qAnswers[qIdx]=this.value;clearTimeout(window._draftTimer);window._draftTimer=setTimeout(saveDraft,1500);">${saved || ''}</textarea>`;
   document.getElementById('journal-inner').innerHTML = `<div class="progress-track">${segs}</div><div class="q-card"><div class="q-meta"><span class="q-label">Question ${qIdx + 1} of ${sessionQs.length}</span><button class="q-read-btn" id="read-btn" onclick="readQ()">🔊 Read aloud</button></div><div class="q-text">${sessionQs[qIdx]}</div></div><div class="mode-switcher"><button class="mode-pill ${inputMode === 'voice' ? 'on' : ''}" onclick="setMode('voice')">🎙 Speak</button><button class="mode-pill ${inputMode === 'type' ? 'on' : ''}" onclick="setMode('type')">⌨️ Type</button></div><div id="input-zone">${inputMode === 'voice' ? voiceUI : typeUI}</div><div class="btn-row" style="margin-top:1.5rem;"><button class="btn" id="skip-btn" onclick="skipQ()">Skip</button><button class="btn solid" id="next-btn" onclick="nextQ()">${qIdx < sessionQs.length - 1 ? 'Next →' : 'Finish'}</button></div>`;
   if (voiceOn) setTimeout(() => tts(sessionQs[qIdx]), 300);
 }
@@ -4497,8 +4595,8 @@ async function stopRec() {
   const sb = document.getElementById('skip-btn'); if (sb) sb.disabled = false;
 }
 function stopRec() { if (rec) { rec.stop(); rec = null; } }
-function nextQ() { if (recOn) return; if (inputMode === 'type') { const ta = document.getElementById('type-area'); if (ta) qAnswers[qIdx] = ta.value; } if (qIdx < sessionQs.length - 1) { qIdx++; renderQ(); } else { goMoodAfter(); } }
-function skipQ() { if (recOn) return; if (inputMode === 'type') { const ta = document.getElementById('type-area'); if (ta) qAnswers[qIdx] = ta.value; } nextQ(); }
+function nextQ() { if (recOn) return; if (inputMode === 'type') { const ta = document.getElementById('type-area'); if (ta) qAnswers[qIdx] = ta.value; } saveDraft(); if (qIdx < sessionQs.length - 1) { qIdx++; renderQ(); } else { goMoodAfter(); } }
+function skipQ() { if (recOn) return; if (inputMode === 'type') { const ta = document.getElementById('type-area'); if (ta) qAnswers[qIdx] = ta.value; } saveDraft(); nextQ(); }
 
 async function finishSession() {
   stopAudio();
@@ -4517,6 +4615,8 @@ async function finishSession() {
     </div>`;
     return;
   }
+  // Success — clear the draft
+  clearDraft();
   // Mark revive as done so card disappears
   if (reviveDate) {
     const revivedKey = 'gj_revived_' + (currentUser?.id || '');

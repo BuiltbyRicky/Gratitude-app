@@ -579,3 +579,15 @@ html, body { overscroll-behavior: none; background: #FAF8F4; color-scheme: light
 .mood-btn{transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1);}
 .mood-btn:hover{transform:translateY(-3px) scale(1.05);}
 .mood-btn.picked{transform:translateY(-4px) scale(1.15);}
+
+/* ══════════════════════════════════════════════════
+   RESUME DRAFT CARD
+══════════════════════════════════════════════════ */
+.resume-draft-card{background:linear-gradient(135deg,#fff8e8,#fef0d4);border:1.5px solid #e8b85a;border-radius:var(--radius-xl);padding:1.5rem;margin:1rem 0;animation:fadeUp 0.4s ease;position:relative;}
+.resume-draft-eyebrow{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:600;color:#8a6520;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.resume-draft-dismiss{background:none;border:none;color:#8a6520;opacity:0.6;cursor:pointer;font-size:14px;padding:4px 8px;border-radius:50%;transition:var(--transition);}
+.resume-draft-dismiss:hover{opacity:1;background:rgba(138,101,32,0.1);}
+.resume-draft-title{font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--ink);letter-spacing:-0.2px;margin-bottom:6px;}
+.resume-draft-sub{font-size:13px;color:var(--ink-60);margin-bottom:14px;}
+.resume-draft-btn{background:#c19330;color:#fff;border:none;border-radius:var(--radius-pill);padding:11px 22px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-sans);transition:var(--transition);width:100%;}
+.resume-draft-btn:hover{background:#a37c1f;transform:translateY(-1px);}
