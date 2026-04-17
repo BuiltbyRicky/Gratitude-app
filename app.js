@@ -3208,7 +3208,296 @@ function restartChallenge() {
 }
 
 
-// ── QUICK MOOD LOG ────────────────────────────────
+// ── QUICK CAPTURE ─────────────────────────────────
+const QUICK_PROMPTS = [
+  "What just happened that you want to remember?",
+  "What's on your mind right now?",
+  "Capture this moment — what stands out?",
+  "What are you noticing?",
+  "What's the thought you don't want to lose?",
+  "What just shifted for you?",
+  "Speak it before you forget it.",
+  "What do you want future-you to know?",
+];
+
+function openQuickCapture() {
+  const prompt = QUICK_PROMPTS[Math.floor(Math.random() * QUICK_PROMPTS.length)];
+  const overlay = document.createElement('div');
+  overlay.id = 'quick-capture-overlay';
+  overlay.className = 'quick-capture-overlay';
+  overlay.innerHTML = `
+    <div class="quick-capture-modal">
+      <button class="quick-capture-close" onclick="closeQuickCapture()">✕</button>
+      <div class="quick-capture-eyebrow">💭 Quick thought</div>
+      <div class="quick-capture-prompt">${esc(prompt)}</div>
+
+      <div class="qc-mode-switch">
+        <button class="qc-mode-btn active" id="qc-mode-text" onclick="qcSetMode('text')">⌨️ Type</button>
+        <button class="qc-mode-btn" id="qc-mode-voice" onclick="qcSetMode('voice')">🎙 Speak</button>
+      </div>
+
+      <div id="qc-input-zone">
+        <textarea class="quick-capture-textarea" id="quick-capture-input" placeholder="Type or paste your thought…" autofocus></textarea>
+      </div>
+
+      <div class="quick-capture-counter" id="quick-capture-counter">0 words</div>
+      <div class="quick-capture-actions">
+        <button class="btn" onclick="closeQuickCapture()">Cancel</button>
+        <button class="btn solid" id="quick-capture-save" onclick="saveQuickCapture()" disabled>Save thought →</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+
+  // Stash prompt for save
+  overlay.dataset.prompt = prompt;
+
+  // Wire up text input
+  qcWireTextarea();
+  setTimeout(() => {
+    const ta = document.getElementById('quick-capture-input');
+    if (ta) ta.focus();
+  }, 100);
+}
+
+// Track current quick capture mode and recording state
+let qcMode = 'text';
+let qcRecOn = false;
+let qcAccumulated = '';
+
+function qcWireTextarea() {
+  const ta = document.getElementById('quick-capture-input');
+  const counter = document.getElementById('quick-capture-counter');
+  const saveBtn = document.getElementById('quick-capture-save');
+  if (!ta) return;
+  ta.addEventListener('input', () => {
+    const text = ta.value.trim();
+    const words = text ? text.split(/\s+/).length : 0;
+    counter.textContent = `${words} word${words === 1 ? '' : 's'}`;
+    saveBtn.disabled = text.length < 3;
+  });
+}
+
+function qcSetMode(mode) {
+  // Save any in-progress text/voice content as we switch
+  const ta = document.getElementById('quick-capture-input');
+  if (ta) qcAccumulated = ta.value;
+  if (qcRecOn) qcStopVoice();
+
+  qcMode = mode;
+  document.getElementById('qc-mode-text').classList.toggle('active', mode === 'text');
+  document.getElementById('qc-mode-voice').classList.toggle('active', mode === 'voice');
+
+  const zone = document.getElementById('qc-input-zone');
+  if (mode === 'text') {
+    zone.innerHTML = `<textarea class="quick-capture-textarea" id="quick-capture-input" placeholder="Type or paste your thought…">${esc(qcAccumulated)}</textarea>`;
+    qcWireTextarea();
+    qcUpdateCounter();
+    setTimeout(() => document.getElementById('quick-capture-input')?.focus(), 50);
+  } else {
+    zone.innerHTML = `
+      <div class="qc-voice-wrap">
+        <div class="qc-mic-ring" id="qc-mic-ring"
+          onmousedown="qcStartVoice()" onmouseup="qcStopVoice()" onmouseleave="qcStopVoice()"
+          ontouchstart="event.preventDefault();qcStartVoice()" ontouchend="event.preventDefault();qcStopVoice()">
+          <svg class="qc-mic-svg" viewBox="0 0 24 24"><path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4zm0 2a2 2 0 0 0-2 2v6a2 2 0 0 0 4 0V5a2 2 0 0 0-2-2zm-7 9a7 7 0 0 0 14 0h2a9 9 0 0 1-8 8.94V23h-2v-2.06A9 9 0 0 1 3 12h2z"/></svg>
+        </div>
+        <div class="qc-mic-status" id="qc-mic-status">${qcAccumulated ? 'Hold to add more' : 'Hold to speak'}</div>
+        <div class="qc-voice-display ${qcAccumulated ? '' : 'blank'}" id="qc-voice-display">${qcAccumulated ? esc(qcAccumulated) : 'Your thought will appear here as you speak…'}</div>
+      </div>`;
+    qcUpdateCounter();
+  }
+}
+
+function qcUpdateCounter() {
+  const counter = document.getElementById('quick-capture-counter');
+  const saveBtn = document.getElementById('quick-capture-save');
+  const text = qcMode === 'text'
+    ? (document.getElementById('quick-capture-input')?.value || '').trim()
+    : qcAccumulated.trim();
+  const words = text ? text.split(/\s+/).length : 0;
+  if (counter) counter.textContent = `${words} word${words === 1 ? '' : 's'}`;
+  if (saveBtn) saveBtn.disabled = text.length < 3;
+}
+
+async function qcStartVoice() {
+  if (qcRecOn) return;
+
+  // iOS Capacitor path
+  if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+    try {
+      const { SpeechRecognition } = await import('@capacitor-community/speech-recognition');
+      const perm = await SpeechRecognition.requestPermissions();
+      if (perm.speechRecognition !== 'granted' && perm.microphone !== 'granted') {
+        const s = document.getElementById('qc-mic-status');
+        if (s) s.textContent = 'Mic denied — enable in Settings';
+        return;
+      }
+      qcRecOn = true;
+      document.getElementById('qc-mic-ring')?.classList.add('live');
+      const s = document.getElementById('qc-mic-status');
+      if (s) { s.textContent = 'Release to stop'; s.classList.add('recording'); }
+
+      await SpeechRecognition.start({
+        language: 'en-US',
+        maxResults: 2,
+        prompt: 'Speak your thought',
+        partialResults: true,
+        popup: false,
+      });
+
+      SpeechRecognition.addListener('partialResults', (data) => {
+        const partial = data.matches ? data.matches[0] : '';
+        const display = document.getElementById('qc-voice-display');
+        if (display) {
+          display.classList.remove('blank');
+          display.textContent = (qcAccumulated ? qcAccumulated + ' ' : '') + partial;
+        }
+      });
+
+      SpeechRecognition.addListener('listeningState', (data) => {
+        if (data.status === 'stopped') {
+          qcRecOn = false;
+          document.getElementById('qc-mic-ring')?.classList.remove('live');
+          const s2 = document.getElementById('qc-mic-status');
+          if (s2) { s2.textContent = qcAccumulated ? 'Hold to add more' : 'Hold to speak'; s2.classList.remove('recording'); }
+          SpeechRecognition.removeAllListeners();
+        }
+      });
+
+      SpeechRecognition.addListener('finalResults', (data) => {
+        const final = data.matches ? data.matches[0] : '';
+        if (final) {
+          qcAccumulated = (qcAccumulated ? qcAccumulated + ' ' : '') + final;
+        }
+        const display = document.getElementById('qc-voice-display');
+        if (display) display.textContent = qcAccumulated || 'Your thought will appear here as you speak…';
+        qcUpdateCounter();
+      });
+    } catch(e) {
+      const s = document.getElementById('qc-mic-status');
+      if (s) s.textContent = 'Voice not available on this device';
+    }
+    return;
+  }
+
+  // Web fallback
+  if (!SR) {
+    const s = document.getElementById('qc-mic-status');
+    if (s) s.textContent = 'Voice not supported in this browser';
+    return;
+  }
+  qcRec = new SR();
+  qcRec.continuous = true;
+  qcRec.interimResults = true;
+  qcRec.lang = 'en-US';
+  qcRec.onstart = () => {
+    qcRecOn = true;
+    document.getElementById('qc-mic-ring')?.classList.add('live');
+    const s = document.getElementById('qc-mic-status');
+    if (s) { s.textContent = 'Release to stop'; s.classList.add('recording'); }
+  };
+  qcRec.onresult = (ev) => {
+    let fin = qcAccumulated, int = '';
+    for (let i = ev.resultIndex; i < ev.results.length; i++) {
+      const t = ev.results[i][0].transcript;
+      if (ev.results[i].isFinal) fin = (fin ? fin + ' ' : '') + t;
+      else int += t;
+    }
+    qcAccumulated = fin;
+    const display = document.getElementById('qc-voice-display');
+    if (display) {
+      display.classList.remove('blank');
+      display.textContent = (fin + (int ? ' ' + int : '')) || 'Your thought will appear here as you speak…';
+    }
+    qcUpdateCounter();
+  };
+  qcRec.onend = () => {
+    qcRecOn = false;
+    document.getElementById('qc-mic-ring')?.classList.remove('live');
+    const s = document.getElementById('qc-mic-status');
+    if (s) { s.textContent = qcAccumulated ? 'Hold to add more' : 'Hold to speak'; s.classList.remove('recording'); }
+  };
+  try { qcRec.start(); } catch(e) {}
+}
+
+let qcRec = null;
+
+async function qcStopVoice() {
+  if (!qcRecOn) return;
+  if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+    try {
+      const { SpeechRecognition } = await import('@capacitor-community/speech-recognition');
+      await SpeechRecognition.stop();
+    } catch(e) {}
+  } else if (qcRec) {
+    try { qcRec.stop(); } catch(e) {}
+  }
+}
+
+function closeQuickCapture() {
+  if (qcRecOn) qcStopVoice();
+  qcMode = 'text';
+  qcAccumulated = '';
+  qcRecOn = false;
+  const o = document.getElementById('quick-capture-overlay');
+  if (o) o.remove();
+  document.body.style.overflow = '';
+}
+
+async function saveQuickCapture() {
+  const overlay = document.getElementById('quick-capture-overlay');
+  const saveBtn = document.getElementById('quick-capture-save');
+  if (!overlay) return;
+
+  // Pull text from whichever mode is active
+  const text = (qcMode === 'text'
+    ? (document.getElementById('quick-capture-input')?.value || '')
+    : qcAccumulated).trim();
+  if (text.length < 3) return;
+
+  if (qcRecOn) await qcStopVoice();
+
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Saving…';
+
+  const prompt = overlay.dataset.prompt || QUICK_PROMPTS[0];
+  const entry = {
+    date: new Date().toISOString(),
+    questions: [prompt],
+    answers: [text],
+    moodBefore: null,
+    moodAfter: null,
+  };
+
+  const ok = await saveEntry(entry);
+  if (!ok) {
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Save thought →';
+    alert('Could not save. Please check your connection and try again.');
+    return;
+  }
+
+  closeQuickCapture();
+  showQuickCaptureToast();
+  if (document.getElementById('page-home').classList.contains('active')) renderHome();
+}
+
+function showQuickCaptureToast() {
+  const overlay = document.createElement('div');
+  overlay.className = 'quick-capture-toast';
+  overlay.innerHTML = `
+    <span class="quick-capture-toast-check">✓</span>
+    <span>Thought captured</span>
+  `;
+  document.body.appendChild(overlay);
+  setTimeout(() => {
+    overlay.classList.add('fade-out');
+    setTimeout(() => overlay.remove(), 400);
+  }, 2000);
+}
+
+
 function getMoodLogs() {
   if (!currentUser) return [];
   return JSON.parse(localStorage.getItem('gj_mood_logs_' + currentUser.id) || '[]');
