@@ -143,7 +143,7 @@
     <!-- Step 0: Welcome -->
     <div class="ob-step active" id="ob-0">
       <div class="ob-logo-wrap">
-        <svg width="64" height="64" viewBox="0 0 104 104" style="border-radius:16px;display:block;margin:0 auto 1.25rem;">
+        <svg width="72" height="72" viewBox="0 0 104 104" style="border-radius:18px;display:block;margin:0 auto 1.5rem;">
           <rect width="104" height="104" rx="22" fill="#2D7A5F"/>
           <path d="M52,78 C52,78 52,55 52,45" stroke="white" stroke-width="4" stroke-linecap="round" fill="none"/>
           <path d="M52,55 C52,55 38,48 30,35 C38,32 50,38 52,55Z" fill="white"/>
@@ -153,7 +153,11 @@
       </div>
       <div class="ob-title">Welcome to Gratitude</div>
       <div class="ob-body">A daily voice journal that helps you slow down, reflect, and build a genuinely more positive mindset — 5 minutes a day.</div>
-      <div class="ob-dots"><div class="ob-dot active"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div></div>
+      <div class="ob-stars">
+        <span style="color:#E8B05A;font-size:14px;">★ ★ ★ ★ ★</span>
+        <span style="font-size:12px;color:var(--ink-60);margin-left:6px;">Backed by gratitude science</span>
+      </div>
+      <div class="ob-dots"><div class="ob-dot active"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div></div>
       <button class="ob-btn" onclick="obNext()">Get started →</button>
     </div>
 
@@ -179,12 +183,22 @@
           <span class="ob-goal-label">Personal growth &amp; reflection</span>
         </button>
       </div>
-      <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot active"></div><div class="ob-dot"></div><div class="ob-dot"></div></div>
+      <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot active"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div></div>
       <button class="ob-btn" id="ob-goal-next" onclick="obNext()" disabled style="opacity:0.45;">Continue →</button>
     </div>
 
-    <!-- Step 2: How it works -->
+    <!-- Step 2: Personalized plan based on goal -->
     <div class="ob-step" id="ob-2">
+      <div class="ob-icon" id="ob-plan-icon">🌱</div>
+      <div class="ob-title" id="ob-plan-title">Your personalized plan</div>
+      <div class="ob-body" id="ob-plan-body">Here's what we've built for you based on your goal.</div>
+      <div class="ob-plan-list" id="ob-plan-list"></div>
+      <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot active"></div><div class="ob-dot"></div><div class="ob-dot"></div></div>
+      <button class="ob-btn" onclick="obNext()">Continue →</button>
+    </div>
+
+    <!-- Step 3: How it works -->
+    <div class="ob-step" id="ob-3">
       <span class="ob-icon">🎙️</span>
       <div class="ob-title">Speak or type</div>
       <div class="ob-body">Answer thoughtful questions each day by speaking out loud or typing. Sessions take just 5–10 minutes and build meaningfully over time.</div>
@@ -193,12 +207,12 @@
         <div class="ob-how-item"><span>📊</span><div><strong>Track your mood</strong><p>Rate how you feel before and after. Watch the shift happen over weeks.</p></div></div>
         <div class="ob-how-item"><span>🔒</span><div><strong>Private &amp; encrypted</strong><p>Only you can read your entries. Synced securely to the cloud.</p></div></div>
       </div>
-      <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot active"></div><div class="ob-dot"></div></div>
+      <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot active"></div><div class="ob-dot"></div></div>
       <button class="ob-btn" onclick="obNext()">Next →</button>
     </div>
 
-    <!-- Step 3: Notifications permission -->
-    <div class="ob-step" id="ob-3">
+    <!-- Step 4: Notifications permission -->
+    <div class="ob-step" id="ob-4">
       <span class="ob-icon">🔔</span>
       <div class="ob-title">Never miss a session</div>
       <div class="ob-body">A gentle daily reminder is the single biggest predictor of building a lasting journaling habit. We'll only notify you once a day.</div>
@@ -209,7 +223,7 @@
           <div class="ob-notif-time">now</div>
         </div>
       </div>
-      <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot active"></div></div>
+      <div class="ob-dots"><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot active"></div></div>
       <button class="ob-btn" onclick="requestNotifAndFinish()">Enable reminders →</button>
       <button class="ob-skip" onclick="finishOnboard()">Not now</button>
     </div>

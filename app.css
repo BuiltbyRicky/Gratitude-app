@@ -273,3 +273,16 @@ html, body { overscroll-behavior: none; background: #FAF8F4; color-scheme: light
 .cta-btn.cta-done:hover{background:#dcebd4;}
 .streak-progress-msg{text-align:center;font-size:13px;color:var(--ink-60);margin-top:8px;margin-bottom:8px;font-style:italic;animation:fadeIn 0.4s ease;}
 .hero-eyebrow{font-style:italic;color:var(--sage);font-weight:500;font-size:13px;letter-spacing:0.3px;}
+
+/* ══════════════════════════════════════════════════
+   ONBOARDING POLISH
+══════════════════════════════════════════════════ */
+.ob-stars{margin:1rem 0 1.5rem;text-align:center;font-size:13px;color:var(--ink-60);}
+.ob-plan-list{display:flex;flex-direction:column;gap:10px;margin:1.25rem 0;width:100%;max-width:340px;}
+.ob-plan-item{display:flex;align-items:center;gap:14px;background:var(--cream);border:1px solid var(--ink-15);border-radius:var(--radius-md);padding:14px 16px;text-align:left;animation:fadeUp 0.4s ease both;}
+.ob-plan-item:nth-child(1){animation-delay:0.05s;}
+.ob-plan-item:nth-child(2){animation-delay:0.15s;}
+.ob-plan-item:nth-child(3){animation-delay:0.25s;}
+.ob-plan-item:nth-child(4){animation-delay:0.35s;}
+.ob-plan-item-icon{font-size:22px;flex-shrink:0;}
+.ob-plan-item-text{font-size:14px;color:var(--ink);line-height:1.5;}

@@ -505,12 +505,82 @@ function selectGoal(btn) {
   if (next) { next.disabled = false; next.style.opacity = '1'; }
 }
 
+const GOAL_PLANS = {
+  stress: {
+    icon: '😮‍💨',
+    title: 'Your Anti-Stress Plan',
+    body: "Built specifically to help you decompress, ground, and find calm in the middle of overwhelm.",
+    items: [
+      { icon: '🫁', text: 'Box & 4-7-8 breathing — fastest stress-off switch' },
+      { icon: '🎯', text: '30 stress-specific reflection prompts' },
+      { icon: '🧠', text: 'Body scan, RAIN, and self-compassion techniques' },
+      { icon: '📊', text: 'Mood tracking to see what\'s working' },
+    ],
+  },
+  gratitude: {
+    icon: '🙏',
+    title: 'Your Gratitude Plan',
+    body: 'Designed to rewire your brain toward what is going right, not just what is missing.',
+    items: [
+      { icon: '🌱', text: '30 gratitude-specific reflection prompts' },
+      { icon: '🏆', text: '7-Day Gratitude Challenge' },
+      { icon: '📅', text: '"On This Day" memories from past entries' },
+      { icon: '🔥', text: 'Streak tracking to build the habit' },
+    ],
+  },
+  clarity: {
+    icon: '🔮',
+    title: 'Your Clarity Plan',
+    body: 'Cut through mental fog and learn what your honest self has been trying to tell you.',
+    items: [
+      { icon: '💭', text: '30 clarity-focused reflection prompts' },
+      { icon: '✨', text: 'Single-tasking & focus techniques' },
+      { icon: '🗺️', text: 'Values clarification exercises' },
+      { icon: '📝', text: 'Weekly review framework' },
+    ],
+  },
+  growth: {
+    icon: '🌱',
+    title: 'Your Growth Plan',
+    body: 'A structured practice for becoming the person you are working to become.',
+    items: [
+      { icon: '🌳', text: '30 personal-growth reflection prompts' },
+      { icon: '✍️', text: 'Future Self letters & values exercises' },
+      { icon: '🏔️', text: 'Cold exposure & resilience techniques' },
+      { icon: '📈', text: 'Milestone badges to mark your progress' },
+    ],
+  },
+};
+
+function renderGoalPlan() {
+  const goal = localStorage.getItem('gj_goal');
+  const plan = GOAL_PLANS[goal];
+  if (!plan) return;
+  const iconEl = document.getElementById('ob-plan-icon');
+  const titleEl = document.getElementById('ob-plan-title');
+  const bodyEl = document.getElementById('ob-plan-body');
+  const listEl = document.getElementById('ob-plan-list');
+  if (iconEl) iconEl.textContent = plan.icon;
+  if (titleEl) titleEl.textContent = plan.title;
+  if (bodyEl) bodyEl.textContent = plan.body;
+  if (listEl) {
+    listEl.innerHTML = plan.items.map(item => `
+      <div class="ob-plan-item">
+        <span class="ob-plan-item-icon">${item.icon}</span>
+        <span class="ob-plan-item-text">${item.text}</span>
+      </div>
+    `).join('');
+  }
+}
+
 function obNext() {
   const total = document.querySelectorAll('.ob-step').length;
   if (obIdx >= total - 1) return;
   document.getElementById('ob-' + obIdx).classList.remove('active');
   obIdx++;
   document.getElementById('ob-' + obIdx).classList.add('active');
+  // If moving into the personalized plan step, render it
+  if (obIdx === 2) renderGoalPlan();
 }
 
 async function requestNotifAndFinish() {
