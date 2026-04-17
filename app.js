@@ -1463,6 +1463,18 @@ const MILESTONES = [
   { count: 365, icon: '👑', title: 'A year of entries',  message: 'A full year of reflection. Whatever happened this year, you showed up for it with honesty and intention. That is rare. That is powerful.' },
 ];
 
+// Streak milestone celebrations — separate from total entry milestones
+const STREAK_MILESTONES = [
+  { days: 3,   icon: '🌱', title: '3-day streak!',     subtitle: 'The habit is taking root', message: 'Three days in a row. The first three are the hardest — you just got past them.', gradient: 'linear-gradient(135deg,#7BBDA4,#2D7A5F)' },
+  { days: 7,   icon: '🔥', title: '7-day streak!',     subtitle: 'You showed up all week',   message: 'A full week of consistency. This is the moment most people quit — and you didn\'t. The compounding starts now.', gradient: 'linear-gradient(135deg,#E8B05A,#C97B3D)' },
+  { days: 14,  icon: '⚡', title: '14-day streak!',    subtitle: 'Two weeks of showing up', message: 'Two solid weeks. You\'re past the "trying it out" phase — this is becoming part of who you are.', gradient: 'linear-gradient(135deg,#5B4A8A,#3a2f5e)' },
+  { days: 30,  icon: '🏆', title: '30-day streak!',    subtitle: 'A real practice',          message: 'A full month. Habit researchers say you\'ve crossed the line where this stops being effort and starts being identity. You ARE someone who journals.', gradient: 'linear-gradient(135deg,#D4B95C,#8a7240)' },
+  { days: 60,  icon: '💎', title: '60-day streak!',    subtitle: 'Two months strong',        message: 'Sixty consecutive days. You\'re in the top 1% of consistency. The science of gratitude has had time to work — your baseline mood is genuinely shifting.', gradient: 'linear-gradient(135deg,#1E6A8A,#114866)' },
+  { days: 100, icon: '🌟', title: '100-day streak!',   subtitle: 'Triple digits',            message: 'One hundred days. Most adults never sustain a personal practice this long. You\'ve built proof that you can keep promises to yourself.', gradient: 'linear-gradient(135deg,#8A3030,#5e1f1f)' },
+  { days: 200, icon: '🦋', title: '200-day streak!',   subtitle: 'A practice you\'ve made',  message: 'Two hundred days in a row. This is no longer something you do — it\'s who you are. The version of you from 200 days ago wouldn\'t recognize this discipline.', gradient: 'linear-gradient(135deg,#9A6520,#6e4615)' },
+  { days: 365, icon: '👑', title: '365-day streak!',   subtitle: 'A full year, every day',   message: 'One year. Every. Single. Day. You\'ve done what almost no one ever does. This streak isn\'t just a number — it\'s a record of your character.', gradient: 'linear-gradient(135deg,#2D7A5F,#7BBDA4)' },
+];
+
 function checkMilestone(total) {
   const milestone = MILESTONES.find(m => m.count === total);
   if (!milestone) return;
@@ -1470,6 +1482,45 @@ function checkMilestone(total) {
   if (localStorage.getItem(seenKey)) return;
   localStorage.setItem(seenKey, '1');
   showMilestone(milestone);
+}
+
+function checkStreakMilestone(streakDays) {
+  const milestone = STREAK_MILESTONES.find(m => m.days === streakDays);
+  if (!milestone) return;
+  const seenKey = 'gj_streak_milestone_seen_' + streakDays;
+  if (localStorage.getItem(seenKey)) return;
+  localStorage.setItem(seenKey, '1');
+  showStreakMilestone(milestone);
+}
+
+function showStreakMilestone(m) {
+  const overlay = document.createElement('div');
+  overlay.className = 'streak-milestone-overlay';
+  overlay.innerHTML = `
+    <div class="streak-milestone-card" style="background:${m.gradient};">
+      <div class="streak-milestone-icon">${m.icon}</div>
+      <div class="streak-milestone-eyebrow">${m.subtitle}</div>
+      <div class="streak-milestone-title">${m.title}</div>
+      <div class="streak-milestone-message">${m.message}</div>
+      <div class="streak-milestone-actions">
+        <button class="streak-milestone-share" onclick="shareStreakMilestone(${m.days},'${m.icon}','${m.title.replace(/'/g, "\\'")}')">↗ Share my milestone</button>
+        <button class="streak-milestone-continue" onclick="this.closest('.streak-milestone-overlay').remove()">Keep going →</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  launchConfetti();
+  if (voiceOn) setTimeout(() => say(m.message), 400);
+}
+
+function shareStreakMilestone(days, icon, title) {
+  // Build a beautiful shareable card using existing canvas system
+  const text = `${icon} ${days}-day Gratitude streak — and counting.`;
+  if (typeof openQuoteCard === 'function') {
+    const dateStr = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+    openQuoteCard(text, dateStr);
+  } else if (navigator.share) {
+    navigator.share({ title: 'My Gratitude Streak', text }).catch(() => {});
+  }
 }
 
 function showMilestone(m) {
@@ -4753,7 +4804,10 @@ async function finishSession() {
   goPage('summary');
   if (voiceOn) setTimeout(() => say("Well done. Your entry has been saved to the cloud. Take a moment to appreciate yourself for showing up today."), 600);
   // Check for milestone after a short delay so summary renders first
-  setTimeout(() => checkMilestone(getEntries().length), 1800);
+  setTimeout(() => {
+    checkMilestone(getEntries().length);
+    checkStreakMilestone(streak());
+  }, 1800);
 }
 
 function renderSummaryPage(entry) {
