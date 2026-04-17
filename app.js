@@ -1646,7 +1646,7 @@ function goPage(id) {
 
   // Render content before showing (avoid flash)
   if (id === 'home') renderHome();
-  if (id === 'history') { histSearchQuery = ''; histFilter = 'all'; renderHistory(); }
+  if (id === 'history') { histSearchQuery = ''; histFilter = 'all'; histTagFilter = null; renderTagFilterRow(); renderHistory(); }
   if (id === 'learn') renderLearn();
   if (id === 'settings') renderSettings();
 
@@ -2235,6 +2235,51 @@ let editingId = null;
 // ── HISTORY SEARCH & FILTER STATE ─────────────────
 let histSearchQuery = '';
 let histFilter = 'all';
+let histTagFilter = null; // null = all, otherwise tag color key
+
+function setHistTagFilter(tag) {
+  // Toggle off if same tag clicked again
+  histTagFilter = (histTagFilter === tag) ? null : tag;
+  renderTagFilterRow();
+  renderHistory();
+}
+
+function renderTagFilterRow() {
+  const row = document.getElementById('tag-filter-row');
+  if (!row) return;
+
+  // Get all entries and count tags
+  const entries = getEntries();
+  const tagCounts = {};
+  entries.forEach(e => {
+    const tag = getEntryTag(e.id);
+    if (tag) tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+  });
+
+  // Hide row entirely if no tags used yet
+  if (Object.keys(tagCounts).length === 0) {
+    row.innerHTML = '';
+    return;
+  }
+
+  // Order matches ENTRY_TAGS for consistency
+  const orderedTags = Object.keys(ENTRY_TAGS).filter(t => tagCounts[t] > 0);
+
+  row.innerHTML = `
+    <div class="tag-filter-label">Filter by tag:</div>
+    <div class="tag-filter-chips">
+      ${histTagFilter ? `<button class="tag-filter-chip tag-filter-clear" onclick="setHistTagFilter('${histTagFilter}')">✕ Clear</button>` : ''}
+      ${orderedTags.map(t => {
+        const tag = ENTRY_TAGS[t];
+        const isActive = histTagFilter === t;
+        return `<button class="tag-filter-chip ${isActive ? 'active' : ''}" onclick="setHistTagFilter('${t}')" style="${isActive ? `background:${tag.color};color:#fff;border-color:${tag.color};` : ''}">
+          <span class="tag-filter-dot" style="background:${tag.color};"></span>
+          ${tag.label}
+          <span class="tag-filter-count">${tagCounts[t]}</span>
+        </button>`;
+      }).join('')}
+    </div>`;
+}
 
 function onHistSearch(val) {
   histSearchQuery = val.trim().toLowerCase();
@@ -2440,6 +2485,11 @@ function getFilteredEntries() {
       const date = new Date(e.date).toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' }).toLowerCase();
       return answers.includes(histSearchQuery) || questions.includes(histSearchQuery) || date.includes(histSearchQuery);
     });
+  }
+
+  // Tag filter
+  if (histTagFilter) {
+    es = es.filter(e => getEntryTag(e.id) === histTagFilter);
   }
 
   return es;
@@ -3508,6 +3558,7 @@ function closeTagPicker() {
 function applyTag(entryId, color) {
   setEntryTag(entryId, color);
   closeTagPicker();
+  renderTagFilterRow();
   renderHistory();
 }
 

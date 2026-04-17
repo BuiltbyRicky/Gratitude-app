@@ -654,3 +654,19 @@ html, body { overscroll-behavior: none; background: #FAF8F4; color-scheme: light
 @keyframes toastOut{to{opacity:0;transform:translateX(-50%) translateY(20px);}}
 .quick-mood-toast-emoji{font-size:24px;line-height:1;}
 .quick-mood-toast-text{font-size:13px;font-weight:500;}
+
+/* ══════════════════════════════════════════════════
+   TAG FILTER ROW
+══════════════════════════════════════════════════ */
+.tag-filter-row{margin:0.5rem 0 1rem;}
+.tag-filter-row:empty{display:none;}
+.tag-filter-label{font-size:11px;color:var(--ink-60);text-transform:uppercase;letter-spacing:0.5px;font-weight:600;margin-bottom:8px;}
+.tag-filter-chips{display:flex;flex-wrap:wrap;gap:6px;}
+.tag-filter-chip{display:inline-flex;align-items:center;gap:6px;background:var(--white);border:1px solid var(--ink-15);border-radius:var(--radius-pill);padding:6px 12px;font-family:var(--font-sans);font-size:12px;font-weight:500;color:var(--ink);cursor:pointer;transition:var(--transition);}
+.tag-filter-chip:hover{background:var(--cream-dark);}
+.tag-filter-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.tag-filter-count{background:var(--cream-dark);color:var(--ink-60);font-size:10px;padding:1px 6px;border-radius:var(--radius-pill);margin-left:2px;font-weight:600;}
+.tag-filter-chip.active .tag-filter-count{background:rgba(255,255,255,0.25);color:#fff;}
+.tag-filter-chip.active .tag-filter-dot{display:none;}
+.tag-filter-clear{background:var(--cream-dark);color:var(--ink-60);font-weight:600;}
+.tag-filter-clear:hover{background:var(--ink-15);}
