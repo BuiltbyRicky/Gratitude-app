@@ -461,11 +461,13 @@
 
   <div class="page" id="page-mood-before">
     <div class="page-wrap">
-      <div class="mood-screen">
-        <div class="mood-title">How are you feeling?</div>
-        <div class="mood-sub">Before we begin — check in with yourself.</div>
+      <div class="mood-screen mood-screen-before">
+        <div class="mood-eyebrow" id="mood-before-eyebrow"></div>
+        <div class="mood-title" id="mood-before-title">How are you feeling?</div>
+        <div class="mood-sub" id="mood-before-sub">Before we begin — check in with yourself. There's no wrong answer.</div>
         <div class="mood-emojis" id="mood-emojis-before"></div>
         <div class="mood-label" id="mood-label-before"></div>
+        <div class="mood-context" id="mood-before-context"></div>
         <div class="btn-row">
           <button class="btn" onclick="skipMood()">Skip</button>
           <button class="btn solid" id="mood-before-next" onclick="confirmMoodBefore()" disabled>Continue →</button>
@@ -476,11 +478,13 @@
 
   <div class="page" id="page-mood-after">
     <div class="page-wrap">
-      <div class="mood-screen">
+      <div class="mood-screen mood-screen-after">
+        <div class="mood-eyebrow">After your session</div>
         <div class="mood-title">How do you feel now?</div>
-        <div class="mood-sub">After your session — notice any shift.</div>
+        <div class="mood-sub">Notice any shift — even small ones count.</div>
         <div class="mood-emojis" id="mood-emojis-after"></div>
         <div class="mood-label" id="mood-label-after"></div>
+        <div class="mood-context" id="mood-after-context"></div>
         <div class="btn-row">
           <button class="btn" onclick="skipMoodAfter()">Skip</button>
           <button class="btn solid" id="mood-after-next" onclick="confirmMoodAfter()" disabled>See my entry →</button>

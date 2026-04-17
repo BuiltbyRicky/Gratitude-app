@@ -1299,16 +1299,89 @@ function useFreeze() {
 const MOODS = [{ e: '😔', label: 'Struggling' }, { e: '😕', label: 'A bit low' }, { e: '😐', label: 'Okay' }, { e: '🙂', label: 'Pretty good' }, { e: '😄', label: 'Great!' }];
 let moodBefore = null, moodAfter = null;
 
+// Contextual responses to give meaning after picking a mood
+const MOOD_BEFORE_RESPONSES = [
+  "It takes courage to name that. This is exactly when journaling matters most.",
+  "Tough days are real. The fact that you're here means something.",
+  "Okay is a perfectly valid place to start from.",
+  "Nice — let's build on that energy.",
+  "Beautiful starting point. Let's deepen this feeling.",
+];
+
+const MOOD_AFTER_RESPONSES = {
+  big_lift:    "That's a real shift. You came in one way and you're leaving another.",
+  small_lift:  "Even a small lift counts. This is the practice working.",
+  no_change:   "Sometimes journaling settles you rather than lifting you. That's also a win.",
+  small_drop:  "It's okay if reflection brings up real feelings. You did the harder thing by going deep.",
+  big_drop:    "You faced something honest in there. Be gentle with yourself tonight.",
+};
+
+function getMoodBeforeContext(idx) {
+  return MOOD_BEFORE_RESPONSES[idx] || '';
+}
+
+function getMoodAfterContext(after) {
+  if (moodBefore == null || after == null) return '';
+  const diff = after - moodBefore;
+  if (diff >= 2) return MOOD_AFTER_RESPONSES.big_lift;
+  if (diff === 1) return MOOD_AFTER_RESPONSES.small_lift;
+  if (diff === 0) return MOOD_AFTER_RESPONSES.no_change;
+  if (diff === -1) return MOOD_AFTER_RESPONSES.small_drop;
+  return MOOD_AFTER_RESPONSES.big_drop;
+}
+
+function setMoodBeforeIntro() {
+  const eyebrow = document.getElementById('mood-before-eyebrow');
+  const title = document.getElementById('mood-before-title');
+  const sub = document.getElementById('mood-before-sub');
+  if (!eyebrow) return;
+
+  const s = streak();
+  const h = new Date().getHours();
+  const name = currentUser?.user_metadata?.full_name?.split(' ')[0] || '';
+
+  // Eyebrow shows context: streak status or time
+  if (s >= 7) eyebrow.textContent = `Day ${s + 1} · check-in`;
+  else if (s >= 1) eyebrow.textContent = `Day ${s + 1} · check-in`;
+  else eyebrow.textContent = h < 12 ? 'Morning check-in' : h < 17 ? 'Afternoon check-in' : h < 21 ? 'Evening check-in' : 'Late check-in';
+
+  // Personal title
+  if (name) title.textContent = `How are you, ${name}?`;
+  else title.textContent = 'How are you feeling?';
+
+  // Time-of-day sub copy
+  if (h < 12) sub.textContent = 'Whatever you bring this morning is welcome. Start where you are.';
+  else if (h < 17) sub.textContent = 'Pause for a moment — how is the day actually treating you?';
+  else if (h < 21) sub.textContent = 'Evening is a good time to be honest. What\'s the truth right now?';
+  else sub.textContent = 'Quiet hours are for honesty. Whatever you feel is fine to feel.';
+}
+
 function renderMoodPicker(containerId, labelId) {
   const c = document.getElementById(containerId);
   c.innerHTML = MOODS.map((m, i) => `<button class="mood-btn" onclick="pickMood('${containerId}','${labelId}',${i})">${m.e}</button>`).join('');
+  // Set personalized intro for the before screen
+  if (containerId === 'mood-emojis-before') {
+    setMoodBeforeIntro();
+    const ctx = document.getElementById('mood-before-context'); if (ctx) ctx.textContent = '';
+  } else {
+    const ctx = document.getElementById('mood-after-context'); if (ctx) ctx.textContent = '';
+  }
 }
 
 function pickMood(containerId, labelId, idx) {
   document.querySelectorAll(`#${containerId} .mood-btn`).forEach((b, i) => b.classList.toggle('picked', i === idx));
   document.getElementById(labelId).textContent = MOODS[idx].label;
-  if (containerId === 'mood-emojis-before') { moodBefore = idx; document.getElementById('mood-before-next').disabled = false; }
-  else { moodAfter = idx; document.getElementById('mood-after-next').disabled = false; }
+  if (containerId === 'mood-emojis-before') {
+    moodBefore = idx;
+    document.getElementById('mood-before-next').disabled = false;
+    const ctx = document.getElementById('mood-before-context');
+    if (ctx) ctx.textContent = getMoodBeforeContext(idx);
+  } else {
+    moodAfter = idx;
+    document.getElementById('mood-after-next').disabled = false;
+    const ctx = document.getElementById('mood-after-context');
+    if (ctx) ctx.textContent = getMoodAfterContext(idx);
+  }
 }
 
 // ══════════════════════════════════════════════════
