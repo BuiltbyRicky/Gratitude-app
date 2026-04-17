@@ -3019,6 +3019,104 @@ function restartChallenge() {
 }
 
 
+// ── PHOTO ATTACHMENTS ─────────────────────────────
+function getEntryPhoto(id) {
+  if (!currentUser) return null;
+  return localStorage.getItem('gj_photo_' + currentUser.id + '_' + id);
+}
+
+function setEntryPhoto(id, base64) {
+  if (!currentUser) return;
+  if (base64 === null) {
+    localStorage.removeItem('gj_photo_' + currentUser.id + '_' + id);
+  } else {
+    try {
+      localStorage.setItem('gj_photo_' + currentUser.id + '_' + id, base64);
+    } catch(e) {
+      alert('Storage full — could not save photo. Try a smaller image.');
+    }
+  }
+}
+
+function openPhotoPicker(entryId) {
+  const existing = document.getElementById('photo-input-temp');
+  if (existing) existing.remove();
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.id = 'photo-input-temp';
+  input.accept = 'image/*';
+  input.style.display = 'none';
+  input.onchange = (e) => handlePhotoSelect(e, entryId);
+  document.body.appendChild(input);
+  input.click();
+}
+
+function handlePhotoSelect(event, entryId) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const MAX_DIM = 1200;
+      let w = img.width, h = img.height;
+      if (w > h && w > MAX_DIM) { h = h * (MAX_DIM / w); w = MAX_DIM; }
+      else if (h > MAX_DIM) { w = w * (MAX_DIM / h); h = MAX_DIM; }
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      const compressed = canvas.toDataURL('image/jpeg', 0.75);
+      setEntryPhoto(entryId, compressed);
+      const inp = document.getElementById('photo-input-temp');
+      if (inp) inp.remove();
+      renderHistory();
+      const photoEl = document.getElementById('summary-photo-section');
+      if (photoEl) photoEl.outerHTML = renderPhotoSection(entryId, true);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeEntryPhoto(entryId) {
+  if (!confirm('Remove this photo?')) return;
+  setEntryPhoto(entryId, null);
+  renderHistory();
+  const photoEl = document.getElementById('summary-photo-section');
+  if (photoEl) photoEl.outerHTML = renderPhotoSection(entryId, true);
+}
+
+function renderPhotoSection(entryId, isSummary) {
+  const photo = getEntryPhoto(entryId);
+  if (photo) {
+    return `<div class="entry-photo-wrap"${isSummary ? ' id="summary-photo-section"' : ''}>
+      <img src="${photo}" class="entry-photo" onclick="viewPhotoFullscreen('${entryId}')" alt="Entry photo"/>
+      <button class="entry-photo-remove" onclick="removeEntryPhoto('${entryId}')" title="Remove photo">✕</button>
+    </div>`;
+  }
+  return `<button class="entry-photo-add"${isSummary ? ' id="summary-photo-section"' : ''} onclick="openPhotoPicker('${entryId}')">
+    <span class="entry-photo-add-icon">📷</span>
+    <span>Add a photo</span>
+  </button>`;
+}
+
+function viewPhotoFullscreen(entryId) {
+  const photo = getEntryPhoto(entryId);
+  if (!photo) return;
+  const overlay = document.createElement('div');
+  overlay.id = 'photo-fullscreen-overlay';
+  overlay.className = 'photo-fullscreen-overlay';
+  overlay.onclick = () => overlay.remove();
+  overlay.innerHTML = `
+    <img src="${photo}" class="photo-fullscreen-img" alt="Entry photo"/>
+    <button class="photo-fullscreen-close">✕</button>
+  `;
+  document.body.appendChild(overlay);
+}
+
+
 const ENTRY_TAGS = {
   rose:     { color: '#E89B9B', label: 'Rose',     desc: 'Love & connection' },
   amber:    { color: '#E8B05A', label: 'Amber',    desc: 'Joy & gratitude' },
@@ -3131,6 +3229,7 @@ function renderHistory() {
 
     const tagColor = getEntryTag(e.id);
     const tagBar = tagColor ? `<div class="hist-entry-tag-bar" style="background:${ENTRY_TAGS[tagColor].color};"></div>` : '';
+    const photoSection = !isEditing ? renderPhotoSection(e.id, false) : '';
 
     return `<div class="hist-entry">
       ${tagBar}
@@ -3146,6 +3245,7 @@ function renderHistory() {
           }
         </div>
       </div>
+      ${photoSection}
       ${qs.map((q, j) => {
         const ans = (e.answers || [])[j] || '';
         const shareBtn = (!isEditing && ans) ? makeShareBtn(ans, e.date) : '';
@@ -4408,6 +4508,9 @@ function renderSummaryPage(entry) {
         <button class="btn" onclick="goPage('history')">View history</button>
         <button class="btn solid" onclick="goPage('home')">Back home &rarr;</button>
       </div>
+
+      ${entry.id ? `<div class="cel-photo-wrap">${renderPhotoSection(entry.id, true)}</div>` : ''}
+
       <div class="cel-divider"></div>
       <div class="cel-entries-title">Today's reflections</div>
       

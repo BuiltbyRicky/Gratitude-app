@@ -520,3 +520,22 @@ html, body { overscroll-behavior: none; background: #FAF8F4; color-scheme: light
 .yr-closing-text strong{font-style:normal;font-weight:500;}
 .yr-cta-btn{margin-top:2.5rem;background:rgba(255,255,255,0.95);color:var(--ink);border:none;border-radius:var(--radius-pill);padding:14px 32px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-sans);transition:var(--transition);position:relative;z-index:10;}
 .yr-cta-btn:hover{transform:scale(1.05);}
+
+/* ══════════════════════════════════════════════════
+   PHOTO ATTACHMENTS
+══════════════════════════════════════════════════ */
+.entry-photo-wrap{position:relative;margin:1rem 0;border-radius:var(--radius-md);overflow:hidden;background:var(--cream-dark);}
+.entry-photo{display:block;width:100%;max-height:400px;object-fit:cover;cursor:pointer;transition:opacity 0.2s ease;}
+.entry-photo:hover{opacity:0.95;}
+.entry-photo-remove{position:absolute;top:8px;right:8px;background:rgba(28,26,23,0.75);color:#fff;border:none;width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer;backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;transition:var(--transition);}
+.entry-photo-remove:hover{background:rgba(28,26,23,0.9);}
+
+.entry-photo-add{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:none;border:2px dashed var(--ink-15);border-radius:var(--radius-md);padding:14px;font-family:var(--font-sans);font-size:13px;color:var(--ink-60);cursor:pointer;margin:1rem 0;transition:var(--transition);}
+.entry-photo-add:hover{border-color:var(--sage);color:var(--sage);background:var(--sage-light);}
+.entry-photo-add-icon{font-size:18px;}
+
+.cel-photo-wrap{margin:1.5rem 0;animation:fadeUp 0.5s ease 1s both;}
+
+.photo-fullscreen-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.95);z-index:1100;display:flex;align-items:center;justify-content:center;padding:1rem;cursor:pointer;animation:fadeIn 0.3s ease;}
+.photo-fullscreen-img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px;}
+.photo-fullscreen-close{position:absolute;top:1.5rem;right:1.5rem;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);color:#fff;width:40px;height:40px;border-radius:50%;font-size:16px;cursor:pointer;backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;}
