@@ -286,6 +286,11 @@
         <div class="stat-tile" onclick="openInsights()" style="cursor:pointer;"><div class="stat-val" id="st-week">0</div><div class="stat-key">This week</div></div>
       </div>
       <button class="cta-btn" onclick="beginSession()">Begin today's journal <span class="cta-arrow">→</span></button>
+      <button class="quick-capture-btn" onclick="openQuickCapture()">
+        <span class="quick-capture-icon">💭</span>
+        <span class="quick-capture-text">Capture a quick thought</span>
+        <span class="quick-capture-meta">30 sec</span>
+      </button>
       <div id="streak-revive-wrap"></div>
       <div id="quick-mood-wrap"></div>
       <div id="resume-draft-wrap"></div>
@@ -447,6 +452,15 @@
         <div class="settings-block-title">🏆 Achievements</div>
         <p style="font-size:13px;color:var(--ink-60);line-height:1.65;margin-bottom:1rem;">Every milestone you've earned and what's next to unlock.</p>
         <button class="btn" style="width:100%;" onclick="openAchievements()">View achievements <span id="ach-progress-pill" style="color:var(--ink-60);margin-left:4px;"></span></button>
+      </div>
+
+      <div class="settings-block">
+        <div class="settings-block-title">Shake to capture</div>
+        <p style="font-size:13px;color:var(--ink-60);line-height:1.65;margin-bottom:1rem;">Shake your phone to instantly open Quick Capture. Disable if you're active and getting false triggers.</p>
+        <div id="shake-status-row" class="shake-status-row">
+          <span id="shake-status-label">Loading…</span>
+          <button class="btn" id="shake-toggle-btn" onclick="toggleShakeFromSettings()">Toggle</button>
+        </div>
       </div>
 
       <div class="settings-block">

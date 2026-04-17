@@ -322,6 +322,9 @@ async function launchApp() {
     // Reschedule notifications to refresh the pool (runs silently in background)
     setTimeout(() => refreshNotifSchedule(), 3000);
   }
+
+  // Set up shake-to-capture (delayed so it doesn't fire during sign-in animation)
+  setTimeout(() => initShakeDetection(), 2000);
 }
 
 async function refreshNotifSchedule() {
@@ -3325,7 +3328,129 @@ function restartChallenge() {
 }
 
 
-// ── QUICK CAPTURE ─────────────────────────────────
+// ── SHAKE TO CAPTURE ──────────────────────────────
+let shakeInitialized = false;
+let shakeLastX = 0, shakeLastY = 0, shakeLastZ = 0;
+let shakeLastTime = 0;
+let shakeLastFireTime = 0;
+const SHAKE_THRESHOLD = 18; // m/s² delta — tuned to require deliberate shake
+const SHAKE_COOLDOWN = 2000; // ms between shake triggers
+
+async function initShakeDetection() {
+  if (shakeInitialized) return;
+
+  // Respect user preference
+  if (localStorage.getItem('gj_shake_disabled') === '1') return;
+
+  // iOS 13+ requires explicit permission for DeviceMotion
+  if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+    // Don't auto-prompt — wait until user has been in app long enough that a permission popup makes sense
+    // We'll request on first qualifying interaction. For now, just check if already granted.
+    // The actual request happens via askShakePermission() called from settings.
+    try {
+      // Some older iOS versions return granted by default if no Info.plist key
+      const permission = await DeviceMotionEvent.requestPermission().catch(() => 'denied');
+      if (permission !== 'granted') return;
+    } catch(e) { return; }
+  }
+
+  if (typeof DeviceMotionEvent === 'undefined') return;
+
+  window.addEventListener('devicemotion', onShakeMotion);
+  shakeInitialized = true;
+}
+
+function onShakeMotion(event) {
+  const acc = event.accelerationIncludingGravity;
+  if (!acc || acc.x == null) return;
+
+  const now = Date.now();
+  // Throttle to ~10 samples per second for performance
+  if (now - shakeLastTime < 100) return;
+  const elapsed = now - shakeLastTime;
+  shakeLastTime = now;
+
+  const deltaX = Math.abs(acc.x - shakeLastX);
+  const deltaY = Math.abs(acc.y - shakeLastY);
+  const deltaZ = Math.abs(acc.z - shakeLastZ);
+
+  shakeLastX = acc.x;
+  shakeLastY = acc.y;
+  shakeLastZ = acc.z;
+
+  // Need movement on at least 2 axes to count as a real shake (not a phone drop or single tap)
+  const totalDelta = (deltaX + deltaY + deltaZ);
+  const axesMoving = [deltaX, deltaY, deltaZ].filter(d => d > 6).length;
+
+  if (totalDelta > SHAKE_THRESHOLD && axesMoving >= 2) {
+    if (now - shakeLastFireTime < SHAKE_COOLDOWN) return;
+    shakeLastFireTime = now;
+    onShakeDetected();
+  }
+}
+
+function onShakeDetected() {
+  // Don't fire if user is in middle of a session, mood check-in, breath, or already in a modal
+  const activePage = document.querySelector('.page.active')?.id;
+  const inSession = ['journal', 'mood-before', 'mood-after', 'breath', 'breathex'].includes(activePage?.replace('page-', ''));
+  if (inSession) return;
+
+  // Don't fire if any modal/overlay is already open
+  if (document.getElementById('quick-capture-overlay')) return;
+  if (document.getElementById('insights-overlay')) return;
+  if (document.getElementById('achievements-overlay')) return;
+  if (document.getElementById('year-review-overlay')) return;
+  if (document.getElementById('jar-overlay')) return;
+  if (document.getElementById('photo-fullscreen-overlay')) return;
+  if (document.querySelector('.modal-overlay.open')) return;
+
+  // Light haptic feel via subtle screen flash
+  showShakeFeedback();
+
+  // Open quick capture
+  if (typeof openQuickCapture === 'function') openQuickCapture();
+}
+
+function showShakeFeedback() {
+  // Brief sage flash to acknowledge the shake
+  const flash = document.createElement('div');
+  flash.className = 'shake-flash';
+  document.body.appendChild(flash);
+  setTimeout(() => flash.remove(), 400);
+}
+
+// Manual permission request — used if user enables shake from settings
+async function askShakePermission() {
+  if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+    try {
+      const permission = await DeviceMotionEvent.requestPermission();
+      if (permission === 'granted') {
+        localStorage.removeItem('gj_shake_disabled');
+        window.addEventListener('devicemotion', onShakeMotion);
+        shakeInitialized = true;
+        return true;
+      }
+      return false;
+    } catch(e) { return false; }
+  }
+  // No permission needed
+  localStorage.removeItem('gj_shake_disabled');
+  if (!shakeInitialized) {
+    window.addEventListener('devicemotion', onShakeMotion);
+    shakeInitialized = true;
+  }
+  return true;
+}
+
+function disableShake() {
+  localStorage.setItem('gj_shake_disabled', '1');
+  if (shakeInitialized) {
+    window.removeEventListener('devicemotion', onShakeMotion);
+    shakeInitialized = false;
+  }
+}
+
+
 const QUICK_PROMPTS = [
   "What just happened that you want to remember?",
   "What's on your mind right now?",
@@ -4101,6 +4226,40 @@ function renderSettings() {
     const unlocked = all.filter(a => a.unlocked).length;
     achPill.textContent = `(${unlocked}/${all.length})`;
   }
+
+  // Shake to capture status
+  renderShakeStatus();
+}
+
+function renderShakeStatus() {
+  const label = document.getElementById('shake-status-label');
+  const btn = document.getElementById('shake-toggle-btn');
+  if (!label || !btn) return;
+
+  const disabled = localStorage.getItem('gj_shake_disabled') === '1';
+  if (disabled) {
+    label.innerHTML = '<span style="color:var(--ink-60);">Shake gesture <strong>off</strong></span>';
+    btn.textContent = 'Enable';
+  } else if (shakeInitialized) {
+    label.innerHTML = '<span style="color:var(--sage);">✓ Shake gesture <strong>on</strong></span>';
+    btn.textContent = 'Disable';
+  } else {
+    label.innerHTML = '<span style="color:var(--ink-60);">Shake permission needed</span>';
+    btn.textContent = 'Enable';
+  }
+}
+
+async function toggleShakeFromSettings() {
+  const disabled = localStorage.getItem('gj_shake_disabled') === '1';
+  if (disabled || !shakeInitialized) {
+    const granted = await askShakePermission();
+    if (!granted) {
+      alert('Shake gesture requires motion sensor permission. Enable in iPhone Settings → Gratitude → Motion & Fitness.');
+    }
+  } else {
+    disableShake();
+  }
+  renderShakeStatus();
 }
 
 // ── ACHIEVEMENTS ──────────────────────────────────
