@@ -1568,6 +1568,129 @@ function goPage(id) {
 // ══════════════════════════════════════════════════
 let moodChartInstance = null;
 
+function calcMoodInsights() {
+  const es = getEntries().filter(e => e.mood_after != null);
+  if (es.length < 5) return null;
+
+  // Best/worst day of week for after-mood
+  const dowMoods = [[],[],[],[],[],[],[]];
+  es.forEach(e => {
+    const day = new Date(e.date).getDay();
+    dowMoods[day].push(e.mood_after);
+  });
+  const dowAvg = dowMoods.map((arr,i) => ({
+    day: i,
+    name: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][i],
+    avg: arr.length ? arr.reduce((s,m) => s+m, 0) / arr.length : null,
+    count: arr.length,
+  })).filter(d => d.count >= 1);
+
+  let bestDay = null, worstDay = null;
+  if (dowAvg.length >= 3) {
+    const sorted = [...dowAvg].sort((a,b) => b.avg - a.avg);
+    bestDay = sorted[0];
+    worstDay = sorted[sorted.length - 1];
+  }
+
+  // Trend over time — split entries in half, compare averages
+  let trend = null;
+  if (es.length >= 10) {
+    const sorted = [...es].sort((a,b) => new Date(a.date) - new Date(b.date));
+    const mid = Math.floor(sorted.length / 2);
+    const earlier = sorted.slice(0, mid);
+    const recent = sorted.slice(mid);
+    const earlierAvg = earlier.reduce((s,e) => s+e.mood_after, 0) / earlier.length;
+    const recentAvg = recent.reduce((s,e) => s+e.mood_after, 0) / recent.length;
+    const diff = +(recentAvg - earlierAvg).toFixed(2);
+    if (Math.abs(diff) >= 0.3) {
+      trend = diff > 0 ? 'rising' : 'falling';
+    } else {
+      trend = 'stable';
+    }
+  }
+
+  // Average lift consistency
+  const withBoth = es.filter(e => e.mood_before != null);
+  const liftPositiveCount = withBoth.filter(e => e.mood_after > e.mood_before).length;
+  const liftRate = withBoth.length ? Math.round((liftPositiveCount / withBoth.length) * 100) : null;
+
+  // Time of day mood
+  const timeMoods = { morning: [], afternoon: [], evening: [], night: [] };
+  es.forEach(e => {
+    const h = new Date(e.date).getHours();
+    if (h < 12) timeMoods.morning.push(e.mood_after);
+    else if (h < 17) timeMoods.afternoon.push(e.mood_after);
+    else if (h < 21) timeMoods.evening.push(e.mood_after);
+    else timeMoods.night.push(e.mood_after);
+  });
+  const timeAvgs = Object.entries(timeMoods)
+    .filter(([,arr]) => arr.length >= 2)
+    .map(([t, arr]) => ({ time: t, avg: arr.reduce((s,m)=>s+m,0)/arr.length }))
+    .sort((a,b) => b.avg - a.avg);
+  const bestTime = timeAvgs[0] || null;
+
+  return { bestDay, worstDay, trend, liftRate, bestTime };
+}
+
+function renderMoodInsights() {
+  const insights = calcMoodInsights();
+  if (!insights) return '';
+
+  const items = [];
+
+  if (insights.bestDay && insights.worstDay && insights.bestDay.day !== insights.worstDay.day) {
+    items.push({
+      icon: '📅',
+      text: `<strong>${insights.bestDay.name}s</strong> tend to be your best — average mood ${MOODS[Math.round(insights.bestDay.avg)].e}`
+    });
+  }
+
+  if (insights.trend === 'rising') {
+    items.push({
+      icon: '📈',
+      text: `Your overall mood is <strong>trending up</strong> compared to when you started. Real progress.`
+    });
+  } else if (insights.trend === 'falling') {
+    items.push({
+      icon: '🌊',
+      text: `Your mood has dipped recently. You're not failing — you're noticing. That's the work.`
+    });
+  } else if (insights.trend === 'stable') {
+    items.push({
+      icon: '🌿',
+      text: `Your mood is staying steady — a sign your practice is regulating you.`
+    });
+  }
+
+  if (insights.liftRate != null && insights.liftRate >= 50) {
+    items.push({
+      icon: '✨',
+      text: `<strong>${insights.liftRate}% of sessions</strong> leave you feeling better than when you started.`
+    });
+  }
+
+  if (insights.bestTime) {
+    const timeNames = { morning: 'mornings', afternoon: 'afternoons', evening: 'evenings', night: 'late nights' };
+    items.push({
+      icon: '🕐',
+      text: `You feel best after journaling in the <strong>${timeNames[insights.bestTime.time]}</strong>.`
+    });
+  }
+
+  if (items.length === 0) return '';
+
+  return `
+    <div class="mood-insights">
+      <div class="mood-insights-title">Patterns we noticed</div>
+      ${items.map(item => `
+        <div class="mood-insight-item">
+          <span class="mood-insight-icon">${item.icon}</span>
+          <span class="mood-insight-text">${item.text}</span>
+        </div>
+      `).join('')}
+    </div>`;
+}
+
 function renderMoodChart() {
   const wrap = document.getElementById('mood-chart-wrap');
   if (!wrap) return;
@@ -1602,11 +1725,14 @@ function renderMoodChart() {
       </div>
     </div>`;
 
+  const insightsHtml = renderMoodInsights();
+
   wrap.innerHTML = `
     <div class="mood-chart-card">
       <div class="mood-chart-title">Mood over time</div>
       <div class="mood-chart-sub">How you felt before and after each session</div>
       ${avgTiles}
+      ${insightsHtml}
       <div class="mood-chart-wrap"><canvas id="mood-canvas"></canvas></div>
       <div class="mood-chart-legend">
         <div class="mood-legend-item"><div class="mood-legend-dot" style="background:#7BBDA4;"></div>Before session</div>
