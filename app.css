@@ -352,3 +352,34 @@ html, body { overscroll-behavior: none; background: #FAF8F4; color-scheme: light
 .affirmation-fav-btn,.affirmation-share-btn{background:rgba(255,255,255,0.6);border:1px solid rgba(91,74,138,0.2);color:#5B4A8A;font-size:12px;font-weight:500;padding:6px 14px;border-radius:var(--radius-pill);cursor:pointer;font-family:var(--font-sans);transition:var(--transition);}
 .affirmation-fav-btn:hover,.affirmation-share-btn:hover{background:rgba(255,255,255,0.9);}
 .affirmation-fav-btn.is-fav{background:#5B4A8A;color:#fff;border-color:#5B4A8A;}
+
+/* ══════════════════════════════════════════════════
+   GRATITUDE JAR
+══════════════════════════════════════════════════ */
+.history-meta-right{display:flex;align-items:center;gap:12px;}
+.jar-btn{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#fef3d4,#f5d878);border:1.5px solid #e8b85a;color:#8a6520;border-radius:var(--radius-pill);padding:6px 14px;font-family:var(--font-sans);font-size:13px;font-weight:600;cursor:pointer;transition:var(--transition);}
+.jar-btn:hover{transform:scale(1.05);box-shadow:0 2px 8px rgba(232,184,90,0.3);}
+.jar-icon{font-size:14px;}
+
+.jar-overlay{position:fixed;inset:0;background:rgba(28,26,23,0.7);backdrop-filter:blur(8px);z-index:900;display:flex;align-items:center;justify-content:center;padding:1.5rem;animation:fadeIn 0.3s ease;}
+.jar-modal{background:var(--white);border-radius:24px;padding:2rem;max-width:440px;width:100%;text-align:center;position:relative;animation:fadeUp 0.4s ease;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+.jar-close{position:absolute;top:14px;right:14px;background:none;border:none;font-size:18px;color:var(--ink-30);cursor:pointer;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:var(--transition);}
+.jar-close:hover{background:var(--cream-dark);color:var(--ink-60);}
+
+.jar-eyebrow{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:#8a6520;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:1rem;background:linear-gradient(135deg,#fef3d4,#f5d878);padding:6px 14px;border-radius:var(--radius-pill);border:1px solid #e8b85a;}
+.jar-sparkle{display:inline-block;animation:jarSparkle 2s ease-in-out infinite;}
+@keyframes jarSparkle{0%,100%{transform:scale(1) rotate(0deg);}50%{transform:scale(1.2) rotate(15deg);}}
+.jar-time-label{font-family:var(--font-serif);font-size:24px;font-weight:500;color:var(--sage);margin-bottom:4px;letter-spacing:-0.3px;}
+.jar-date-label{font-size:12px;color:var(--ink-60);margin-bottom:1.5rem;}
+.jar-question{font-size:13px;color:var(--ink-60);font-style:italic;margin-bottom:14px;padding:0 1rem;line-height:1.5;}
+.jar-answer{font-family:var(--font-serif);font-size:18px;color:var(--ink);line-height:1.7;margin-bottom:2rem;font-style:italic;padding:0 0.5rem;}
+.jar-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+.jar-actions .btn{flex:1;max-width:170px;}
+
+.jar-locked{padding:2.5rem 2rem 2rem;}
+.jar-locked-icon{font-size:48px;margin-bottom:1rem;animation:jarSparkle 3s ease-in-out infinite;}
+.jar-locked-title{font-family:var(--font-serif);font-size:22px;font-weight:500;color:var(--ink);margin-bottom:8px;letter-spacing:-0.2px;}
+.jar-locked-sub{font-size:14px;color:var(--ink-60);line-height:1.6;margin-bottom:1.5rem;}
+.jar-progress-bar{background:var(--cream-dark);height:8px;border-radius:4px;overflow:hidden;margin-bottom:8px;}
+.jar-progress-fill{background:linear-gradient(90deg,#e8b85a,#f5d878);height:100%;border-radius:4px;transition:width 0.5s ease;}
+.jar-progress-text{font-size:12px;color:var(--ink-60);}

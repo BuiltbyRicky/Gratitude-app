@@ -2114,7 +2114,110 @@ function highlightMatch(text, query) {
   return safeText.replace(new RegExp(`(${escaped})`, 'gi'), '<mark style="background:rgba(45,122,95,0.15);border-radius:3px;padding:0 2px;color:var(--sage-dark);">$1</mark>');
 }
 
-// ── DAILY AFFIRMATIONS ────────────────────────────
+// ── GRATITUDE JAR ─────────────────────────────────
+const JAR_UNLOCK_MIN_ENTRIES = 5; // need 5+ entries to unlock
+
+function openGratitudeJar() {
+  const es = getEntries();
+  if (es.length < JAR_UNLOCK_MIN_ENTRIES) {
+    showJarLocked(es.length);
+    return;
+  }
+  pickRandomMemory();
+}
+
+function showJarLocked(count) {
+  const remaining = JAR_UNLOCK_MIN_ENTRIES - count;
+  const overlay = document.createElement('div');
+  overlay.id = 'jar-overlay';
+  overlay.className = 'jar-overlay';
+  overlay.innerHTML = `
+    <div class="jar-modal jar-locked">
+      <button class="jar-close" onclick="closeGratitudeJar()">✕</button>
+      <div class="jar-locked-icon">🍯</div>
+      <div class="jar-locked-title">Your jar is filling up</div>
+      <div class="jar-locked-sub">Write ${remaining} more ${remaining === 1 ? 'entry' : 'entries'} to unlock the jar. Then come back any time to discover a random memory.</div>
+      <div class="jar-progress-bar">
+        <div class="jar-progress-fill" style="width:${(count/JAR_UNLOCK_MIN_ENTRIES)*100}%;"></div>
+      </div>
+      <div class="jar-progress-text">${count} of ${JAR_UNLOCK_MIN_ENTRIES} entries</div>
+      <button class="btn solid" onclick="closeGratitudeJar()" style="margin-top:1rem;">Got it</button>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+function pickRandomMemory() {
+  const es = getEntries();
+  if (es.length === 0) return;
+
+  // Filter to entries that have actual content
+  const filledEntries = es.filter(e => (e.answers || []).some(a => a && a.trim().length > 5));
+  if (filledEntries.length === 0) return;
+
+  const randomEntry = filledEntries[Math.floor(Math.random() * filledEntries.length)];
+  showRandomMemory(randomEntry);
+}
+
+function showRandomMemory(entry) {
+  // Remove existing overlay if any
+  const existing = document.getElementById('jar-overlay');
+  if (existing) existing.remove();
+
+  const date = new Date(entry.date);
+  const dateLabel = date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+  // Days ago
+  const today = new Date(); today.setHours(0,0,0,0);
+  const entryDay = new Date(entry.date); entryDay.setHours(0,0,0,0);
+  const daysAgo = Math.floor((today - entryDay) / (24*60*60*1000));
+  let timeLabel;
+  if (daysAgo === 0) timeLabel = 'Today';
+  else if (daysAgo === 1) timeLabel = 'Yesterday';
+  else if (daysAgo < 7) timeLabel = `${daysAgo} days ago`;
+  else if (daysAgo < 30) timeLabel = `${Math.floor(daysAgo / 7)} ${Math.floor(daysAgo/7) === 1 ? 'week' : 'weeks'} ago`;
+  else if (daysAgo < 365) timeLabel = `${Math.floor(daysAgo / 30)} ${Math.floor(daysAgo/30) === 1 ? 'month' : 'months'} ago`;
+  else timeLabel = `${Math.floor(daysAgo / 365)} ${Math.floor(daysAgo/365) === 1 ? 'year' : 'years'} ago`;
+
+  // Get first non-empty answer with its question
+  const answers = entry.answers || [];
+  const questions = entry.questions || [];
+  let q = '', a = '';
+  for (let i = 0; i < answers.length; i++) {
+    if (answers[i] && answers[i].trim().length > 5) {
+      q = questions[i] || '';
+      a = answers[i];
+      break;
+    }
+  }
+
+  const overlay = document.createElement('div');
+  overlay.id = 'jar-overlay';
+  overlay.className = 'jar-overlay';
+  overlay.innerHTML = `
+    <div class="jar-modal">
+      <button class="jar-close" onclick="closeGratitudeJar()">✕</button>
+      <div class="jar-eyebrow">
+        <span class="jar-sparkle">✨</span>
+        <span>From your jar</span>
+      </div>
+      <div class="jar-time-label">${timeLabel}</div>
+      <div class="jar-date-label">${dateLabel}</div>
+      <div class="jar-question">${esc(q)}</div>
+      <div class="jar-answer">"${esc(a)}"</div>
+      <div class="jar-actions">
+        <button class="btn" onclick="pickRandomMemory()">✨ Show another</button>
+        <button class="btn solid" onclick="closeGratitudeJar()">Close</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+function closeGratitudeJar() {
+  const o = document.getElementById('jar-overlay');
+  if (o) o.remove();
+}
+
+
 const AFFIRMATIONS = {
   stress: [
     "I am safe in this moment. The present is enough.",
