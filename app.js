@@ -606,15 +606,107 @@ function getNotifMessages(hour) {
   const currentStreak = streak();
   const isMorning = hour < 12;
   const isAfternoon = hour >= 12 && hour < 17;
-  // isEvening = hour >= 17
+  const isEvening = hour >= 17 && hour < 21;
+  const isNight = hour >= 21 || hour < 5;
 
-  // Streak-specific titles
-  const title = currentStreak >= 7
-    ? `${currentStreak} day streak 🔥`
-    : currentStreak >= 3
-    ? `${currentStreak} days in a row`
-    : 'Gratitude';
+  // Detect if user has broken a previously-good streak (returns 0 but had entries)
+  const es = getEntries();
+  const hasEntries = es.length > 0;
+  const lastEntryDate = es[0] ? new Date(es[0].date) : null;
+  const daysSinceLastEntry = lastEntryDate
+    ? Math.floor((Date.now() - lastEntryDate.getTime()) / (24*60*60*1000))
+    : null;
+  const isComebackUser = currentStreak === 0 && hasEntries && daysSinceLastEntry > 1;
 
+  // Streak tier
+  let tier;
+  if (currentStreak >= 100) tier = 'legend';
+  else if (currentStreak >= 30) tier = 'devoted';
+  else if (currentStreak >= 7) tier = 'committed';
+  else if (currentStreak >= 3) tier = 'building';
+  else if (currentStreak >= 1) tier = 'starting';
+  else if (isComebackUser) tier = 'comeback';
+  else tier = 'fresh';
+
+  // Title rotates based on tier and time
+  const titles = {
+    legend:    [`${currentStreak} days strong 🔥`, 'A practice, not a streak', 'You\'ve made this yours'],
+    devoted:   [`${currentStreak} day streak 🔥`, 'Keep the fire going', 'Your daily practice'],
+    committed: [`Day ${currentStreak + 1} awaits`, `${currentStreak} days in a row`, 'Stay consistent'],
+    building:  [`${currentStreak} days strong`, 'Don\'t break the chain', 'Keep building'],
+    starting:  ['Day 2 awaits', 'Build the habit', 'Show up again'],
+    comeback:  ['We\'re here when you\'re ready', 'A gentle return', 'Welcome back'],
+    fresh:     ['Gratitude', 'A moment for you', 'Take 5 minutes'],
+  };
+  const titlePool = titles[tier];
+  const title = titlePool[Math.floor(Date.now() / (24*60*60*1000)) % titlePool.length];
+
+  // Time-of-day specific messages — universal across goals
+  const timeMessages = isMorning ? [
+    "Start your day with intention. 5 minutes of reflection. 🌅",
+    "Before the noise begins — write one thing you're grateful for. 🌿",
+    "Morning is the cleanest mind you'll have all day. Use it. ☕",
+    "What do you want this day to mean? Write it down. 🌱",
+    "First thing in the morning is when your brain is most receptive. ✨",
+  ] : isAfternoon ? [
+    "Midday check-in — how are you actually doing? 🌿",
+    "Pause. Breathe. 5 minutes for yourself. ☀️",
+    "Your afternoon dip is real. Reflection helps. 📖",
+    "Step away from the day for a moment. Come back to yourself. 🕯️",
+  ] : isEvening ? [
+    "Your day deserves to be remembered. Open your journal. 🕯️",
+    "Before the night winds down — what stood out today? 🌅",
+    "Evening reflection sets up tomorrow's clarity. ✨",
+    "Today happened. Don't let it disappear. 📝",
+  ] : [
+    "Before you sleep — write one thing worth remembering. 🌙",
+    "Tomorrow you'll wish you'd captured today. Take 5 minutes. 🕯️",
+    "Quiet hours are for honest reflection. ✨",
+  ];
+
+  // Tier-specific messages
+  const tierMessages = {
+    legend: [
+      `${currentStreak} days. You're proof this practice works. 🔥`,
+      "You've built something genuinely rare. Keep going.",
+      "Most people can't imagine what you've made yours.",
+    ],
+    devoted: [
+      `${currentStreak} days. Your brain is structurally different from this practice. Keep building. 🧠`,
+      `Day ${currentStreak + 1} awaits. You're in the top 1% of consistency.`,
+      "The science says this is rewiring you. The mirror will say so soon.",
+    ],
+    committed: [
+      `${currentStreak} days in a row. Most people never make it this far. 🌟`,
+      "You're past the hard part. This is becoming you.",
+      "A week+ of showing up. The practice is starting to give back.",
+    ],
+    building: [
+      `${currentStreak} days. Don't break the chain — you're so close to a week. 🌱`,
+      "The first week is the hardest. You're almost there.",
+      `Day ${currentStreak + 1} starts your real practice. Don't skip it.`,
+    ],
+    starting: [
+      "Yesterday counts. Make today count too. 🌿",
+      "Two days in a row is more than most people manage. Keep going. ✨",
+      "The pattern starts now. Show up.",
+    ],
+    comeback: [
+      `It's been ${daysSinceLastEntry} days. No judgment. Come back. 💙`,
+      "Streak broken. Practice doesn't break. Open your journal. 🌿",
+      "You're not starting from zero. You're starting from experience.",
+      "The fact that you're seeing this means you still want this. Begin again. ✨",
+      "The best time to come back is now. The second best was yesterday.",
+    ],
+    fresh: [
+      "5 minutes. That's all. You've spent longer on less. ✨",
+      "The people who journal consistently aren't more disciplined. They just show up. 🌿",
+      "Open Gratitude. Just open it. The rest takes care of itself.",
+      "Your first entry is the hardest one. Get it over with. 🌱",
+    ],
+  };
+
+  // Goal-specific messages
   const goalMessages = {
     stress: [
       "Your nervous system needs 5 minutes. You've got this. 🫁",
@@ -624,9 +716,9 @@ function getNotifMessages(hour) {
       "You handled a lot today. Take a moment to acknowledge it. 💙",
       "Breathe. Reflect. Release. Your journal is ready. ✨",
       "Even 3 minutes of reflection rewires your stress response. 🧠",
-      "The hardest part is opening the app. That's it. 🌿",
       "What's one thing from today you can let go of right now? 🍃",
       "Your thoughts deserve more than your head. Write them down. 📝",
+      "Anxiety thrives in your head and dies on the page. 🌿",
     ],
     gratitude: [
       "Something good happened today. Don't let it slip away. ✨",
@@ -666,27 +758,13 @@ function getNotifMessages(hour) {
     ],
   };
 
-  // Universal fallback messages (used as filler or if goal not set)
-  const universal = [
-    isMorning ? "Start your day with intention. 5 minutes of reflection. 🌅"
-    : isAfternoon ? "Midday check-in — how are you actually doing? 🌿"
-    : "Your day deserves to be remembered. Open your journal. 🕯️",
-    currentStreak >= 7 ? `${currentStreak} days. You're building something real. Don't stop now. 🔥`
-    : currentStreak >= 3 ? `${currentStreak} days in a row. Keep the momentum going. 🌱`
-    : "Every entry is a gift to your future self. 📖",
-    "5 minutes. That's all. You've spent longer on less. ✨",
-    "The people who journal consistently aren't more disciplined. They just show up. 🌿",
-    isMorning ? "Before the noise starts — write one thing you're grateful for. 🌅"
-    : "Before you sleep — write one thing worth remembering. 🕯️",
-    "Your streak is waiting. Don't let today be the day it breaks. 🔥",
-    "What happened today that's worth keeping? 📝",
-    "Reflection isn't navel-gazing. It's how you actually learn from life. 🧠",
-    "Open Gratitude. Just open it. The rest takes care of itself. 🌿",
-    "You showed up yesterday. Show up again today. 💙",
+  // Build the pool — weighted: tier (high signal), time (high signal), goal (depth), then mix
+  const pool = [
+    ...tierMessages[tier],
+    ...timeMessages,
+    ...(goalMessages[goal] || goalMessages.gratitude),
   ];
 
-  const pool = [...(goalMessages[goal] || goalMessages.gratitude), ...universal];
-  // Shuffle deterministically based on day so messages feel fresh but consistent
   return { title, pool };
 }
 
