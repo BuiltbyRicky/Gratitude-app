@@ -4130,6 +4130,121 @@ let activeCat = 'All';
 let learnDone = JSON.parse(localStorage.getItem('gj_learn_done') || '[]');
 function saveDone() { localStorage.setItem('gj_learn_done', JSON.stringify(learnDone)); }
 
+// Goal → preferred categories mapping (in priority order)
+const GOAL_TO_LEARN_CATS = {
+  stress:    ['Breathing', 'Mindfulness', 'Sleep'],
+  gratitude: ['Mindfulness', 'Journaling', 'Movement'],
+  clarity:   ['Mindfulness', 'Journaling', 'Movement'],
+  growth:    ['Journaling', 'Movement', 'Mindfulness'],
+};
+
+function getForYouTechniques() {
+  const goal = localStorage.getItem('gj_goal') || 'gratitude';
+  const h = new Date().getHours();
+  const preferredCats = GOAL_TO_LEARN_CATS[goal] || GOAL_TO_LEARN_CATS.gratitude;
+
+  // Pull techniques from preferred categories that aren't completed
+  const undone = LEARN_CONTENT.filter(c => !learnDone.includes(c.id));
+  const candidates = [];
+
+  // First priority: undone in preferred cats
+  preferredCats.forEach(cat => {
+    candidates.push(...undone.filter(c => c.cat === cat));
+  });
+
+  // Time-of-day ranking — boost relevant techniques
+  // Morning: energy/movement/breathing first
+  // Evening: sleep/mindfulness first
+  const isEvening = h >= 18 || h < 5;
+  const isMorning = h >= 5 && h < 12;
+  let scored = candidates.map(c => {
+    let score = 0;
+    if (isEvening && (c.cat === 'Sleep' || c.cat === 'Mindfulness')) score += 10;
+    if (isMorning && (c.cat === 'Breathing' || c.cat === 'Movement')) score += 10;
+    // Earlier in preferred cats list = higher base score
+    score += (preferredCats.length - preferredCats.indexOf(c.cat)) * 2;
+    return { card: c, score };
+  });
+
+  // Sort by score and dedupe by category
+  scored.sort((a, b) => b.score - a.score);
+  const seen = new Set();
+  const picks = [];
+  for (const s of scored) {
+    if (!seen.has(s.card.cat)) {
+      picks.push(s.card);
+      seen.add(s.card.cat);
+    }
+    if (picks.length === 3) break;
+  }
+  // Fill remaining slots if user has completed many items
+  if (picks.length < 3) {
+    for (const c of LEARN_CONTENT) {
+      if (!picks.find(p => p.id === c.id)) {
+        picks.push(c);
+        if (picks.length === 3) break;
+      }
+    }
+  }
+  return picks;
+}
+
+function renderForYou() {
+  const wrap = document.getElementById('learn-foryou-wrap');
+  if (!wrap) return;
+  const picks = getForYouTechniques();
+  if (picks.length === 0) { wrap.innerHTML = ''; return; }
+
+  const goal = localStorage.getItem('gj_goal') || 'gratitude';
+  const goalLabels = {
+    stress: 'reducing stress',
+    gratitude: 'building gratitude',
+    clarity: 'finding clarity',
+    growth: 'personal growth',
+  };
+
+  wrap.innerHTML = `
+    <div class="foryou-card">
+      <div class="foryou-eyebrow">✨ For you</div>
+      <div class="foryou-title">Techniques for ${goalLabels[goal]}</div>
+      <div class="foryou-sub">Hand-picked based on your goal and time of day.</div>
+      <div class="foryou-list">
+        ${picks.map(c => {
+          const col = CAT_COLORS[c.cat] || '#2D7A5F', bg = CAT_BG[c.cat] || '#EDF5F1';
+          const isDone = learnDone.includes(c.id);
+          return `<button class="foryou-item" onclick="scrollToTechnique('${c.id}')">
+            <div class="foryou-item-icon" style="background:${bg};color:${col};">${c.icon}</div>
+            <div class="foryou-item-info">
+              <div class="foryou-item-title">${esc(c.title)}${isDone ? ' <span class="foryou-done">✓</span>' : ''}</div>
+              <div class="foryou-item-meta"><span style="color:${col};">${c.cat}</span> · ${c.time}</div>
+            </div>
+            <div class="foryou-item-arrow">→</div>
+          </button>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+function scrollToTechnique(id) {
+  // Make sure card category is visible (or switch to All)
+  const card = LEARN_CONTENT.find(c => c.id === id);
+  if (!card) return;
+  if (activeCat !== 'All' && activeCat !== card.cat) {
+    activeCat = card.cat;
+    renderLearn();
+  }
+  setTimeout(() => {
+    const el = document.getElementById('lc-' + id);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.classList.add('open');
+      // Brief highlight
+      el.classList.add('foryou-highlight');
+      setTimeout(() => el.classList.remove('foryou-highlight'), 2000);
+    }
+  }, 100);
+}
+
 function renderLearn() {
   // Quote of the day — cycles by day of year so it changes daily
   const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
@@ -4147,6 +4262,9 @@ function renderLearn() {
   const tip = DAILY_TIPS[new Date().getDate() % DAILY_TIPS.length];
   const tw = document.getElementById('learn-tip-wrap');
   if (tw) tw.innerHTML = '<div class="learn-tip"><div class="tip-eyebrow">💡 Tip of the day</div><div class="tip-body">"' + esc(tip.text) + '"</div><div class="tip-category"><span class="tip-dot"></span>' + esc(tip.cat) + '</div></div>';
+
+  // For You — personalized recommendations
+  renderForYou();
 
   const total = LEARN_CONTENT.length, done = learnDone.length, pct = Math.round((done / total) * 100);
   const dl = document.getElementById('learn-done-label'); if (dl) dl.textContent = done + ' of ' + total;

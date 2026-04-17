@@ -591,3 +591,23 @@ html, body { overscroll-behavior: none; background: #FAF8F4; color-scheme: light
 .resume-draft-sub{font-size:13px;color:var(--ink-60);margin-bottom:14px;}
 .resume-draft-btn{background:#c19330;color:#fff;border:none;border-radius:var(--radius-pill);padding:11px 22px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-sans);transition:var(--transition);width:100%;}
 .resume-draft-btn:hover{background:#a37c1f;transform:translateY(-1px);}
+
+/* ══════════════════════════════════════════════════
+   FOR YOU SECTION (LEARN)
+══════════════════════════════════════════════════ */
+.foryou-card{background:linear-gradient(135deg,var(--white),#f5fbf7);border:1.5px solid var(--sage-mid);border-radius:var(--radius-xl);padding:1.5rem;margin:1.25rem 0;}
+.foryou-eyebrow{font-size:11px;font-weight:600;color:var(--sage);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;}
+.foryou-title{font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--ink);letter-spacing:-0.2px;margin-bottom:4px;}
+.foryou-sub{font-size:13px;color:var(--ink-60);line-height:1.5;margin-bottom:1.25rem;}
+.foryou-list{display:flex;flex-direction:column;gap:8px;}
+.foryou-item{display:flex;align-items:center;gap:12px;background:var(--cream);border:1px solid var(--ink-15);border-radius:var(--radius-md);padding:12px 14px;cursor:pointer;text-align:left;font-family:var(--font-sans);width:100%;transition:var(--transition);}
+.foryou-item:hover{background:var(--cream-dark);transform:translateY(-1px);box-shadow:var(--shadow-md);}
+.foryou-item-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.foryou-item-info{flex:1;min-width:0;}
+.foryou-item-title{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:3px;}
+.foryou-done{color:var(--sage);font-size:12px;font-weight:600;margin-left:4px;}
+.foryou-item-meta{font-size:11px;color:var(--ink-60);}
+.foryou-item-arrow{color:var(--ink-30);font-size:16px;flex-shrink:0;}
+
+.foryou-highlight{animation:foryouFlash 2s ease;}
+@keyframes foryouFlash{0%,100%{box-shadow:0 0 0 0 rgba(45,122,95,0);}30%,70%{box-shadow:0 0 0 4px rgba(45,122,95,0.25);}}
