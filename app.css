@@ -748,3 +748,14 @@ html, body { overscroll-behavior: none; background: #FAF8F4; color-scheme: light
 .qc-mic-status.recording{color:#c5615a;font-weight:600;}
 .qc-voice-display{margin-top:1rem;width:100%;background:var(--cream);border:1.5px solid var(--ink-15);border-radius:var(--radius-md);padding:14px 16px;font-size:15px;color:var(--ink);line-height:1.6;min-height:80px;}
 .qc-voice-display.blank{color:var(--ink-30);font-style:italic;}
+
+/* ══════════════════════════════════════════════════
+   PULL TO REFRESH
+══════════════════════════════════════════════════ */
+.ptr-indicator{position:fixed;top:0;left:50%;transform:translate(-50%,-60px);background:var(--white);border:1px solid var(--ink-15);border-radius:var(--radius-pill);padding:10px 18px;display:flex;align-items:center;gap:10px;box-shadow:0 4px 12px rgba(0,0,0,0.08);z-index:800;opacity:0;transition:opacity 0.2s ease;pointer-events:none;will-change:transform,opacity;}
+.ptr-spinner{width:18px;height:18px;border:2px solid var(--ink-15);border-top-color:var(--sage);border-radius:50%;transition:transform 0.2s ease;}
+.ptr-indicator.ready .ptr-spinner{border-top-color:var(--sage);transform:rotate(180deg);}
+.ptr-indicator.refreshing .ptr-spinner{animation:ptrSpin 0.8s linear infinite;}
+@keyframes ptrSpin{to{transform:rotate(360deg);}}
+.ptr-label{font-size:12px;color:var(--ink-60);font-weight:500;}
+.ptr-indicator.ready .ptr-label{color:var(--sage);font-weight:600;}

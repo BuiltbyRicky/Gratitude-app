@@ -1646,7 +1646,7 @@ function goPage(id) {
 
   // Render content before showing (avoid flash)
   if (id === 'home') renderHome();
-  if (id === 'history') { histSearchQuery = ''; histFilter = 'all'; histTagFilter = null; renderTagFilterRow(); renderHistory(); }
+  if (id === 'history') { histSearchQuery = ''; histFilter = 'all'; histTagFilter = null; renderTagFilterRow(); renderHistory(); initPullToRefresh(); }
   if (id === 'learn') renderLearn();
   if (id === 'settings') renderSettings();
 
@@ -2297,7 +2297,124 @@ function clearHistSearch() {
   renderHistory();
 }
 
-// ── HISTORY CALENDAR VIEW ─────────────────────────
+// ── PULL TO REFRESH ───────────────────────────────
+let ptrEnabled = false;
+let ptrStartY = 0;
+let ptrCurrentY = 0;
+let ptrPulling = false;
+let ptrRefreshing = false;
+const PTR_TRIGGER = 70; // px of pull required to trigger refresh
+const PTR_MAX = 120;    // max visible pull distance
+
+function initPullToRefresh() {
+  if (ptrEnabled) return; // listeners persist across page nav
+  ptrEnabled = true;
+
+  // Inject indicator if missing
+  if (!document.getElementById('ptr-indicator')) {
+    const ind = document.createElement('div');
+    ind.id = 'ptr-indicator';
+    ind.className = 'ptr-indicator';
+    ind.innerHTML = `
+      <div class="ptr-spinner"></div>
+      <div class="ptr-label" id="ptr-label">Pull to refresh</div>
+    `;
+    document.body.appendChild(ind);
+  }
+
+  // Use document-level listeners so they work regardless of which page is active
+  document.addEventListener('touchstart', ptrOnTouchStart, { passive: true });
+  document.addEventListener('touchmove', ptrOnTouchMove, { passive: false });
+  document.addEventListener('touchend', ptrOnTouchEnd, { passive: true });
+}
+
+function ptrIsActiveOnHistory() {
+  const histPage = document.getElementById('page-history');
+  return histPage && histPage.classList.contains('active');
+}
+
+function ptrOnTouchStart(e) {
+  if (!ptrIsActiveOnHistory() || ptrRefreshing) return;
+  // Only trigger when scrolled to top
+  if (window.scrollY > 0) return;
+  ptrStartY = e.touches[0].clientY;
+  ptrPulling = true;
+}
+
+function ptrOnTouchMove(e) {
+  if (!ptrPulling || ptrRefreshing) return;
+  if (window.scrollY > 0) { ptrPulling = false; return; }
+
+  ptrCurrentY = e.touches[0].clientY;
+  const delta = ptrCurrentY - ptrStartY;
+
+  if (delta <= 0) return; // user is scrolling up, not down
+
+  // Prevent native overscroll bounce while we're animating
+  if (e.cancelable) e.preventDefault();
+
+  const pullDistance = Math.min(delta * 0.5, PTR_MAX); // dampen the pull
+  const ind = document.getElementById('ptr-indicator');
+  const label = document.getElementById('ptr-label');
+  if (ind) {
+    ind.style.transform = `translateY(${pullDistance}px)`;
+    ind.style.opacity = Math.min(pullDistance / 50, 1);
+    ind.classList.toggle('ready', pullDistance >= PTR_TRIGGER);
+  }
+  if (label) label.textContent = pullDistance >= PTR_TRIGGER ? 'Release to refresh' : 'Pull to refresh';
+}
+
+async function ptrOnTouchEnd() {
+  if (!ptrPulling || ptrRefreshing) { ptrPulling = false; return; }
+  ptrPulling = false;
+
+  const delta = ptrCurrentY - ptrStartY;
+  const pullDistance = Math.min(delta * 0.5, PTR_MAX);
+  const ind = document.getElementById('ptr-indicator');
+  const label = document.getElementById('ptr-label');
+
+  if (pullDistance >= PTR_TRIGGER) {
+    // Trigger refresh
+    ptrRefreshing = true;
+    if (ind) {
+      ind.style.transform = `translateY(60px)`;
+      ind.classList.add('refreshing');
+    }
+    if (label) label.textContent = 'Refreshing…';
+
+    try {
+      await loadEntries();
+      // Brief delay so the spinner is visible (feels intentional, not glitchy)
+      await new Promise(r => setTimeout(r, 400));
+      renderHistory();
+      renderTagFilterRow();
+      if (label) label.textContent = '✓ Updated';
+    } catch(e) {
+      if (label) label.textContent = 'Could not refresh';
+    }
+
+    setTimeout(() => {
+      if (ind) {
+        ind.style.transform = 'translateY(-60px)';
+        ind.style.opacity = '0';
+        ind.classList.remove('refreshing', 'ready');
+      }
+      ptrRefreshing = false;
+    }, 600);
+  } else {
+    // Snap back
+    if (ind) {
+      ind.style.transform = 'translateY(-60px)';
+      ind.style.opacity = '0';
+      ind.classList.remove('ready');
+    }
+  }
+
+  ptrStartY = 0;
+  ptrCurrentY = 0;
+}
+
+
 let histView = 'list'; // 'list' or 'calendar'
 let calMonth = new Date(); // currently displayed month
 
