@@ -3183,6 +3183,185 @@ function renderSettings() {
   const ds = document.getElementById('data-summary'); if (ds) { const n = getEntries().length; ds.textContent = `${n} journal entr${n === 1 ? 'y' : 'ies'} synced to cloud.`; }
   const nt = document.getElementById('settings-notif-time'); if (nt) nt.value = localStorage.getItem('gj_notif_time') || '20:00';
   const ns = document.getElementById('notif-status'); if (ns) ns.textContent = localStorage.getItem('gj_notif_enabled') ? '✓ Reminders enabled' : '';
+
+  // Goal display
+  const goalEl = document.getElementById('settings-goal-display');
+  if (goalEl) {
+    const goal = localStorage.getItem('gj_goal');
+    const goalLabels = {
+      stress: { icon: '😮‍💨', label: 'Reduce stress & anxiety' },
+      gratitude: { icon: '🙏', label: 'Build a gratitude practice' },
+      clarity: { icon: '🔮', label: 'Gain clarity & focus' },
+      growth: { icon: '🌱', label: 'Personal growth & reflection' },
+    };
+    const g = goal && goalLabels[goal];
+    goalEl.innerHTML = g
+      ? `<span class="settings-goal-icon">${g.icon}</span><span class="settings-goal-label">${g.label}</span>`
+      : '<span style="color:var(--ink-60);font-size:13px;">No goal set</span>';
+  }
+
+  // Saved affirmations count
+  const affCount = document.getElementById('saved-aff-count');
+  if (affCount) {
+    const favs = getFavAffirmations();
+    affCount.textContent = favs.length ? `(${favs.length})` : '';
+  }
+}
+
+// Goal changer modal
+function openGoalChanger() {
+  const current = localStorage.getItem('gj_goal');
+  const goals = [
+    { id: 'stress', icon: '😮‍💨', label: 'Reduce stress & anxiety' },
+    { id: 'gratitude', icon: '🙏', label: 'Build a gratitude practice' },
+    { id: 'clarity', icon: '🔮', label: 'Gain clarity & focus' },
+    { id: 'growth', icon: '🌱', label: 'Personal growth & reflection' },
+  ];
+  const overlay = document.createElement('div');
+  overlay.id = 'goal-changer-overlay';
+  overlay.className = 'modal-overlay open';
+  overlay.innerHTML = `
+    <div class="modal-card" style="max-width:380px;">
+      <div class="modal-title">Change your goal</div>
+      <div class="modal-sub">Your goal personalizes the entire app — questions, affirmations, learn content, and daily messages.</div>
+      <div class="goal-changer-list">
+        ${goals.map(g => `
+          <button class="goal-change-btn ${current === g.id ? 'active' : ''}" onclick="applyNewGoal('${g.id}')">
+            <span class="goal-change-icon">${g.icon}</span>
+            <span class="goal-change-label">${g.label}</span>
+            ${current === g.id ? '<span class="goal-change-current">Current</span>' : ''}
+          </button>
+        `).join('')}
+      </div>
+      <button class="btn" style="width:100%;margin-top:1rem;" onclick="closeGoalChanger()">Cancel</button>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+function closeGoalChanger() {
+  const o = document.getElementById('goal-changer-overlay');
+  if (o) o.remove();
+}
+
+function applyNewGoal(goal) {
+  localStorage.setItem('gj_goal', goal);
+  closeGoalChanger();
+  renderSettings();
+  alert('✓ Goal updated. Your next session will use new questions tailored to this goal.');
+}
+
+// Saved affirmations viewer
+function openSavedAffirmations() {
+  const favs = getFavAffirmations();
+  const overlay = document.createElement('div');
+  overlay.id = 'saved-aff-overlay';
+  overlay.className = 'modal-overlay open';
+  const itemsHtml = favs.length
+    ? favs.map(f => {
+        const text = typeof f === 'string' ? f : f.text;
+        return `
+          <div class="saved-aff-item">
+            <div class="saved-aff-text">"${esc(text)}"</div>
+            <button class="saved-aff-remove" onclick="removeSavedAff(${JSON.stringify(text).replace(/"/g, '&quot;')})">Remove</button>
+          </div>`;
+      }).join('')
+    : '<div style="text-align:center;padding:2rem 1rem;color:var(--ink-60);font-size:14px;line-height:1.6;">No saved affirmations yet.<br>Tap ♡ Save on a daily affirmation to keep it here.</div>';
+  overlay.innerHTML = `
+    <div class="modal-card" style="max-width:440px;max-height:80vh;overflow-y:auto;">
+      <div class="modal-title">Saved affirmations</div>
+      <div class="modal-sub">Affirmations you've saved from your daily practice.</div>
+      <div class="saved-aff-list">${itemsHtml}</div>
+      <button class="btn" style="width:100%;margin-top:1rem;" onclick="closeSavedAffirmations()">Close</button>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+function closeSavedAffirmations() {
+  const o = document.getElementById('saved-aff-overlay');
+  if (o) o.remove();
+}
+
+function removeSavedAff(text) {
+  if (!currentUser) return;
+  const key = 'gj_fav_affirmations_' + currentUser.id;
+  const favs = JSON.parse(localStorage.getItem(key) || '[]');
+  const cleaned = favs.map(f => typeof f === 'string' ? f : f.text).filter(t => t !== text);
+  localStorage.setItem(key, JSON.stringify(cleaned));
+  closeSavedAffirmations();
+  openSavedAffirmations();
+  renderSettings();
+}
+
+// Export entries
+function exportEntries() {
+  const es = getEntries();
+  if (es.length === 0) {
+    alert('No entries to export yet.');
+    return;
+  }
+
+  // Build a beautifully formatted text export
+  const sortedEntries = [...es].sort((a,b) => new Date(b.date) - new Date(a.date));
+  const lines = [];
+  lines.push('═══════════════════════════════════════');
+  lines.push('  GRATITUDE JOURNAL EXPORT');
+  lines.push('═══════════════════════════════════════');
+  lines.push('');
+  lines.push(`Exported: ${new Date().toLocaleString()}`);
+  lines.push(`Total entries: ${es.length}`);
+  lines.push('');
+  lines.push('═══════════════════════════════════════');
+  lines.push('');
+
+  sortedEntries.forEach(entry => {
+    const date = new Date(entry.date).toLocaleDateString('en-US', {
+      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+    });
+    const time = new Date(entry.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    lines.push(`📅 ${date} · ${time}`);
+    lines.push('───────────────────────────────────────');
+    if (entry.mood_before != null || entry.mood_after != null) {
+      const before = entry.mood_before != null ? MOODS[entry.mood_before].label : '?';
+      const after  = entry.mood_after  != null ? MOODS[entry.mood_after].label : '?';
+      lines.push(`Mood: ${before} → ${after}`);
+      lines.push('');
+    }
+    (entry.questions || []).forEach((q, i) => {
+      const a = (entry.answers || [])[i] || '(skipped)';
+      lines.push(`Q: ${q}`);
+      lines.push(`A: ${a}`);
+      lines.push('');
+    });
+    lines.push('');
+  });
+
+  const text = lines.join('\n');
+  const blob = new Blob([text], { type: 'text/plain' });
+  const url = URL.createObjectURL(blob);
+  const filename = `gratitude-journal-${new Date().toISOString().split('T')[0]}.txt`;
+
+  // For iOS Capacitor, open in new tab
+  if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+    // Try Web Share API first if available
+    if (navigator.share) {
+      const file = new File([blob], filename, { type: 'text/plain' });
+      navigator.share({ files: [file], title: 'Gratitude Journal Export' }).catch(() => {
+        // Fallback to download
+        const a = document.createElement('a');
+        a.href = url; a.download = filename; a.click();
+      });
+    } else {
+      window.open(url, '_blank');
+    }
+  } else {
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 // ══════════════════════════════════════════════════

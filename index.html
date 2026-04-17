@@ -409,6 +409,13 @@
       </div>
 
       <div class="settings-block">
+        <div class="settings-block-title">Your goal</div>
+        <p style="font-size:13px;color:var(--ink-60);line-height:1.65;margin-bottom:1rem;">Your goal personalizes questions, affirmations, and the Learn tab. You can change it any time.</p>
+        <div id="settings-goal-display" class="settings-goal-display"></div>
+        <button class="btn" style="width:100%;margin-top:8px;" onclick="openGoalChanger()">Change my goal</button>
+      </div>
+
+      <div class="settings-block">
         <div class="settings-block-title">Daily reminder</div>
         <p style="font-size:13px;color:var(--ink-60);line-height:1.65;margin-bottom:1rem;">Get a gentle notification each day at your chosen time to journal.</p>
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
@@ -420,6 +427,12 @@
       </div>
 
       <div class="settings-block">
+        <div class="settings-block-title">Saved affirmations</div>
+        <p style="font-size:13px;color:var(--ink-60);line-height:1.65;margin-bottom:1rem;">Affirmations you've saved from your daily practice.</p>
+        <button class="btn" style="width:100%;" onclick="openSavedAffirmations()">View saved affirmations <span id="saved-aff-count" style="color:var(--ink-60);margin-left:4px;"></span></button>
+      </div>
+
+      <div class="settings-block">
         <div class="settings-block-title">Voice narration</div>
         <div class="settings-info">Tap <strong>Voice</strong> in the top bar to enable calming voice narration. Your device's built-in voice reads each question aloud — no account needed.</div>
       </div>
@@ -427,7 +440,8 @@
       <div class="settings-block">
         <div class="settings-block-title">Your data</div>
         <p style="font-size:13px;color:var(--ink-60);line-height:1.65;margin-bottom:0.5rem;">Your entries are encrypted and stored securely in the cloud. Only you can see them.</p>
-        <p style="font-size:13px;color:var(--ink-60);"><strong style="color:var(--ink);" id="data-summary"></strong></p>
+        <p style="font-size:13px;color:var(--ink-60);margin-bottom:1rem;"><strong style="color:var(--ink);" id="data-summary"></strong></p>
+        <button class="btn" style="width:100%;" onclick="exportEntries()">Export all entries</button>
       </div>
 
       <div class="settings-block">
