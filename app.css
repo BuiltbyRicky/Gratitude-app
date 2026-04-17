@@ -629,3 +629,28 @@ html, body { overscroll-behavior: none; background: #FAF8F4; color-scheme: light
 .streak-milestone-share:hover{background:rgba(255,255,255,0.28);}
 .streak-milestone-continue{background:rgba(255,255,255,0.95);color:var(--ink);border:none;border-radius:var(--radius-pill);padding:13px 24px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-sans);transition:var(--transition);}
 .streak-milestone-continue:hover{transform:scale(1.02);}
+
+/* ══════════════════════════════════════════════════
+   QUICK MOOD LOG
+══════════════════════════════════════════════════ */
+.quick-mood-card{background:linear-gradient(135deg,#eef5ff,#dbeafe);border:1.5px solid #7da9d6;border-radius:var(--radius-xl);padding:1.5rem;margin:1rem 0;animation:fadeUp 0.4s ease;}
+.quick-mood-eyebrow{font-size:11px;font-weight:600;color:#1e6a8a;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;}
+.quick-mood-title{font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--ink);letter-spacing:-0.2px;margin-bottom:4px;}
+.quick-mood-sub{font-size:13px;color:var(--ink-60);line-height:1.5;margin-bottom:1rem;}
+.quick-mood-emojis{display:flex;justify-content:space-around;gap:6px;background:rgba(255,255,255,0.6);border-radius:var(--radius-md);padding:10px;}
+.quick-mood-btn{background:none;border:none;font-size:32px;cursor:pointer;padding:6px 8px;border-radius:8px;transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1);line-height:1;}
+.quick-mood-btn:hover{transform:translateY(-3px) scale(1.1);background:rgba(255,255,255,0.7);}
+.quick-mood-btn.current{transform:scale(1.18);background:rgba(255,255,255,0.9);box-shadow:0 2px 8px rgba(30,106,138,0.25);}
+
+.quick-mood-logged{background:linear-gradient(135deg,var(--white),#f3f9ff);border-color:#a4c8e8;}
+.quick-mood-logged-row{display:flex;align-items:center;gap:14px;margin-bottom:1rem;}
+.quick-mood-logged-emoji{font-size:42px;line-height:1;}
+.quick-mood-logged-label{font-family:var(--font-serif);font-size:18px;font-weight:500;color:var(--ink);margin-bottom:2px;}
+.quick-mood-logged-sub{font-size:12px;color:var(--ink-60);}
+
+.quick-mood-toast{position:fixed;bottom:6rem;left:50%;transform:translateX(-50%);background:rgba(28,26,23,0.92);color:#fff;border-radius:var(--radius-pill);padding:14px 22px;display:flex;align-items:center;gap:12px;backdrop-filter:blur(10px);z-index:1000;box-shadow:0 10px 30px rgba(0,0,0,0.3);animation:toastIn 0.4s cubic-bezier(0.34,1.56,0.64,1);max-width:90vw;}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(20px);}to{opacity:1;transform:translateX(-50%) translateY(0);}}
+.quick-mood-toast.fade-out{animation:toastOut 0.4s ease forwards;}
+@keyframes toastOut{to{opacity:0;transform:translateX(-50%) translateY(20px);}}
+.quick-mood-toast-emoji{font-size:24px;line-height:1;}
+.quick-mood-toast-text{font-size:13px;font-weight:500;}

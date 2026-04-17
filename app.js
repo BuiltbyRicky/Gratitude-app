@@ -2192,6 +2192,7 @@ function renderHome() {
   renderChallenge();
   renderAffirmation();
   renderResumeDraft();
+  renderQuickMood();
   const es = getEntries().slice(0, 3), el = document.getElementById('recent-entries');
   if (!es.length) {
     const goal = localStorage.getItem('gj_goal') || 'gratitude';
@@ -3153,7 +3154,100 @@ function restartChallenge() {
 }
 
 
-// ── DRAFT AUTO-SAVE ───────────────────────────────
+// ── QUICK MOOD LOG ────────────────────────────────
+function getMoodLogs() {
+  if (!currentUser) return [];
+  return JSON.parse(localStorage.getItem('gj_mood_logs_' + currentUser.id) || '[]');
+}
+
+function saveMoodLog(moodIdx) {
+  if (!currentUser) return;
+  const logs = getMoodLogs();
+  logs.unshift({ mood: moodIdx, date: Date.now() });
+  // Keep last 90 days only
+  const cutoff = Date.now() - (90 * 24 * 60 * 60 * 1000);
+  const trimmed = logs.filter(l => l.date > cutoff).slice(0, 365);
+  localStorage.setItem('gj_mood_logs_' + currentUser.id, JSON.stringify(trimmed));
+  renderQuickMood();
+}
+
+function quickLogMood(idx) {
+  saveMoodLog(idx);
+  // Show a quick reaction overlay
+  showQuickMoodReaction(idx);
+}
+
+function showQuickMoodReaction(idx) {
+  const reactions = [
+    "Logged. Hard days deserve to be acknowledged. 💙",
+    "Logged. Honest tracking is part of the practice.",
+    "Logged. Okay is a real and valid place to be.",
+    "Logged. Glad you're feeling decent today.",
+    "Logged. Beautiful — capture this energy.",
+  ];
+  const overlay = document.createElement('div');
+  overlay.className = 'quick-mood-toast';
+  overlay.innerHTML = `
+    <div class="quick-mood-toast-emoji">${MOODS[idx].e}</div>
+    <div class="quick-mood-toast-text">${reactions[idx]}</div>
+  `;
+  document.body.appendChild(overlay);
+  setTimeout(() => {
+    overlay.classList.add('fade-out');
+    setTimeout(() => overlay.remove(), 400);
+  }, 2200);
+}
+
+function renderQuickMood() {
+  const wrap = document.getElementById('quick-mood-wrap');
+  if (!wrap) return;
+
+  // Check if user already journaled OR logged mood today
+  const todayStr = new Date().toDateString();
+  const journaledToday = getEntries().some(e => new Date(e.date).toDateString() === todayStr);
+  const logs = getMoodLogs();
+  const loggedToday = logs.find(l => new Date(l.date).toDateString() === todayStr);
+
+  // Hide if user already journaled today (full session has mood)
+  if (journaledToday) { wrap.innerHTML = ''; return; }
+
+  if (loggedToday) {
+    // Show the logged mood with option to update
+    const ageMin = Math.floor((Date.now() - loggedToday.date) / 60000);
+    let ageLabel;
+    if (ageMin < 5) ageLabel = 'just now';
+    else if (ageMin < 60) ageLabel = `${ageMin} min ago`;
+    else if (ageMin < 1440) ageLabel = `${Math.floor(ageMin / 60)}h ago`;
+    else ageLabel = 'earlier';
+
+    wrap.innerHTML = `
+      <div class="quick-mood-card quick-mood-logged">
+        <div class="quick-mood-eyebrow">Today's check-in · ${ageLabel}</div>
+        <div class="quick-mood-logged-row">
+          <span class="quick-mood-logged-emoji">${MOODS[loggedToday.mood].e}</span>
+          <div>
+            <div class="quick-mood-logged-label">${MOODS[loggedToday.mood].label}</div>
+            <div class="quick-mood-logged-sub">Tap to update if it's changed</div>
+          </div>
+        </div>
+        <div class="quick-mood-emojis">
+          ${MOODS.map((m, i) => `<button class="quick-mood-btn ${i === loggedToday.mood ? 'current' : ''}" onclick="quickLogMood(${i})" title="${m.label}">${m.e}</button>`).join('')}
+        </div>
+      </div>`;
+  } else {
+    wrap.innerHTML = `
+      <div class="quick-mood-card">
+        <div class="quick-mood-eyebrow">Quick check-in</div>
+        <div class="quick-mood-title">How are you right now?</div>
+        <div class="quick-mood-sub">Tap an emoji — no full session needed.</div>
+        <div class="quick-mood-emojis">
+          ${MOODS.map((m, i) => `<button class="quick-mood-btn" onclick="quickLogMood(${i})" title="${m.label}">${m.e}</button>`).join('')}
+        </div>
+      </div>`;
+  }
+}
+
+
 const DRAFT_EXPIRY_HOURS = 24; // drafts older than this are discarded
 
 function saveDraft() {
