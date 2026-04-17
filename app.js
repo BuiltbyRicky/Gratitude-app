@@ -2897,14 +2897,15 @@ function getFavAffirmations() {
 function toggleFavAffirmation(text) {
   if (!currentUser) return;
   const key = 'gj_fav_affirmations_' + currentUser.id;
-  const favs = getFavAffirmations();
+  // Normalize old format (mixed strings/objects) to plain string array
+  const favs = getFavAffirmations().map(f => typeof f === 'string' ? f : f.text);
   const idx = favs.indexOf(text);
-  if (idx >= 0) favs.splice(idx, 1);
-  else favs.unshift({ text, date: Date.now() });
-  // Stored as array of strings for simplicity
-  const cleaned = favs.map(f => typeof f === 'string' ? f : f.text);
-  if (idx < 0 && !cleaned.includes(text)) cleaned.unshift(text);
-  localStorage.setItem(key, JSON.stringify(cleaned.slice(0, 50)));
+  if (idx >= 0) {
+    favs.splice(idx, 1); // remove
+  } else {
+    favs.unshift(text); // add to top
+  }
+  localStorage.setItem(key, JSON.stringify(favs.slice(0, 50)));
   renderAffirmation();
 }
 
@@ -2919,6 +2920,9 @@ function renderAffirmation() {
   const dismissed = localStorage.getItem('gj_aff_dismissed_' + new Date().toDateString());
   if (dismissed) { wrap.innerHTML = ''; return; }
 
+  // Stash text on a global so onclick handlers can access it without escaping issues
+  window._currentAffText = text;
+
   wrap.innerHTML = `
     <div class="affirmation-card">
       <div class="affirmation-eyebrow">
@@ -2927,10 +2931,10 @@ function renderAffirmation() {
       </div>
       <div class="affirmation-text">"${esc(text)}"</div>
       <div class="affirmation-actions">
-        <button class="affirmation-fav-btn ${isFav ? 'is-fav' : ''}" onclick="toggleFavAffirmation(${JSON.stringify(text).replace(/"/g, '&quot;')})">
+        <button class="affirmation-fav-btn ${isFav ? 'is-fav' : ''}" onclick="toggleFavAffirmation(window._currentAffText)">
           ${isFav ? '♥ Saved' : '♡ Save'}
         </button>
-        <button class="affirmation-share-btn" onclick="shareAffirmation(${JSON.stringify(text).replace(/"/g, '&quot;')})">↗ Share</button>
+        <button class="affirmation-share-btn" onclick="shareAffirmation(window._currentAffText)">↗ Share</button>
       </div>
     </div>`;
 }
@@ -3167,7 +3171,9 @@ function saveMoodLog(moodIdx) {
   // Keep last 90 days only
   const cutoff = Date.now() - (90 * 24 * 60 * 60 * 1000);
   const trimmed = logs.filter(l => l.date > cutoff).slice(0, 365);
-  localStorage.setItem('gj_mood_logs_' + currentUser.id, JSON.stringify(trimmed));
+  try {
+    localStorage.setItem('gj_mood_logs_' + currentUser.id, JSON.stringify(trimmed));
+  } catch(e) { /* storage full — silently skip */ }
   renderQuickMood();
 }
 
@@ -3936,12 +3942,12 @@ function openSavedAffirmations() {
   overlay.id = 'saved-aff-overlay';
   overlay.className = 'modal-overlay open';
   const itemsHtml = favs.length
-    ? favs.map(f => {
+    ? favs.map((f, i) => {
         const text = typeof f === 'string' ? f : f.text;
         return `
           <div class="saved-aff-item">
             <div class="saved-aff-text">"${esc(text)}"</div>
-            <button class="saved-aff-remove" onclick="removeSavedAff(${JSON.stringify(text).replace(/"/g, '&quot;')})">Remove</button>
+            <button class="saved-aff-remove" onclick="removeSavedAffByIndex(${i})">Remove</button>
           </div>`;
       }).join('')
     : '<div style="text-align:center;padding:2rem 1rem;color:var(--ink-60);font-size:14px;line-height:1.6;">No saved affirmations yet.<br>Tap ♡ Save on a daily affirmation to keep it here.</div>';
@@ -3955,20 +3961,21 @@ function openSavedAffirmations() {
   document.body.appendChild(overlay);
 }
 
-function closeSavedAffirmations() {
-  const o = document.getElementById('saved-aff-overlay');
-  if (o) o.remove();
-}
-
-function removeSavedAff(text) {
+function removeSavedAffByIndex(idx) {
   if (!currentUser) return;
   const key = 'gj_fav_affirmations_' + currentUser.id;
   const favs = JSON.parse(localStorage.getItem(key) || '[]');
-  const cleaned = favs.map(f => typeof f === 'string' ? f : f.text).filter(t => t !== text);
+  const cleaned = favs.map(f => typeof f === 'string' ? f : f.text);
+  cleaned.splice(idx, 1);
   localStorage.setItem(key, JSON.stringify(cleaned));
   closeSavedAffirmations();
   openSavedAffirmations();
   renderSettings();
+}
+
+function closeSavedAffirmations() {
+  const o = document.getElementById('saved-aff-overlay');
+  if (o) o.remove();
 }
 
 // Export entries
