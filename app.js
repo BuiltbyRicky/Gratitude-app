@@ -1912,6 +1912,156 @@ function clearHistSearch() {
   renderHistory();
 }
 
+// ── HISTORY CALENDAR VIEW ─────────────────────────
+let histView = 'list'; // 'list' or 'calendar'
+let calMonth = new Date(); // currently displayed month
+
+function setHistView(view) {
+  histView = view;
+  document.getElementById('vt-list')?.classList.toggle('active', view === 'list');
+  document.getElementById('vt-calendar')?.classList.toggle('active', view === 'calendar');
+  document.getElementById('hist-list').style.display = view === 'list' ? 'block' : 'none';
+  document.getElementById('hist-calendar').style.display = view === 'calendar' ? 'block' : 'none';
+  if (view === 'calendar') {
+    calMonth = new Date(); // reset to current month
+    renderCalendar();
+  } else {
+    renderHistory();
+  }
+}
+
+function calNavMonth(dir) {
+  calMonth.setMonth(calMonth.getMonth() + dir);
+  renderCalendar();
+}
+
+function renderCalendar() {
+  const wrap = document.getElementById('hist-calendar');
+  if (!wrap) return;
+
+  const year = calMonth.getFullYear();
+  const month = calMonth.getMonth();
+  const today = new Date();
+  today.setHours(0,0,0,0);
+
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const daysInMonth = lastDay.getDate();
+  const startWeekday = firstDay.getDay(); // 0 = Sunday
+
+  // Group entries by date string for fast lookup
+  const es = getEntries();
+  const entriesByDate = {};
+  es.forEach(e => {
+    const d = new Date(e.date);
+    const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+    if (!entriesByDate[key]) entriesByDate[key] = [];
+    entriesByDate[key].push(e);
+  });
+
+  const monthName = firstDay.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+  // Stats for this month
+  const monthEntries = es.filter(e => {
+    const d = new Date(e.date);
+    return d.getFullYear() === year && d.getMonth() === month;
+  });
+  const journaledDays = new Set(monthEntries.map(e => new Date(e.date).getDate())).size;
+  const monthCompletionPct = Math.round((journaledDays / daysInMonth) * 100);
+
+  // Build calendar grid
+  let cellsHtml = '';
+  const dayLabels = ['S','M','T','W','T','F','S'];
+  const weekdayHeader = dayLabels.map(d => `<div class="cal-weekday">${d}</div>`).join('');
+
+  // Empty cells before first day
+  for (let i = 0; i < startWeekday; i++) {
+    cellsHtml += '<div class="cal-cell cal-cell-empty"></div>';
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const cellDate = new Date(year, month, day);
+    cellDate.setHours(0,0,0,0);
+    const key = `${year}-${month}-${day}`;
+    const dayEntries = entriesByDate[key] || [];
+    const isToday = cellDate.getTime() === today.getTime();
+    const isFuture = cellDate > today;
+    const hasEntry = dayEntries.length > 0;
+
+    // Get tag colors for entries on this day
+    const tagColors = dayEntries.map(e => getEntryTag(e.id)).filter(Boolean);
+    const uniqueTagColors = [...new Set(tagColors)];
+
+    let dotsHtml = '';
+    if (uniqueTagColors.length > 0) {
+      dotsHtml = '<div class="cal-tag-dots">' + uniqueTagColors.slice(0,3).map(t =>
+        `<span class="cal-tag-dot" style="background:${ENTRY_TAGS[t].color};"></span>`
+      ).join('') + '</div>';
+    }
+
+    const cellClass = [
+      'cal-cell',
+      hasEntry ? 'has-entry' : '',
+      isToday ? 'is-today' : '',
+      isFuture ? 'is-future' : '',
+    ].filter(Boolean).join(' ');
+
+    const onclick = hasEntry ? `onclick="jumpToCalDate(${year},${month},${day})"` : '';
+
+    cellsHtml += `
+      <div class="${cellClass}" ${onclick}>
+        <div class="cal-day-num">${day}</div>
+        ${hasEntry ? `<div class="cal-entry-count">${dayEntries.length > 1 ? dayEntries.length : '✓'}</div>` : ''}
+        ${dotsHtml}
+      </div>`;
+  }
+
+  wrap.innerHTML = `
+    <div class="cal-stats-card">
+      <div class="cal-stats-item">
+        <div class="cal-stats-val">${journaledDays}</div>
+        <div class="cal-stats-key">Days journaled</div>
+      </div>
+      <div class="cal-stats-item">
+        <div class="cal-stats-val">${monthCompletionPct}%</div>
+        <div class="cal-stats-key">Of the month</div>
+      </div>
+      <div class="cal-stats-item">
+        <div class="cal-stats-val">${monthEntries.length}</div>
+        <div class="cal-stats-key">Total entries</div>
+      </div>
+    </div>
+    <div class="cal-nav">
+      <button class="cal-nav-btn" onclick="calNavMonth(-1)">‹</button>
+      <div class="cal-nav-title">${monthName}</div>
+      <button class="cal-nav-btn" onclick="calNavMonth(1)">›</button>
+    </div>
+    <div class="cal-grid-wrap">
+      <div class="cal-weekdays">${weekdayHeader}</div>
+      <div class="cal-grid">${cellsHtml}</div>
+    </div>
+  `;
+}
+
+function jumpToCalDate(year, month, day) {
+  // Switch to list view and scroll to entries on that date
+  setHistView('list');
+  setTimeout(() => {
+    const target = new Date(year, month, day).toDateString();
+    const allEntries = getEntries();
+    const matching = allEntries.find(e => new Date(e.date).toDateString() === target);
+    if (matching) {
+      // Search by date to filter to that day's entries
+      const dateLabel = new Date(year, month, day).toLocaleDateString('en-US', { month: 'long', day: 'numeric' });
+      const searchInput = document.getElementById('hist-search');
+      if (searchInput) {
+        searchInput.value = dateLabel;
+        onHistSearch(dateLabel);
+      }
+    }
+  }, 100);
+}
+
 function setHistFilter(f) {
   histFilter = f;
   // Update chip styles
@@ -2235,6 +2385,8 @@ function applyTag(entryId, color) {
 }
 
 function renderHistory() {
+  // If calendar view active, render that instead
+  if (histView === 'calendar') { renderCalendar(); return; }
   const allEntries = getEntries();
   const el = document.getElementById('hist-list');
   const ce = document.getElementById('hist-count');

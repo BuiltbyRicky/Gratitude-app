@@ -342,7 +342,19 @@
         <button class="filter-chip" onclick="setHistFilter('mood-down')" id="hf-mood-down">😔 Mood dipped</button>
       </div>
 
+      <div class="view-toggle-row">
+        <button class="view-toggle-btn active" id="vt-list" onclick="setHistView('list')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg>
+          List
+        </button>
+        <button class="view-toggle-btn" id="vt-calendar" onclick="setHistView('calendar')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Calendar
+        </button>
+      </div>
+
       <div id="hist-results-label"></div>
+      <div id="hist-calendar" style="display:none;"></div>
       <div id="hist-list">
         <div class="loading-state">
           <div class="skeleton-line" style="width:40%;margin-bottom:16px;height:14px;"></div>
