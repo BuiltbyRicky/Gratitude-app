@@ -1862,6 +1862,7 @@ function renderHome() {
   renderStreakRevive();
   renderMemories();
   renderChallenge();
+  renderAffirmation();
   const es = getEntries().slice(0, 3), el = document.getElementById('recent-entries');
   if (!es.length) {
     el.innerHTML = `<div class="empty-state">
@@ -2113,7 +2114,164 @@ function highlightMatch(text, query) {
   return safeText.replace(new RegExp(`(${escaped})`, 'gi'), '<mark style="background:rgba(45,122,95,0.15);border-radius:3px;padding:0 2px;color:var(--sage-dark);">$1</mark>');
 }
 
-// ── 7-DAY GRATITUDE CHALLENGE ─────────────────────
+// ── DAILY AFFIRMATIONS ────────────────────────────
+const AFFIRMATIONS = {
+  stress: [
+    "I am safe in this moment. The present is enough.",
+    "I release what I cannot control and trust what I can.",
+    "My nervous system knows how to find calm. I let it.",
+    "I have survived every difficult day before this one.",
+    "Slowing down is productive. Rest is part of the work.",
+    "I am allowed to set boundaries that protect my peace.",
+    "I do not have to earn rest. I am worthy of it.",
+    "The pace of my breath sets the pace of my mind.",
+    "I am not my thoughts. I am the awareness behind them.",
+    "Today, I choose what I can carry and what I set down.",
+    "I trust that I am capable of handling what arrives.",
+    "My worth is not measured by my productivity.",
+    "Worry is not preparation. I focus on what's real.",
+    "I deserve the same compassion I give to others.",
+    "This feeling is temporary. I have weathered worse.",
+    "I do not need to be fine to be okay.",
+    "It is safe for me to let my shoulders drop.",
+    "I am exactly where I need to be in this moment.",
+    "I release the need to control every outcome.",
+    "Calm is my natural state. I'm just returning to it.",
+  ],
+  gratitude: [
+    "There is more to be thankful for than I will ever notice.",
+    "I am surrounded by ordinary miracles I take for granted.",
+    "The good in my life is not luck. It is real and it is mine.",
+    "I notice beauty in small, easy-to-miss places today.",
+    "Gratitude is not denial of difficulty — it is balance.",
+    "I am rich in things money cannot buy.",
+    "Today, I see what is going right.",
+    "My life has been shaped by the kindness of others.",
+    "I am grateful for the body that carries me through this day.",
+    "The people I love are still here. That is everything.",
+    "Every breath I take is a privilege.",
+    "I have everything I need in this moment.",
+    "Joy is found in attention, not acquisition.",
+    "What I appreciate appreciates.",
+    "I am blessed in ways I have not yet realized.",
+    "Today contains gifts I will only see if I look.",
+    "My gratitude practice is rewiring my brain.",
+    "I am thankful for the lessons inside my struggles.",
+    "There is grace in the ordinary moments.",
+    "I notice. I appreciate. I receive.",
+  ],
+  clarity: [
+    "I trust the wisdom within me to guide my next step.",
+    "I do not need all the answers — just the next one.",
+    "What I focus on grows. I focus deliberately.",
+    "I am allowed to change my mind as I grow.",
+    "My intuition is a trustworthy compass.",
+    "I create space for clarity by slowing down.",
+    "I release what no longer serves who I am becoming.",
+    "I am clear about what matters most to me.",
+    "I make decisions from values, not from fear.",
+    "Stillness reveals what noise hides.",
+    "I do not need approval to know what I want.",
+    "The right path becomes obvious when I stop asking everyone else.",
+    "Confusion is the first step toward clarity.",
+    "I trust my own knowing.",
+    "I am becoming more myself, not less.",
+    "What I want is allowed to matter.",
+    "I align my actions with my values today.",
+    "The next right step is enough.",
+    "I see clearly when I look honestly.",
+    "Quiet is where my truth lives.",
+  ],
+  growth: [
+    "I am becoming the person I am meant to be, one day at a time.",
+    "My past does not define my future.",
+    "Discomfort is the price of growth. I pay it willingly.",
+    "I learn from everything, including my mistakes.",
+    "I am proud of how far I have come.",
+    "Today, I do something my future self will thank me for.",
+    "I am exactly where I need to be on my path.",
+    "I am not behind. I am on my own timeline.",
+    "Every challenge is shaping me.",
+    "I trust the process even when I cannot see it.",
+    "I am evolving. I am allowed to outgrow what no longer fits.",
+    "My growth is worth the temporary discomfort.",
+    "I am capable of more than I currently believe.",
+    "I show up for myself today, even imperfectly.",
+    "I am allowed to be a beginner.",
+    "Progress is not linear, and that is okay.",
+    "I am building the person I want to be.",
+    "I choose growth over comfort today.",
+    "Each day, I am becoming.",
+    "I am proud of who I am becoming.",
+  ],
+};
+
+function getDailyAffirmation() {
+  const goal = localStorage.getItem('gj_goal') || 'gratitude';
+  const pool = AFFIRMATIONS[goal] || AFFIRMATIONS.gratitude;
+  // Same affirmation all day, rotates daily
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+  return { text: pool[dayOfYear % pool.length], goal };
+}
+
+function getFavAffirmations() {
+  if (!currentUser) return [];
+  return JSON.parse(localStorage.getItem('gj_fav_affirmations_' + currentUser.id) || '[]');
+}
+
+function toggleFavAffirmation(text) {
+  if (!currentUser) return;
+  const key = 'gj_fav_affirmations_' + currentUser.id;
+  const favs = getFavAffirmations();
+  const idx = favs.indexOf(text);
+  if (idx >= 0) favs.splice(idx, 1);
+  else favs.unshift({ text, date: Date.now() });
+  // Stored as array of strings for simplicity
+  const cleaned = favs.map(f => typeof f === 'string' ? f : f.text);
+  if (idx < 0 && !cleaned.includes(text)) cleaned.unshift(text);
+  localStorage.setItem(key, JSON.stringify(cleaned.slice(0, 50)));
+  renderAffirmation();
+}
+
+function renderAffirmation() {
+  const wrap = document.getElementById('affirmation-wrap');
+  if (!wrap) return;
+  const { text, goal } = getDailyAffirmation();
+  const favs = getFavAffirmations();
+  const isFav = favs.some(f => (typeof f === 'string' ? f : f.text) === text);
+
+  // Don't show if user dismissed today
+  const dismissed = localStorage.getItem('gj_aff_dismissed_' + new Date().toDateString());
+  if (dismissed) { wrap.innerHTML = ''; return; }
+
+  wrap.innerHTML = `
+    <div class="affirmation-card">
+      <div class="affirmation-eyebrow">
+        <span>✨ Today's affirmation</span>
+        <button class="affirmation-dismiss" onclick="dismissAffirmation()" title="Dismiss for today">✕</button>
+      </div>
+      <div class="affirmation-text">"${esc(text)}"</div>
+      <div class="affirmation-actions">
+        <button class="affirmation-fav-btn ${isFav ? 'is-fav' : ''}" onclick="toggleFavAffirmation(${JSON.stringify(text).replace(/"/g, '&quot;')})">
+          ${isFav ? '♥ Saved' : '♡ Save'}
+        </button>
+        <button class="affirmation-share-btn" onclick="shareAffirmation(${JSON.stringify(text).replace(/"/g, '&quot;')})">↗ Share</button>
+      </div>
+    </div>`;
+}
+
+function dismissAffirmation() {
+  localStorage.setItem('gj_aff_dismissed_' + new Date().toDateString(), '1');
+  renderAffirmation();
+}
+
+function shareAffirmation(text) {
+  // Reuse existing quote card system
+  const dateStr = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  openQuoteCard(text, dateStr);
+}
+
+
 const CHALLENGE_DAYS = [
   { day: 1, theme: 'People', icon: '💝', title: 'Day 1 — Someone Who Shaped You',
     desc: 'Today we focus on the people who have made you who you are.',

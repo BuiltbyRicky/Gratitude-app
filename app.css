@@ -338,3 +338,17 @@ html, body { overscroll-behavior: none; background: #FAF8F4; color-scheme: light
 .cal-entry-count{font-size:9px;color:var(--sage);font-weight:600;margin-top:auto;}
 .cal-tag-dots{display:flex;gap:2px;margin-top:2px;}
 .cal-tag-dot{width:5px;height:5px;border-radius:50%;}
+
+/* ══════════════════════════════════════════════════
+   DAILY AFFIRMATIONS
+══════════════════════════════════════════════════ */
+.affirmation-card{background:linear-gradient(135deg,#f3eef7,#ede5f3);border:1px solid #c4a8db;border-radius:var(--radius-xl);padding:1.5rem;margin:1rem 0;position:relative;overflow:hidden;}
+.affirmation-card::before{content:'';position:absolute;top:-40px;left:-40px;width:140px;height:140px;background:radial-gradient(circle,rgba(91,74,138,0.08),transparent 70%);border-radius:50%;pointer-events:none;}
+.affirmation-eyebrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-size:11px;font-weight:600;color:#5B4A8A;text-transform:uppercase;letter-spacing:1px;}
+.affirmation-dismiss{background:none;border:none;color:#5B4A8A;opacity:0.5;cursor:pointer;font-size:14px;padding:4px 8px;border-radius:50%;transition:var(--transition);}
+.affirmation-dismiss:hover{opacity:1;background:rgba(91,74,138,0.1);}
+.affirmation-text{font-family:var(--font-serif);font-size:18px;font-style:italic;color:var(--ink);line-height:1.6;margin-bottom:1rem;letter-spacing:-0.2px;}
+.affirmation-actions{display:flex;gap:8px;}
+.affirmation-fav-btn,.affirmation-share-btn{background:rgba(255,255,255,0.6);border:1px solid rgba(91,74,138,0.2);color:#5B4A8A;font-size:12px;font-weight:500;padding:6px 14px;border-radius:var(--radius-pill);cursor:pointer;font-family:var(--font-sans);transition:var(--transition);}
+.affirmation-fav-btn:hover,.affirmation-share-btn:hover{background:rgba(255,255,255,0.9);}
+.affirmation-fav-btn.is-fav{background:#5B4A8A;color:#fff;border-color:#5B4A8A;}
