@@ -2114,7 +2114,240 @@ function highlightMatch(text, query) {
   return safeText.replace(new RegExp(`(${escaped})`, 'gi'), '<mark style="background:rgba(45,122,95,0.15);border-radius:3px;padding:0 2px;color:var(--sage-dark);">$1</mark>');
 }
 
-// ── GRATITUDE JAR ─────────────────────────────────
+// ── PERSONAL INSIGHTS ─────────────────────────────
+function calculateInsights() {
+  const es = getEntries();
+  if (es.length === 0) return null;
+
+  // Total stats
+  let totalWords = 0;
+  es.forEach(e => {
+    (e.answers || []).forEach(a => {
+      if (a) totalWords += a.trim().split(/\s+/).filter(Boolean).length;
+    });
+  });
+  const totalMinutes = Math.max(es.length * 3, Math.round(totalWords / 80));
+
+  // Best ever streak
+  const sorted = [...es].sort((a,b) => new Date(a.date) - new Date(b.date));
+  let bestStreak = 0, currentRun = 1, prev = null;
+  for (const e of sorted) {
+    const day = new Date(e.date); day.setHours(0,0,0,0);
+    if (prev) {
+      const diff = (day - prev) / (24*60*60*1000);
+      if (diff === 0) continue; // same day
+      if (diff === 1) currentRun++;
+      else { bestStreak = Math.max(bestStreak, currentRun); currentRun = 1; }
+    }
+    prev = day;
+  }
+  bestStreak = Math.max(bestStreak, currentRun);
+
+  // Mood trends — average lift over time
+  const withBoth = es.filter(e => e.mood_before != null && e.mood_after != null);
+  const avgLift = withBoth.length
+    ? +(withBoth.reduce((s,e) => s + (e.mood_after - e.mood_before), 0) / withBoth.length).toFixed(1)
+    : null;
+  const avgMoodAfter = es.filter(e => e.mood_after != null).length
+    ? +(es.filter(e => e.mood_after != null).reduce((s,e) => s + e.mood_after, 0) / es.filter(e => e.mood_after != null).length).toFixed(1)
+    : null;
+
+  // Most active day of week
+  const dayOfWeekCounts = [0,0,0,0,0,0,0];
+  const hourCounts = new Array(24).fill(0);
+  es.forEach(e => {
+    const d = new Date(e.date);
+    dayOfWeekCounts[d.getDay()]++;
+    hourCounts[d.getHours()]++;
+  });
+  const dayLabels = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const bestDayIdx = dayOfWeekCounts.indexOf(Math.max(...dayOfWeekCounts));
+  const bestDay = dayLabels[bestDayIdx];
+
+  // Most active time of day
+  const bestHour = hourCounts.indexOf(Math.max(...hourCounts));
+  let timeOfDay;
+  if (bestHour < 5) timeOfDay = 'Late night';
+  else if (bestHour < 12) timeOfDay = 'Morning';
+  else if (bestHour < 17) timeOfDay = 'Afternoon';
+  else if (bestHour < 21) timeOfDay = 'Evening';
+  else timeOfDay = 'Night';
+
+  // First entry date
+  const firstEntry = sorted[0];
+  const daysSinceFirst = firstEntry
+    ? Math.floor((Date.now() - new Date(firstEntry.date)) / (24*60*60*1000))
+    : 0;
+
+  // Tag breakdown (using existing color tags)
+  const tagCounts = {};
+  es.forEach(e => {
+    const tag = getEntryTag(e.id);
+    if (tag) tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+  });
+  const tagBreakdown = Object.entries(tagCounts).sort((a,b) => b[1] - a[1]);
+
+  return {
+    totalEntries: es.length,
+    totalWords,
+    totalMinutes,
+    bestStreak,
+    currentStreak: streak(),
+    avgLift,
+    avgMoodAfter,
+    bestDay,
+    timeOfDay,
+    bestHour,
+    daysSinceFirst,
+    firstEntry,
+    tagBreakdown,
+    dayOfWeekCounts,
+  };
+}
+
+function openInsights() {
+  const insights = calculateInsights();
+  if (!insights) {
+    alert('Complete your first entry to see your insights.');
+    return;
+  }
+
+  const overlay = document.createElement('div');
+  overlay.id = 'insights-overlay';
+  overlay.className = 'insights-overlay';
+
+  // Day of week mini bar chart
+  const maxDayCount = Math.max(...insights.dayOfWeekCounts, 1);
+  const dayLabelsShort = ['S','M','T','W','T','F','S'];
+  const dayBarsHtml = insights.dayOfWeekCounts.map((count, i) => {
+    const pct = (count / maxDayCount) * 100;
+    return `<div class="ins-day-bar-col">
+      <div class="ins-day-bar-wrap">
+        <div class="ins-day-bar" style="height:${pct}%;"></div>
+      </div>
+      <div class="ins-day-label">${dayLabelsShort[i]}</div>
+      <div class="ins-day-count">${count}</div>
+    </div>`;
+  }).join('');
+
+  // Tag breakdown
+  let tagsHtml = '';
+  if (insights.tagBreakdown.length > 0) {
+    const totalTagged = insights.tagBreakdown.reduce((s,[,c]) => s + c, 0);
+    tagsHtml = `<div class="ins-section">
+      <div class="ins-section-title">Tag breakdown</div>
+      ${insights.tagBreakdown.map(([tag, count]) => {
+        const pct = Math.round((count / totalTagged) * 100);
+        const tagInfo = ENTRY_TAGS[tag];
+        return `<div class="ins-tag-row">
+          <div class="ins-tag-info">
+            <span class="ins-tag-dot" style="background:${tagInfo.color};"></span>
+            <span class="ins-tag-name">${tagInfo.label}</span>
+            <span class="ins-tag-desc">${tagInfo.desc}</span>
+          </div>
+          <div class="ins-tag-bar-wrap">
+            <div class="ins-tag-bar" style="width:${pct}%;background:${tagInfo.color};"></div>
+          </div>
+          <div class="ins-tag-count">${count}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  // Mood section
+  let moodHtml = '';
+  if (insights.avgLift != null && insights.avgMoodAfter != null) {
+    const liftSign = insights.avgLift > 0 ? '+' : '';
+    const liftColor = insights.avgLift > 0 ? 'var(--sage)' : insights.avgLift < 0 ? '#c56b8a' : 'var(--ink-60)';
+    moodHtml = `<div class="ins-section">
+      <div class="ins-section-title">Mood patterns</div>
+      <div class="ins-mood-card">
+        <div class="ins-mood-stat">
+          <span class="ins-mood-emoji">${MOODS[Math.round(insights.avgMoodAfter)].e}</span>
+          <span class="ins-mood-label">Average mood after journaling</span>
+        </div>
+        <div class="ins-mood-stat">
+          <span class="ins-mood-lift" style="color:${liftColor};">${liftSign}${insights.avgLift}</span>
+          <span class="ins-mood-label">Average mood lift per session</span>
+        </div>
+      </div>
+    </div>`;
+  }
+
+  overlay.innerHTML = `
+    <div class="insights-modal">
+      <div class="insights-header">
+        <div class="insights-title-block">
+          <div class="insights-eyebrow">Your insights</div>
+          <div class="insights-title">${insights.daysSinceFirst} days of practice</div>
+        </div>
+        <button class="insights-close" onclick="closeInsights()">✕</button>
+      </div>
+
+      <div class="ins-section">
+        <div class="ins-section-title">All-time totals</div>
+        <div class="ins-totals-grid">
+          <div class="ins-total-card ins-total-primary">
+            <div class="ins-total-val">${insights.totalMinutes}</div>
+            <div class="ins-total-key">minutes on yourself</div>
+          </div>
+          <div class="ins-total-card">
+            <div class="ins-total-val">${insights.totalWords.toLocaleString()}</div>
+            <div class="ins-total-key">words written</div>
+          </div>
+          <div class="ins-total-card">
+            <div class="ins-total-val">${insights.totalEntries}</div>
+            <div class="ins-total-key">entries</div>
+          </div>
+          <div class="ins-total-card">
+            <div class="ins-total-val">${insights.bestStreak}</div>
+            <div class="ins-total-key">best streak (days)</div>
+          </div>
+        </div>
+      </div>
+
+      ${moodHtml}
+
+      <div class="ins-section">
+        <div class="ins-section-title">When you journal</div>
+        <div class="ins-when-cards">
+          <div class="ins-when-card">
+            <div class="ins-when-icon">📅</div>
+            <div class="ins-when-info">
+              <div class="ins-when-val">${insights.bestDay}</div>
+              <div class="ins-when-key">your most active day</div>
+            </div>
+          </div>
+          <div class="ins-when-card">
+            <div class="ins-when-icon">🕐</div>
+            <div class="ins-when-info">
+              <div class="ins-when-val">${insights.timeOfDay}</div>
+              <div class="ins-when-key">your favorite time</div>
+            </div>
+          </div>
+        </div>
+        <div class="ins-day-bars">${dayBarsHtml}</div>
+      </div>
+
+      ${tagsHtml}
+
+      <div class="ins-footer-msg">
+        <strong>${insights.totalMinutes} minutes</strong> of your life dedicated to yourself.
+        That's the kind of investment that compounds.
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  // Lock body scroll
+  document.body.style.overflow = 'hidden';
+}
+
+function closeInsights() {
+  const o = document.getElementById('insights-overlay');
+  if (o) o.remove();
+  document.body.style.overflow = '';
+}
+
+
 const JAR_UNLOCK_MIN_ENTRIES = 5; // need 5+ entries to unlock
 
 function openGratitudeJar() {
