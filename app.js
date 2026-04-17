@@ -986,6 +986,61 @@ function renderFreezeCard() {
     </div>`;
 }
 
+// ── STREAK REVIVE ─────────────────────────────────
+let reviveDate = null; // date being revived
+
+function renderStreakRevive() {
+  const wrap = document.getElementById('streak-revive-wrap');
+  if (!wrap) return;
+
+  const es = getEntries();
+  const s = streak();
+
+  // Only show if user has journaled before and missed yesterday
+  if (s < 1 || es.length < 1) { wrap.innerHTML = ''; return; }
+
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  yesterday.setHours(0, 0, 0, 0);
+  const yesterdayStr = yesterday.toDateString();
+
+  const journaledYesterday = es.find(e => new Date(e.date).toDateString() === yesterdayStr);
+  const frozenYesterday = getFrozenDates().includes(yesterdayStr);
+
+  if (journaledYesterday || frozenYesterday) { wrap.innerHTML = ''; return; }
+
+  // Check if we already revived yesterday
+  const revivedDates = JSON.parse(localStorage.getItem('gj_revived_' + (currentUser?.id || '')) || '[]');
+  if (revivedDates.includes(yesterdayStr)) { wrap.innerHTML = ''; return; }
+
+  const yLabel = yesterday.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+
+  wrap.innerHTML = `
+    <div class="revive-card">
+      <div class="revive-left">
+        <div class="revive-icon">🔥</div>
+        <div class="revive-info">
+          <div class="revive-title">Revive your streak</div>
+          <div class="revive-sub">You missed <strong>${yLabel}</strong>. Journal for that day to keep your streak alive.</div>
+        </div>
+      </div>
+      <button class="revive-btn" onclick="beginReviveSession()">Journal for ${yesterday.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} →</button>
+    </div>`;
+}
+
+function beginReviveSession() {
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  yesterday.setHours(0, 0, 0, 0);
+  reviveDate = yesterday.toISOString();
+  moodBefore = null; moodAfter = null;
+  sessionQs = pickQs(); qIdx = 0;
+  qAnswers = Array(sessionQs.length).fill('');
+  inputMode = 'voice';
+  renderBreathOpts();
+  goPage('breath');
+}
+
 function useFreeze() {
   const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1); yesterday.setHours(0,0,0,0);
   const data = getFreezeData();
@@ -1557,6 +1612,7 @@ function renderHome() {
   renderHeatmap();
   renderBadges(s);
   renderFreezeCard();
+  renderStreakRevive();
   const es = getEntries().slice(0, 3), el = document.getElementById('recent-entries');
   if (!es.length) {
     el.innerHTML = `<div class="empty-state">
@@ -2400,7 +2456,8 @@ function skipQ() { if (recOn) return; if (inputMode === 'type') { const ta = doc
 
 async function finishSession() {
   stopAudio();
-  const entry = { date: new Date().toISOString(), questions: [...sessionQs], answers: [...qAnswers], moodBefore, moodAfter };
+  const entryDate = reviveDate || new Date().toISOString();
+  const entry = { date: entryDate, questions: [...sessionQs], answers: [...qAnswers], moodBefore, moodAfter };
   const ok = await saveEntry(entry);
   if (!ok) {
     // Save failed — show error on journal page rather than fake celebration
@@ -2413,6 +2470,15 @@ async function finishSession() {
       <button class="btn" style="margin-top:0.75rem;" onclick="goPage('home')">Go home</button>
     </div>`;
     return;
+  }
+  // Mark revive as done so card disappears
+  if (reviveDate) {
+    const revivedKey = 'gj_revived_' + (currentUser?.id || '');
+    const revived = JSON.parse(localStorage.getItem(revivedKey) || '[]');
+    const d = new Date(reviveDate); d.setHours(0,0,0,0);
+    revived.push(d.toDateString());
+    localStorage.setItem(revivedKey, JSON.stringify(revived));
+    reviveDate = null;
   }
   const saved = cachedEntries[0] || entry;
   renderSummaryPage(saved);
