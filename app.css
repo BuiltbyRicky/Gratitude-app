@@ -477,3 +477,46 @@ html, body { overscroll-behavior: none; background: #FAF8F4; color-scheme: light
 .saved-aff-text{font-family:var(--font-serif);font-size:15px;font-style:italic;color:var(--ink);line-height:1.6;margin-bottom:10px;}
 .saved-aff-remove{background:none;border:1px solid rgba(91,74,138,0.3);color:#5B4A8A;font-size:11px;font-weight:500;padding:4px 10px;border-radius:var(--radius-pill);cursor:pointer;font-family:var(--font-sans);}
 .saved-aff-remove:hover{background:rgba(91,74,138,0.1);}
+
+/* ══════════════════════════════════════════════════
+   YEAR IN REVIEW
+══════════════════════════════════════════════════ */
+.yr-overlay{position:fixed;inset:0;z-index:1000;animation:fadeIn 0.4s ease;}
+.yr-slide{height:100%;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 1.5rem;text-align:center;position:relative;animation:yrSlideIn 0.4s ease;overflow:hidden;}
+@keyframes yrSlideIn{from{opacity:0;transform:scale(1.05);}to{opacity:1;transform:scale(1);}}
+
+.yr-close{position:absolute;top:1.5rem;right:1.5rem;background:rgba(255,255,255,0.15);border:1px solid rgba(255,255,255,0.2);color:#fff;width:36px;height:36px;border-radius:50%;font-size:14px;cursor:pointer;backdrop-filter:blur(10px);z-index:10;display:flex;align-items:center;justify-content:center;}
+.yr-close:hover{background:rgba(255,255,255,0.25);}
+
+.yr-progress-row{position:absolute;top:1.5rem;left:1.5rem;right:5rem;display:flex;gap:4px;}
+.yr-progress-dot{flex:1;height:3px;background:rgba(255,255,255,0.25);border-radius:2px;transition:background 0.3s ease;}
+.yr-progress-dot.filled{background:rgba(255,255,255,0.85);}
+
+.yr-content{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;width:100%;max-width:440px;animation:yrContentIn 0.6s ease;}
+@keyframes yrContentIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+
+.yr-nav-areas{position:absolute;inset:0;display:flex;z-index:5;}
+.yr-nav-area-left,.yr-nav-area-right{flex:1;cursor:pointer;}
+
+.yr-welcome-icon{font-size:64px;margin-bottom:1.5rem;animation:yrFloat 3s ease-in-out infinite;}
+@keyframes yrFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+.yr-welcome-eyebrow{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:2px;opacity:0.9;margin-bottom:0.75rem;}
+.yr-welcome-year{font-family:var(--font-serif);font-size:96px;font-weight:500;line-height:1;letter-spacing:-3px;margin-bottom:1.5rem;}
+.yr-welcome-sub{font-size:16px;line-height:1.5;opacity:0.85;max-width:300px;}
+.yr-tap-hint{position:absolute;bottom:3rem;font-size:12px;opacity:0.7;animation:yrPulse 2s ease-in-out infinite;}
+@keyframes yrPulse{0%,100%{opacity:0.5;}50%{opacity:1;}}
+
+.yr-stat-eyebrow{font-size:14px;text-transform:uppercase;letter-spacing:2px;opacity:0.8;margin-bottom:1.5rem;font-weight:500;}
+.yr-stat-big{font-family:var(--font-serif);font-size:120px;font-weight:500;line-height:1;letter-spacing:-4px;margin-bottom:1rem;animation:yrCountIn 0.8s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes yrCountIn{from{opacity:0;transform:scale(0.5);}to{opacity:1;transform:scale(1);}}
+.yr-stat-label{font-family:var(--font-serif);font-size:24px;font-weight:400;font-style:italic;margin-bottom:1.5rem;opacity:0.95;}
+.yr-stat-context{font-size:14px;opacity:0.8;line-height:1.6;max-width:300px;}
+
+.yr-words-cloud{display:flex;flex-wrap:wrap;justify-content:center;gap:14px 18px;margin-top:2rem;padding:0 1rem;max-width:380px;}
+.yr-word{font-family:var(--font-serif);font-style:italic;animation:yrWordIn 0.5s ease both;line-height:1;}
+@keyframes yrWordIn{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+.yr-closing-text{font-family:var(--font-serif);font-size:22px;font-style:italic;line-height:1.6;max-width:340px;}
+.yr-closing-text strong{font-style:normal;font-weight:500;}
+.yr-cta-btn{margin-top:2.5rem;background:rgba(255,255,255,0.95);color:var(--ink);border:none;border-radius:var(--radius-pill);padding:14px 32px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-sans);transition:var(--transition);position:relative;z-index:10;}
+.yr-cta-btn:hover{transform:scale(1.05);}

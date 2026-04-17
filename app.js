@@ -3208,7 +3208,262 @@ function renderSettings() {
   }
 }
 
-// Goal changer modal
+// ── YEAR IN REVIEW ────────────────────────────────
+function calculateYearReview(year) {
+  const now = new Date();
+  const targetYear = year || now.getFullYear();
+  const yearStart = new Date(targetYear, 0, 1);
+  const yearEnd = new Date(targetYear, 11, 31, 23, 59, 59);
+
+  const allEntries = getEntries();
+  const yearEntries = allEntries.filter(e => {
+    const d = new Date(e.date);
+    return d >= yearStart && d <= yearEnd;
+  });
+
+  if (yearEntries.length === 0) return null;
+
+  // Total stats
+  let totalWords = 0;
+  yearEntries.forEach(e => {
+    (e.answers || []).forEach(a => {
+      if (a) totalWords += a.trim().split(/\s+/).filter(Boolean).length;
+    });
+  });
+  const totalMinutes = Math.max(yearEntries.length * 3, Math.round(totalWords / 80));
+  const totalHours = +(totalMinutes / 60).toFixed(1);
+
+  // Best streak this year
+  const sorted = [...yearEntries].sort((a,b) => new Date(a.date) - new Date(b.date));
+  let bestStreak = 0, currentRun = 1, prev = null;
+  for (const e of sorted) {
+    const day = new Date(e.date); day.setHours(0,0,0,0);
+    if (prev) {
+      const diff = (day - prev) / (24*60*60*1000);
+      if (diff === 0) continue;
+      if (diff === 1) currentRun++;
+      else { bestStreak = Math.max(bestStreak, currentRun); currentRun = 1; }
+    }
+    prev = day;
+  }
+  bestStreak = Math.max(bestStreak, currentRun);
+
+  // Mood shift average
+  const withBoth = yearEntries.filter(e => e.mood_before != null && e.mood_after != null);
+  const avgLift = withBoth.length
+    ? +(withBoth.reduce((s,e) => s + (e.mood_after - e.mood_before), 0) / withBoth.length).toFixed(1)
+    : null;
+
+  // Days journaled
+  const uniqueDays = new Set(yearEntries.map(e => new Date(e.date).toDateString())).size;
+
+  // Most active month
+  const monthCounts = new Array(12).fill(0);
+  yearEntries.forEach(e => monthCounts[new Date(e.date).getMonth()]++);
+  const bestMonthIdx = monthCounts.indexOf(Math.max(...monthCounts));
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const bestMonth = { name: monthNames[bestMonthIdx], count: monthCounts[bestMonthIdx] };
+
+  // Top words (excluding stop words)
+  const stopWords = new Set(['the','a','an','and','or','but','in','on','at','to','for','of','with','my','i','me','was','is','are','were','have','had','has','that','this','it','be','been','not','so','if','as','do','did','what','how','just','like','very','from','about','when','who','which','can','will','would','could','should','than','then','there','their','they','we','our','your','you','he','she','his','her','him','its','all','one','out','up','by','more','also','am','into','get','got','no','any','really','feel','feeling','felt','today','day','today','time','things','thing']);
+  const wordCount = {};
+  yearEntries.forEach(e => {
+    (e.answers || []).forEach(a => {
+      if (!a) return;
+      a.toLowerCase().replace(/[^a-z\s]/g, '').split(/\s+/).forEach(w => {
+        if (w.length > 3 && !stopWords.has(w)) wordCount[w] = (wordCount[w] || 0) + 1;
+      });
+    });
+  });
+  const topWords = Object.entries(wordCount).sort((a,b) => b[1] - a[1]).slice(0, 8).map(([w]) => w);
+
+  // Best entry — longest meaningful answer
+  let highlightEntry = null;
+  let highlightAnswer = '';
+  yearEntries.forEach(e => {
+    (e.answers || []).forEach(a => {
+      if (a && a.length > highlightAnswer.length) {
+        highlightAnswer = a;
+        highlightEntry = e;
+      }
+    });
+  });
+
+  return {
+    year: targetYear,
+    totalEntries: yearEntries.length,
+    totalWords,
+    totalMinutes,
+    totalHours,
+    bestStreak,
+    avgLift,
+    uniqueDays,
+    bestMonth,
+    topWords,
+    highlightEntry,
+    highlightAnswer,
+  };
+}
+
+let yearReviewSlide = 0;
+let yearReviewData = null;
+const YEAR_REVIEW_TOTAL_SLIDES = 7;
+
+function openYearReview() {
+  const review = calculateYearReview();
+  if (!review) {
+    alert('Complete a few journal entries first to see your year in review.');
+    return;
+  }
+  yearReviewData = review;
+  yearReviewSlide = 0;
+  showYearReviewSlide();
+}
+
+function closeYearReview() {
+  const o = document.getElementById('year-review-overlay');
+  if (o) o.remove();
+  document.body.style.overflow = '';
+  yearReviewSlide = 0;
+  yearReviewData = null;
+}
+
+function nextYearSlide() {
+  yearReviewSlide++;
+  if (yearReviewSlide >= YEAR_REVIEW_TOTAL_SLIDES) {
+    closeYearReview();
+    return;
+  }
+  showYearReviewSlide();
+}
+
+function prevYearSlide() {
+  if (yearReviewSlide > 0) {
+    yearReviewSlide--;
+    showYearReviewSlide();
+  }
+}
+
+function showYearReviewSlide() {
+  const r = yearReviewData;
+  if (!r) return;
+
+  // Different gradient bg per slide
+  const slideThemes = [
+    { bg: 'linear-gradient(135deg,#2D7A5F,#1f5a45)', text: '#fff' },
+    { bg: 'linear-gradient(135deg,#5B4A8A,#3a2f5e)', text: '#fff' },
+    { bg: 'linear-gradient(135deg,#C97B3D,#9c5b29)', text: '#fff' },
+    { bg: 'linear-gradient(135deg,#1E6A8A,#114866)', text: '#fff' },
+    { bg: 'linear-gradient(135deg,#8A3030,#5e1f1f)', text: '#fff' },
+    { bg: 'linear-gradient(135deg,#9A6520,#6e4615)', text: '#fff' },
+    { bg: 'linear-gradient(135deg,#2D7A5F,#7BBDA4)', text: '#fff' },
+  ];
+
+  const slides = [
+    // Slide 0: Welcome
+    {
+      content: `
+        <div class="yr-welcome-icon">✨</div>
+        <div class="yr-welcome-eyebrow">Your Year in Gratitude</div>
+        <div class="yr-welcome-year">${r.year}</div>
+        <div class="yr-welcome-sub">A look back at your journey through reflection.</div>
+        <div class="yr-tap-hint">Tap to begin →</div>
+      `
+    },
+    // Slide 1: Total entries
+    {
+      content: `
+        <div class="yr-stat-eyebrow">You journaled</div>
+        <div class="yr-stat-big">${r.totalEntries}</div>
+        <div class="yr-stat-label">${r.totalEntries === 1 ? 'entry' : 'entries'} this year</div>
+        <div class="yr-stat-context">across <strong>${r.uniqueDays}</strong> different days</div>
+      `
+    },
+    // Slide 2: Time spent
+    {
+      content: `
+        <div class="yr-stat-eyebrow">You spent</div>
+        <div class="yr-stat-big">${r.totalHours}</div>
+        <div class="yr-stat-label">${r.totalHours === 1 ? 'hour' : 'hours'} on yourself</div>
+        <div class="yr-stat-context">that's a real gift to your future self</div>
+      `
+    },
+    // Slide 3: Words written
+    {
+      content: `
+        <div class="yr-stat-eyebrow">You wrote</div>
+        <div class="yr-stat-big">${r.totalWords.toLocaleString()}</div>
+        <div class="yr-stat-label">words of reflection</div>
+        <div class="yr-stat-context">enough to fill a small book</div>
+      `
+    },
+    // Slide 4: Best streak
+    {
+      content: `
+        <div class="yr-stat-eyebrow">Your best streak</div>
+        <div class="yr-stat-big">${r.bestStreak}</div>
+        <div class="yr-stat-label">${r.bestStreak === 1 ? 'day' : 'days in a row'}</div>
+        <div class="yr-stat-context">${r.bestStreak >= 30 ? 'a true devoted practice' : r.bestStreak >= 7 ? 'most people never make it this far' : 'every day counts — keep building'}</div>
+      `
+    },
+    // Slide 5: Top words
+    {
+      content: `
+        <div class="yr-stat-eyebrow">Your year in words</div>
+        <div class="yr-words-cloud">
+          ${r.topWords.map((w, i) => `
+            <span class="yr-word" style="animation-delay:${i * 0.1}s;font-size:${22 - i * 1.5}px;">${esc(w)}</span>
+          `).join('')}
+        </div>
+        <div class="yr-stat-context" style="margin-top:1.5rem;">the themes you returned to most</div>
+      `
+    },
+    // Slide 6: Closing
+    {
+      content: `
+        <div class="yr-welcome-icon">🌱</div>
+        <div class="yr-welcome-eyebrow">Thank you for showing up</div>
+        <div class="yr-closing-text">Every entry was a moment you chose <strong>yourself</strong>.</div>
+        <div class="yr-closing-text" style="margin-top:1rem;">Here's to ${r.year + 1}.</div>
+        <button class="yr-cta-btn" onclick="closeYearReview()">Continue your journey →</button>
+      `
+    },
+  ];
+
+  const theme = slideThemes[yearReviewSlide];
+  const slide = slides[yearReviewSlide];
+
+  // Progress dots
+  const dotsHtml = Array.from({length: YEAR_REVIEW_TOTAL_SLIDES}, (_, i) =>
+    `<div class="yr-progress-dot ${i <= yearReviewSlide ? 'filled' : ''}"></div>`
+  ).join('');
+
+  let overlay = document.getElementById('year-review-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'year-review-overlay';
+    overlay.className = 'yr-overlay';
+    document.body.appendChild(overlay);
+    document.body.style.overflow = 'hidden';
+  }
+
+  overlay.innerHTML = `
+    <div class="yr-slide" style="background:${theme.bg};color:${theme.text};">
+      <button class="yr-close" onclick="closeYearReview()">✕</button>
+      <div class="yr-progress-row">${dotsHtml}</div>
+      <div class="yr-content">
+        ${slide.content}
+      </div>
+      ${yearReviewSlide < YEAR_REVIEW_TOTAL_SLIDES - 1 ? `
+        <div class="yr-nav-areas">
+          <div class="yr-nav-area-left" onclick="prevYearSlide()"></div>
+          <div class="yr-nav-area-right" onclick="nextYearSlide()"></div>
+        </div>
+      ` : ''}
+    </div>`;
+}
+
+
 function openGoalChanger() {
   const current = localStorage.getItem('gj_goal');
   const goals = [
