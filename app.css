@@ -286,3 +286,21 @@ html, body { overscroll-behavior: none; background: #FAF8F4; color-scheme: light
 .ob-plan-item:nth-child(4){animation-delay:0.35s;}
 .ob-plan-item-icon{font-size:22px;flex-shrink:0;}
 .ob-plan-item-text{font-size:14px;color:var(--ink);line-height:1.5;}
+
+/* ══════════════════════════════════════════════════
+   SESSION COMPLETION POLISH
+══════════════════════════════════════════════════ */
+.cel-session-stats{display:flex;justify-content:center;gap:1.5rem;margin:1.5rem 0;padding:1rem 0;border-top:1px solid var(--ink-15);border-bottom:1px solid var(--ink-15);animation:fadeUp 0.5s ease 0.4s both;}
+.cel-session-stat{text-align:center;}
+.cel-session-stat-val{display:block;font-family:var(--font-serif);font-size:24px;font-weight:500;color:var(--sage);line-height:1;margin-bottom:4px;}
+.cel-session-stat-key{font-size:11px;color:var(--ink-60);text-transform:uppercase;letter-spacing:0.5px;}
+
+.cel-wisdom{background:linear-gradient(135deg,#f8f5ee,#ede8db);border:1px solid #d4c8a8;border-radius:var(--radius-xl);padding:1.5rem;margin:1.5rem 0;text-align:center;animation:fadeUp 0.5s ease 0.7s both;}
+.cel-wisdom-eyebrow{font-size:11px;font-weight:600;color:#8a7240;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.cel-wisdom-quote{font-family:var(--font-serif);font-size:17px;font-style:italic;color:var(--ink);line-height:1.6;margin-bottom:8px;}
+.cel-wisdom-author{font-size:12px;color:var(--ink-60);}
+
+.cel-tomorrow{background:linear-gradient(135deg,var(--sage-light),#d8ecdf);border:1px solid var(--sage-mid);border-radius:var(--radius-xl);padding:1.5rem;margin:1rem 0 1.5rem;text-align:center;animation:fadeUp 0.5s ease 0.85s both;}
+.cel-tomorrow-eyebrow{font-size:11px;font-weight:600;color:var(--sage);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.cel-tomorrow-q{font-family:var(--font-serif);font-size:16px;font-style:italic;color:var(--ink);line-height:1.6;margin-bottom:10px;}
+.cel-tomorrow-sub{font-size:12px;color:var(--ink-60);}

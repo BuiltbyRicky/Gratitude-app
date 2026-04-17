@@ -3025,6 +3025,11 @@ function renderSummaryPage(entry) {
   const s = streak();
   const totalEntries = getEntries().length;
 
+  // Calculate session stats
+  const totalWords = (entry.answers || []).reduce((sum, a) => sum + (a ? a.trim().split(/\s+/).filter(Boolean).length : 0), 0);
+  const sessionMinutes = Math.max(2, Math.round(totalWords / 80)); // ~80 wpm reading aloud
+  const answeredCount = (entry.answers || []).filter(a => a && a.trim()).length;
+
   // Personalised message based on streak + mood
   const lift = moodBefore != null && moodAfter != null ? moodAfter - moodBefore : null;
   const messages = [
@@ -3048,6 +3053,14 @@ function renderSummaryPage(entry) {
     </div>`;
   }
 
+  // Wisdom drop — pick a contextual quote
+  const wisdomQuote = QUOTES_OF_DAY[Math.floor(Math.random() * QUOTES_OF_DAY.length)];
+
+  // Tomorrow's preview question (rotating)
+  const goal = localStorage.getItem('gj_goal');
+  const tomorrowPool = (goal && GOAL_POOLS[goal]) ? GOAL_POOLS[goal] : POOL;
+  const tomorrowQuestion = tomorrowPool[Math.floor(Math.random() * tomorrowPool.length)];
+
   // Entry answers
   const entriesHtml = entry.questions.map((q, i) => {
     const ans = entry.answers[i];
@@ -3064,6 +3077,22 @@ function renderSummaryPage(entry) {
       </div>
       <div class="cel-title">Session complete</div>
       <div class="cel-sub">${date}</div>
+
+      <div class="cel-session-stats">
+        <div class="cel-session-stat">
+          <span class="cel-session-stat-val">${sessionMinutes}</span>
+          <span class="cel-session-stat-key">min on yourself</span>
+        </div>
+        <div class="cel-session-stat">
+          <span class="cel-session-stat-val">${totalWords}</span>
+          <span class="cel-session-stat-key">words written</span>
+        </div>
+        <div class="cel-session-stat">
+          <span class="cel-session-stat-val">${answeredCount}/${entry.questions.length}</span>
+          <span class="cel-session-stat-key">questions</span>
+        </div>
+      </div>
+
       <div class="cel-streak-row">
         <div class="cel-stat">
           <span class="cel-stat-val" id="cel-streak-num">0</span>
@@ -3078,6 +3107,19 @@ function renderSummaryPage(entry) {
       <div class="cel-message">
         <div class="cel-message-text">${message}</div>
       </div>
+
+      <div class="cel-wisdom">
+        <div class="cel-wisdom-eyebrow">A thought to carry with you</div>
+        <div class="cel-wisdom-quote">"${esc(wisdomQuote.text)}"</div>
+        <div class="cel-wisdom-author">— ${esc(wisdomQuote.author)}</div>
+      </div>
+
+      <div class="cel-tomorrow">
+        <div class="cel-tomorrow-eyebrow">🌱 Tomorrow's question</div>
+        <div class="cel-tomorrow-q">"${esc(tomorrowQuestion)}"</div>
+        <div class="cel-tomorrow-sub">Save it. Sleep on it. Bring your answer tomorrow.</div>
+      </div>
+
       <div class="cel-actions">
         <button class="btn" onclick="goPage('history')">View history</button>
         <button class="btn solid" onclick="goPage('home')">Back home &rarr;</button>
