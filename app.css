@@ -227,3 +227,16 @@ html, body { overscroll-behavior: none; background: #FAF8F4; color-scheme: light
 .card-style-btn.active{border-color:var(--sage);color:var(--sage);}
 .cs-swatch{display:block;width:42px;height:42px;border-radius:10px;border:1px solid var(--ink-15);}
 .card-style-btn.active .cs-swatch{box-shadow:0 0 0 2px var(--sage-light);}
+
+/* ══════════════════════════════════════════════════
+   ENTRY COLOR TAGS
+══════════════════════════════════════════════════ */
+.hist-entry{position:relative;overflow:hidden;}
+.hist-entry-tag-bar{position:absolute;top:0;left:0;width:5px;height:100%;}
+.tag-grid{display:flex;flex-direction:column;gap:6px;margin-top:1rem;}
+.tag-option{display:flex;align-items:center;gap:12px;background:var(--cream);border:2px solid transparent;border-radius:var(--radius-md);padding:10px 14px;cursor:pointer;font-family:var(--font-sans);font-size:14px;color:var(--ink);text-align:left;transition:var(--transition);width:100%;}
+.tag-option:hover{background:var(--cream-dark);}
+.tag-option.active{border-color:var(--sage);background:var(--sage-light);}
+.tag-dot{width:18px;height:18px;border-radius:50%;flex-shrink:0;}
+.tag-label{font-weight:500;flex-shrink:0;width:80px;}
+.tag-desc{font-size:12px;color:var(--ink-60);font-style:italic;}

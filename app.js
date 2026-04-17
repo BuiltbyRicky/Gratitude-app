@@ -1805,6 +1805,70 @@ function highlightMatch(text, query) {
   return safeText.replace(new RegExp(`(${escaped})`, 'gi'), '<mark style="background:rgba(45,122,95,0.15);border-radius:3px;padding:0 2px;color:var(--sage-dark);">$1</mark>');
 }
 
+// ── ENTRY COLOR TAGS ──────────────────────────────
+const ENTRY_TAGS = {
+  rose:     { color: '#E89B9B', label: 'Rose',     desc: 'Love & connection' },
+  amber:    { color: '#E8B05A', label: 'Amber',    desc: 'Joy & gratitude' },
+  gold:     { color: '#D4B95C', label: 'Gold',     desc: 'Achievement' },
+  sage:     { color: '#7BBDA4', label: 'Sage',     desc: 'Peaceful & calm' },
+  ocean:    { color: '#5BA8C4', label: 'Ocean',    desc: 'Reflection' },
+  lavender: { color: '#A89BD9', label: 'Lavender', desc: 'Spiritual' },
+  berry:    { color: '#C56B8A', label: 'Berry',    desc: 'Challenging' },
+};
+
+function getEntryTag(id) {
+  if (!currentUser) return null;
+  const tags = JSON.parse(localStorage.getItem('gj_tags_' + currentUser.id) || '{}');
+  return tags[id] || null;
+}
+
+function setEntryTag(id, color) {
+  if (!currentUser) return;
+  const key = 'gj_tags_' + currentUser.id;
+  const tags = JSON.parse(localStorage.getItem(key) || '{}');
+  if (color === null) delete tags[id];
+  else tags[id] = color;
+  localStorage.setItem(key, JSON.stringify(tags));
+}
+
+function openTagPicker(entryId) {
+  const current = getEntryTag(entryId);
+  const modal = document.createElement('div');
+  modal.id = 'tag-picker-modal';
+  modal.className = 'modal-overlay open';
+  modal.innerHTML = `
+    <div class="modal-card" style="max-width:340px;">
+      <div class="modal-title">Tag this entry</div>
+      <div class="modal-sub">Color-code your reflection to find it later.</div>
+      <div class="tag-grid">
+        <button class="tag-option ${!current ? 'active' : ''}" onclick="applyTag('${entryId}', null)">
+          <span class="tag-dot" style="background:transparent;border:2px dashed var(--ink-30);"></span>
+          <span class="tag-label">None</span>
+        </button>
+        ${Object.entries(ENTRY_TAGS).map(([key, t]) => `
+          <button class="tag-option ${current === key ? 'active' : ''}" onclick="applyTag('${entryId}', '${key}')">
+            <span class="tag-dot" style="background:${t.color};"></span>
+            <span class="tag-label">${t.label}</span>
+            <span class="tag-desc">${t.desc}</span>
+          </button>
+        `).join('')}
+      </div>
+      <button class="btn" style="width:100%;margin-top:1rem;" onclick="closeTagPicker()">Close</button>
+    </div>`;
+  document.body.appendChild(modal);
+}
+
+function closeTagPicker() {
+  const m = document.getElementById('tag-picker-modal');
+  if (m) m.remove();
+}
+
+function applyTag(entryId, color) {
+  setEntryTag(entryId, color);
+  closeTagPicker();
+  renderHistory();
+}
+
 function renderHistory() {
   const allEntries = getEntries();
   const el = document.getElementById('hist-list');
@@ -1850,7 +1914,11 @@ function renderHistory() {
     const moodRow = e.mood_before != null || e.mood_after != null
       ? `<div class="hist-moods">${e.mood_before != null ? MOODS[e.mood_before].e : ''}${e.mood_before != null && e.mood_after != null ? '→' : ''}${e.mood_after != null ? MOODS[e.mood_after].e : ''}</div>` : '';
 
+    const tagColor = getEntryTag(e.id);
+    const tagBar = tagColor ? `<div class="hist-entry-tag-bar" style="background:${ENTRY_TAGS[tagColor].color};"></div>` : '';
+
     return `<div class="hist-entry">
+      ${tagBar}
       <div class="hist-entry-head">
         <div>
           <div class="hist-date">${new Date(e.date).toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric', year:'numeric' })}</div>
@@ -1859,7 +1927,7 @@ function renderHistory() {
         <div class="hist-actions">
           ${isEditing
             ? `<button class="hist-edit-btn" onclick="saveEdit('${e.id}')" style="color:var(--sage);border-color:var(--sage-mid);">Save</button><button class="hist-edit-btn" onclick="cancelEdit()">Cancel</button>`
-            : `<button class="hist-edit-btn" onclick="startEdit('${e.id}')">Edit</button><button class="hist-del" onclick="askDelete('${e.id}')">Delete</button>`
+            : `<button class="hist-edit-btn" onclick="openTagPicker('${e.id}')">${tagColor ? '🏷️' : '○'} Tag</button><button class="hist-edit-btn" onclick="startEdit('${e.id}')">Edit</button><button class="hist-del" onclick="askDelete('${e.id}')">Delete</button>`
           }
         </div>
       </div>
