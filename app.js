@@ -986,7 +986,97 @@ function renderFreezeCard() {
     </div>`;
 }
 
-// ── STREAK REVIVE ─────────────────────────────────
+// ── ON THIS DAY MEMORIES ──────────────────────────
+function renderMemories() {
+  const wrap = document.getElementById('memories-wrap');
+  if (!wrap) return;
+
+  const es = getEntries();
+  if (es.length < 1) { wrap.innerHTML = ''; return; }
+
+  const today = new Date();
+  const todayMonth = today.getMonth();
+  const todayDay = today.getDate();
+  const todayYear = today.getFullYear();
+
+  // Find entries from same month+day in past years/weeks
+  const memories = es.filter(e => {
+    const d = new Date(e.date);
+    if (d.getFullYear() === todayYear && d.getMonth() === todayMonth && d.getDate() === todayDay) return false; // skip today
+    // Match exact month+day from any past year
+    if (d.getMonth() === todayMonth && d.getDate() === todayDay) return true;
+    return false;
+  });
+
+  // If no exact-date matches, look for entries from this week last month or week-of-year
+  let displayMemories = memories;
+  let memoryLabel = 'On this day';
+
+  if (memories.length === 0) {
+    // Find entry from exactly 30 days ago
+    const thirtyDaysAgo = new Date(); thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30); thirtyDaysAgo.setHours(0,0,0,0);
+    const monthAgoStr = thirtyDaysAgo.toDateString();
+    const monthMemory = es.find(e => new Date(e.date).toDateString() === monthAgoStr);
+    if (monthMemory) {
+      displayMemories = [monthMemory];
+      memoryLabel = '1 month ago';
+    } else {
+      // Try 7 days ago
+      const sevenDaysAgo = new Date(); sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7); sevenDaysAgo.setHours(0,0,0,0);
+      const weekAgoStr = sevenDaysAgo.toDateString();
+      const weekMemory = es.find(e => new Date(e.date).toDateString() === weekAgoStr);
+      if (weekMemory) {
+        displayMemories = [weekMemory];
+        memoryLabel = '1 week ago';
+      }
+    }
+  }
+
+  if (displayMemories.length === 0) { wrap.innerHTML = ''; return; }
+
+  // Take the first/most relevant memory
+  const memory = displayMemories[0];
+  const memDate = new Date(memory.date);
+  const yearsAgo = todayYear - memDate.getFullYear();
+
+  let dateLabel;
+  if (memoryLabel === 'On this day' && yearsAgo > 0) {
+    dateLabel = yearsAgo === 1 ? '1 year ago today' : `${yearsAgo} years ago today`;
+  } else {
+    dateLabel = memoryLabel;
+  }
+
+  // Get a meaningful excerpt
+  const answers = memory.answers || [];
+  const excerpt = answers.find(a => a && a.length > 10) || answers[0] || '';
+  const trimmed = excerpt.length > 140 ? excerpt.substring(0, 140) + '…' : excerpt;
+
+  if (!trimmed) { wrap.innerHTML = ''; return; }
+
+  const fullDate = memDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+
+  wrap.innerHTML = `
+    <div class="memory-card" onclick="openMemory('${memory.id}')">
+      <div class="memory-eyebrow">
+        <span class="memory-icon">🕰️</span>
+        <span class="memory-label">${dateLabel}</span>
+      </div>
+      <div class="memory-date">${fullDate}</div>
+      <div class="memory-excerpt">"${esc(trimmed)}"</div>
+      <div class="memory-cta">Tap to read full entry →</div>
+    </div>`;
+}
+
+function openMemory(id) {
+  const e = getEntries().find(x => x.id === id);
+  if (!e) return;
+  // Navigate to history and open this entry's detail
+  goPage('history');
+  setTimeout(() => {
+    if (typeof showEntryDetail === 'function') showEntryDetail(id);
+  }, 100);
+}
+
 let reviveDate = null; // date being revived
 
 function renderStreakRevive() {
@@ -1613,6 +1703,7 @@ function renderHome() {
   renderBadges(s);
   renderFreezeCard();
   renderStreakRevive();
+  renderMemories();
   const es = getEntries().slice(0, 3), el = document.getElementById('recent-entries');
   if (!es.length) {
     el.innerHTML = `<div class="empty-state">

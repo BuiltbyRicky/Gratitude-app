@@ -203,3 +203,16 @@ html, body { overscroll-behavior: none; background: #FAF8F4; color-scheme: light
 .revive-sub{font-size:12px;color:var(--ink-60);line-height:1.5;}
 .revive-btn{background:#f5a623;color:#fff;border:none;border-radius:var(--radius-pill);padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font-sans);white-space:nowrap;flex-shrink:0;transition:var(--transition);}
 .revive-btn:hover{background:#e09515;}
+
+/* ══════════════════════════════════════════════════
+   ON THIS DAY MEMORIES
+══════════════════════════════════════════════════ */
+.memory-card{background:linear-gradient(135deg,#f3eef7,#ede5f3);border:1px solid #c4a8db;border-radius:var(--radius-xl);padding:1.5rem;margin:1.5rem 0;cursor:pointer;transition:var(--transition);position:relative;overflow:hidden;}
+.memory-card::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;background:radial-gradient(circle,rgba(91,74,138,0.08),transparent 70%);border-radius:50%;pointer-events:none;}
+.memory-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);border-color:#a07fc4;}
+.memory-eyebrow{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.memory-icon{font-size:18px;}
+.memory-label{font-size:11px;font-weight:600;color:#5B4A8A;text-transform:uppercase;letter-spacing:1px;}
+.memory-date{font-size:13px;color:var(--ink-60);margin-bottom:12px;font-weight:500;}
+.memory-excerpt{font-family:var(--font-serif);font-size:16px;font-style:italic;color:var(--ink);line-height:1.6;margin-bottom:1rem;}
+.memory-cta{font-size:12px;color:#5B4A8A;font-weight:500;}
