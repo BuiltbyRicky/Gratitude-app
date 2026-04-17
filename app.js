@@ -1704,6 +1704,7 @@ function renderHome() {
   renderFreezeCard();
   renderStreakRevive();
   renderMemories();
+  renderChallenge();
   const es = getEntries().slice(0, 3), el = document.getElementById('recent-entries');
   if (!es.length) {
     el.innerHTML = `<div class="empty-state">
@@ -1805,7 +1806,214 @@ function highlightMatch(text, query) {
   return safeText.replace(new RegExp(`(${escaped})`, 'gi'), '<mark style="background:rgba(45,122,95,0.15);border-radius:3px;padding:0 2px;color:var(--sage-dark);">$1</mark>');
 }
 
-// ── ENTRY COLOR TAGS ──────────────────────────────
+// ── 7-DAY GRATITUDE CHALLENGE ─────────────────────
+const CHALLENGE_DAYS = [
+  { day: 1, theme: 'People', icon: '💝', title: 'Day 1 — Someone Who Shaped You',
+    desc: 'Today we focus on the people who have made you who you are.',
+    questions: [
+      "Who is someone who believed in you before you believed in yourself? What did they see?",
+      "Name one person you'd be a completely different person without. Why?",
+      "Whose voice do you still hear in your head when you face a challenge?",
+      "Who taught you what love or kindness actually looks like in practice?",
+      "If you could write a thank-you to one person right now, who would it be and what would it say?",
+    ]},
+  { day: 2, theme: 'Body', icon: '🌿', title: 'Day 2 — Your Body',
+    desc: 'A day to appreciate the body that carries you through every moment.',
+    questions: [
+      "What's one thing your body does that you take completely for granted?",
+      "Where in your body do you feel strongest right now?",
+      "What's one sense — sight, smell, taste, touch, hearing — you're especially grateful for today?",
+      "What has your body survived that you don't give it credit for?",
+      "What's one way you could thank your body this week?",
+    ]},
+  { day: 3, theme: 'Place', icon: '🏠', title: 'Day 3 — Where You Are',
+    desc: 'Notice and appreciate the place where your life is happening.',
+    questions: [
+      "What's one thing about where you live that you'd miss if you moved?",
+      "Describe a corner of your home that feels most like you.",
+      "What place — anywhere in the world — do you feel most like yourself in?",
+      "What do you love about your neighborhood, town, or city right now?",
+      "What's one ordinary view, sound, or smell from your daily life that's actually beautiful?",
+    ]},
+  { day: 4, theme: 'Struggle', icon: '⛰️', title: 'Day 4 — A Hidden Gift',
+    desc: 'The hardest things often teach us the most. Today we look for the gift inside difficulty.',
+    questions: [
+      "What's one struggle from your past that you can now see was actually a turning point?",
+      "What did a difficult chapter of your life teach you about yourself?",
+      "What's something you'd never have learned if life had been easier?",
+      "Which of your strengths came directly from going through something hard?",
+      "What current challenge might be making you stronger in ways you can't see yet?",
+    ]},
+  { day: 5, theme: 'Small Things', icon: '☕', title: 'Day 5 — The Tiny Joys',
+    desc: 'Today we slow down and notice the small things that make life worth living.',
+    questions: [
+      "What's a tiny pleasure — a smell, taste, sound, or feeling — you experienced today?",
+      "What's one small daily ritual that brings you quiet joy?",
+      "What's something you'd put in a 'jar of good moments' from the past week?",
+      "What's a sound that immediately makes you feel at home?",
+      "What's something free — that costs nothing — that you genuinely treasure?",
+    ]},
+  { day: 6, theme: 'Future Self', icon: '🌅', title: 'Day 6 — Looking Forward',
+    desc: 'Gratitude isn\'t only for the past. Today we\'re grateful for what\'s ahead.',
+    questions: [
+      "What's one thing you're genuinely excited about in the next 6 months?",
+      "What part of your life is heading in a direction you're proud of?",
+      "What seed are you planting now that your future self will thank you for?",
+      "What new chapter do you sense beginning?",
+      "What do you want to be grateful for one year from today?",
+    ]},
+  { day: 7, theme: 'Yourself', icon: '✨', title: 'Day 7 — Yourself',
+    desc: 'The hardest one. The most important. Today, gratitude for you.',
+    questions: [
+      "What's one thing about yourself that you genuinely like?",
+      "What did you do well this week that you haven't acknowledged?",
+      "What part of your character are you proud to have built?",
+      "If a younger version of you could see who you are now, what would surprise them?",
+      "What's one thing you can thank yourself for today?",
+    ]},
+];
+
+function getChallengeData() {
+  if (!currentUser) return { active: false, day: 0, completed: [] };
+  const data = JSON.parse(localStorage.getItem('gj_challenge_' + currentUser.id) || 'null');
+  return data || { active: false, day: 0, completed: [], startDate: null };
+}
+
+function saveChallengeData(data) {
+  if (!currentUser) return;
+  localStorage.setItem('gj_challenge_' + currentUser.id, JSON.stringify(data));
+}
+
+function startChallenge() {
+  const data = { active: true, day: 1, completed: [], startDate: Date.now() };
+  saveChallengeData(data);
+  renderChallenge();
+  alert('🌟 7-Day Gratitude Challenge started! Begin Day 1 whenever you\'re ready.');
+}
+
+function endChallenge() {
+  if (!confirm('Are you sure you want to leave the challenge? Your progress will be saved.')) return;
+  const data = getChallengeData();
+  data.active = false;
+  saveChallengeData(data);
+  renderChallenge();
+}
+
+function startChallengeDay() {
+  const data = getChallengeData();
+  if (!data.active) return;
+  const dayData = CHALLENGE_DAYS[data.day - 1];
+  if (!dayData) return;
+  // Override session questions with challenge questions
+  moodBefore = null; moodAfter = null;
+  sessionQs = dayData.questions;
+  qIdx = 0;
+  qAnswers = Array(sessionQs.length).fill('');
+  inputMode = 'voice';
+  // Mark challenge active for this session
+  window._activeChallenge = data.day;
+  renderBreathOpts();
+  goPage('breath');
+}
+
+function completeChallengeDay(day) {
+  const data = getChallengeData();
+  if (!data.completed.includes(day)) {
+    data.completed.push(day);
+  }
+  if (day < 7) {
+    data.day = day + 1;
+  } else {
+    // Challenge complete!
+    data.active = false;
+    data.day = 7;
+    setTimeout(() => {
+      alert('🎉 You completed the 7-Day Gratitude Challenge! Take a moment to feel proud of what you just built.');
+    }, 1500);
+  }
+  saveChallengeData(data);
+  window._activeChallenge = null;
+}
+
+function renderChallenge() {
+  const wrap = document.getElementById('challenge-wrap');
+  if (!wrap) return;
+  const data = getChallengeData();
+
+  if (!data.active && data.completed.length === 0) {
+    // Promote — invite to start
+    wrap.innerHTML = `
+      <div class="challenge-card challenge-promo">
+        <div class="challenge-promo-icon">🌟</div>
+        <div class="challenge-promo-title">7-Day Gratitude Challenge</div>
+        <div class="challenge-promo-sub">A guided journey through 7 themes — people, body, place, struggle, small things, future, and yourself.</div>
+        <button class="challenge-start-btn" onclick="startChallenge()">Begin the challenge →</button>
+      </div>`;
+    return;
+  }
+
+  if (!data.active && data.completed.length === 7) {
+    // Already completed
+    wrap.innerHTML = `
+      <div class="challenge-card challenge-done">
+        <div class="challenge-promo-icon">🏆</div>
+        <div class="challenge-promo-title">Challenge complete</div>
+        <div class="challenge-promo-sub">You finished the 7-Day Gratitude Challenge. That's something to be proud of.</div>
+        <button class="challenge-start-btn" onclick="restartChallenge()">Start it again →</button>
+      </div>`;
+    return;
+  }
+
+  if (!data.active) {
+    // Paused — show resume button
+    wrap.innerHTML = `
+      <div class="challenge-card">
+        <div class="challenge-head">
+          <div class="challenge-eyebrow">7-Day Challenge</div>
+          <button class="challenge-end-btn" onclick="restartChallenge()">Restart</button>
+        </div>
+        <div class="challenge-progress-text">Paused on Day ${data.day} · ${data.completed.length}/7 complete</div>
+        <button class="challenge-start-btn" onclick="resumeChallenge()">Resume challenge →</button>
+      </div>`;
+    return;
+  }
+
+  // Active — show today's day
+  const dayData = CHALLENGE_DAYS[data.day - 1];
+  if (!dayData) return;
+  const isDayDone = data.completed.includes(data.day);
+
+  wrap.innerHTML = `
+    <div class="challenge-card challenge-active">
+      <div class="challenge-head">
+        <div class="challenge-eyebrow">Challenge · Day ${data.day} of 7</div>
+        <button class="challenge-end-btn" onclick="endChallenge()">Pause</button>
+      </div>
+      <div class="challenge-day-title">${dayData.icon} ${dayData.title}</div>
+      <div class="challenge-day-desc">${dayData.desc}</div>
+      <div class="challenge-progress-bar">
+        ${[1,2,3,4,5,6,7].map(d => `<div class="challenge-dot ${data.completed.includes(d) ? 'done' : d === data.day ? 'current' : ''}"></div>`).join('')}
+      </div>
+      ${isDayDone
+        ? `<div class="challenge-done-msg">✓ Day ${data.day} complete. Come back tomorrow for Day ${Math.min(data.day + 1, 7)}.</div>`
+        : `<button class="challenge-start-btn" onclick="startChallengeDay()">Begin Day ${data.day} →</button>`}
+    </div>`;
+}
+
+function resumeChallenge() {
+  const data = getChallengeData();
+  data.active = true;
+  saveChallengeData(data);
+  renderChallenge();
+}
+
+function restartChallenge() {
+  if (!confirm('Restart the 7-Day Gratitude Challenge from Day 1?')) return;
+  saveChallengeData({ active: true, day: 1, completed: [], startDate: Date.now() });
+  renderChallenge();
+}
+
+
 const ENTRY_TAGS = {
   rose:     { color: '#E89B9B', label: 'Rose',     desc: 'Love & connection' },
   amber:    { color: '#E8B05A', label: 'Amber',    desc: 'Joy & gratitude' },
@@ -2638,6 +2846,10 @@ async function finishSession() {
     revived.push(d.toDateString());
     localStorage.setItem(revivedKey, JSON.stringify(revived));
     reviveDate = null;
+  }
+  // Mark challenge day complete if this was a challenge session
+  if (window._activeChallenge) {
+    completeChallengeDay(window._activeChallenge);
   }
   const saved = cachedEntries[0] || entry;
   renderSummaryPage(saved);

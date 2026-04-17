@@ -240,3 +240,28 @@ html, body { overscroll-behavior: none; background: #FAF8F4; color-scheme: light
 .tag-dot{width:18px;height:18px;border-radius:50%;flex-shrink:0;}
 .tag-label{font-weight:500;flex-shrink:0;width:80px;}
 .tag-desc{font-size:12px;color:var(--ink-60);font-style:italic;}
+
+/* ══════════════════════════════════════════════════
+   7-DAY CHALLENGE
+══════════════════════════════════════════════════ */
+.challenge-card{background:linear-gradient(135deg,#fef9ec,#fef3d4);border:1.5px solid #e8b85a;border-radius:var(--radius-xl);padding:1.5rem;margin:1rem 0;}
+.challenge-promo{text-align:center;}
+.challenge-promo-icon{font-size:36px;margin-bottom:8px;}
+.challenge-promo-title{font-family:var(--font-serif);font-size:20px;font-weight:500;color:var(--ink);margin-bottom:6px;letter-spacing:-0.2px;}
+.challenge-promo-sub{font-size:13px;color:var(--ink-60);line-height:1.6;margin-bottom:1.25rem;max-width:320px;margin-left:auto;margin-right:auto;}
+.challenge-start-btn{background:#c19330;color:#fff;border:none;border-radius:var(--radius-pill);padding:12px 28px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--font-sans);transition:var(--transition);}
+.challenge-start-btn:hover{background:#a37e29;}
+.challenge-active{background:linear-gradient(135deg,#fef9ec,#fcedc4);}
+.challenge-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.challenge-eyebrow{font-size:11px;font-weight:600;color:#a37e29;text-transform:uppercase;letter-spacing:1px;}
+.challenge-end-btn{background:none;border:1px solid var(--ink-30);color:var(--ink-60);font-size:11px;padding:4px 10px;border-radius:var(--radius-pill);cursor:pointer;font-family:var(--font-sans);}
+.challenge-end-btn:hover{background:var(--cream-dark);}
+.challenge-day-title{font-family:var(--font-serif);font-size:19px;font-weight:500;color:var(--ink);margin-bottom:6px;letter-spacing:-0.2px;}
+.challenge-day-desc{font-size:13px;color:var(--ink-60);line-height:1.6;margin-bottom:1rem;}
+.challenge-progress-bar{display:flex;gap:6px;margin-bottom:1rem;}
+.challenge-dot{flex:1;height:5px;border-radius:3px;background:rgba(193,147,48,0.2);}
+.challenge-dot.done{background:#c19330;}
+.challenge-dot.current{background:#e8b85a;}
+.challenge-done-msg{background:rgba(45,122,95,0.1);color:var(--sage);padding:10px 14px;border-radius:var(--radius-md);font-size:13px;text-align:center;font-weight:500;}
+.challenge-progress-text{font-size:13px;color:var(--ink-60);margin-bottom:12px;}
+.challenge-done{background:linear-gradient(135deg,#edf5f1,#d8ecdf);border-color:#7BBDA4;text-align:center;}
