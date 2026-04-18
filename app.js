@@ -3328,7 +3328,85 @@ function restartChallenge() {
 }
 
 
-// ── SHAKE TO CAPTURE ──────────────────────────────
+// ── APPLE HEALTH INTEGRATION ──────────────────────
+// Logs Mindful Minutes to Apple Health on each completed session.
+// Uses @capacitor-community/health if installed; gracefully no-ops otherwise.
+
+let healthPlugin = null;
+let healthChecked = false;
+
+async function getHealthPlugin() {
+  if (healthChecked) return healthPlugin;
+  healthChecked = true;
+  if (!window.Capacitor || !window.Capacitor.isNativePlatform()) return null;
+  try {
+    const mod = await import('@capacitor-community/health');
+    healthPlugin = mod.Health || mod.default || null;
+  } catch(e) {
+    // Plugin not installed yet — silently disable feature
+    healthPlugin = null;
+  }
+  return healthPlugin;
+}
+
+async function isHealthAuthorized() {
+  if (!currentUser) return false;
+  return localStorage.getItem('gj_health_auth_' + currentUser.id) === '1';
+}
+
+async function requestHealthPermission() {
+  const Health = await getHealthPlugin();
+  if (!Health) return { ok: false, reason: 'plugin' };
+  try {
+    // Check availability
+    const avail = await Health.isAvailable();
+    if (!avail || avail.available === false) return { ok: false, reason: 'unavailable' };
+
+    await Health.requestAuth({
+      read: [],
+      write: ['mindfulness'],
+    });
+    if (currentUser) localStorage.setItem('gj_health_auth_' + currentUser.id, '1');
+    return { ok: true };
+  } catch(e) {
+    return { ok: false, reason: 'denied', error: e?.message };
+  }
+}
+
+async function logMindfulMinutesToHealth(entryDate, durationMinutes) {
+  if (!await isHealthAuthorized()) return;
+  const Health = await getHealthPlugin();
+  if (!Health) return;
+  try {
+    const start = new Date(entryDate);
+    const end = new Date(start.getTime() + durationMinutes * 60 * 1000);
+    await Health.store({
+      startDate: start.toISOString(),
+      endDate: end.toISOString(),
+      dataType: 'mindfulness',
+      value: '0',
+      unit: 's',
+    });
+  } catch(e) {
+    // Silent — don't disrupt the user experience
+    console.log('Health log failed:', e?.message);
+  }
+}
+
+function estimateSessionMinutes(entry) {
+  const totalWords = (entry.answers || []).reduce((s, a) => s + (a ? a.trim().split(/\s+/).filter(Boolean).length : 0), 0);
+  // Floor at 3 minutes (breath + reflection always takes time even with short answers)
+  return Math.max(3, Math.round(totalWords / 80));
+}
+
+async function disconnectHealth() {
+  if (!currentUser) return;
+  // We can't programmatically revoke iOS HealthKit permissions — only the user can in Settings.
+  // Just remove our local flag so we stop writing.
+  localStorage.removeItem('gj_health_auth_' + currentUser.id);
+}
+
+
 let shakeInitialized = false;
 let shakeLastX = 0, shakeLastY = 0, shakeLastZ = 0;
 let shakeLastTime = 0;
@@ -4229,6 +4307,61 @@ function renderSettings() {
 
   // Shake to capture status
   renderShakeStatus();
+
+  // Apple Health status (only shows on iOS)
+  renderHealthStatus();
+}
+
+async function renderHealthStatus() {
+  const block = document.getElementById('health-block');
+  const label = document.getElementById('health-status-label');
+  const btn = document.getElementById('health-toggle-btn');
+  if (!block || !label || !btn) return;
+
+  // Only show this section on iOS
+  if (!window.Capacitor || !window.Capacitor.isNativePlatform()) {
+    block.style.display = 'none';
+    return;
+  }
+
+  // Check if plugin is available
+  const Health = await getHealthPlugin();
+  if (!Health) {
+    // Plugin not installed yet — hide section
+    block.style.display = 'none';
+    return;
+  }
+
+  block.style.display = '';
+  const authed = await isHealthAuthorized();
+  if (authed) {
+    label.innerHTML = '<span style="color:var(--sage);">✓ Connected — logging mindful minutes</span>';
+    btn.textContent = 'Disconnect';
+  } else {
+    label.innerHTML = '<span style="color:var(--ink-60);">Not connected</span>';
+    btn.textContent = 'Connect';
+  }
+}
+
+async function toggleHealthFromSettings() {
+  const btn = document.getElementById('health-toggle-btn');
+  const authed = await isHealthAuthorized();
+  if (authed) {
+    await disconnectHealth();
+    alert('Disconnected. To fully revoke access, also visit iPhone Settings → Health → Sources → Gratitude.');
+  } else {
+    if (btn) { btn.disabled = true; btn.textContent = 'Requesting…'; }
+    const result = await requestHealthPermission();
+    if (btn) btn.disabled = false;
+    if (!result.ok) {
+      if (result.reason === 'unavailable') {
+        alert('Apple Health is not available on this device.');
+      } else {
+        alert('Permission was not granted. You can enable it in iPhone Settings → Health → Sources → Gratitude.');
+      }
+    }
+  }
+  renderHealthStatus();
 }
 
 function renderShakeStatus() {
@@ -5675,6 +5808,10 @@ async function finishSession() {
   renderSummaryPage(saved);
   goPage('summary');
   if (voiceOn) setTimeout(() => say("Well done. Your entry has been saved to the cloud. Take a moment to appreciate yourself for showing up today."), 600);
+
+  // Log mindful minutes to Apple Health (silent, non-blocking)
+  logMindfulMinutesToHealth(saved.date || entry.date, estimateSessionMinutes(saved));
+
   // Check for milestone after a short delay so summary renders first
   setTimeout(() => {
     checkMilestone(getEntries().length);

@@ -463,6 +463,20 @@
         </div>
       </div>
 
+      <div class="settings-block" id="health-block" style="display:none;">
+        <div class="settings-block-title">
+          <span style="display:inline-flex;align-items:center;gap:8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#FF2D55" style="flex-shrink:0;"><path d="M12 21s-7-5-9-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c-2 5-9 10-9 10z"/></svg>
+            Apple Health
+          </span>
+        </div>
+        <p style="font-size:13px;color:var(--ink-60);line-height:1.65;margin-bottom:1rem;">Log your mindful minutes to Apple Health automatically. Each completed session adds time to your Mindful Minutes.</p>
+        <div id="health-status-row" class="shake-status-row">
+          <span id="health-status-label">Checking…</span>
+          <button class="btn" id="health-toggle-btn" onclick="toggleHealthFromSettings()">Connect</button>
+        </div>
+      </div>
+
       <div class="settings-block">
         <div class="settings-block-title">Voice narration</div>
         <div class="settings-info">Tap <strong>Voice</strong> in the top bar to enable calming voice narration. Your device's built-in voice reads each question aloud — no account needed.</div>

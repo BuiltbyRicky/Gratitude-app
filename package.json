@@ -16,6 +16,7 @@
     "@capacitor/core": "^8.3.0",
     "@capacitor/ios": "^8.3.0",
     "@capacitor/local-notifications": "^8.0.2",
+    "capacitor-health": "^8.1.0",
     "capacitor-voice-recorder": "^7.0.6"
   }
 }
