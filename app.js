@@ -3335,22 +3335,13 @@ function restartChallenge() {
 
 // ── APPLE HEALTH INTEGRATION ──────────────────────
 // Logs Mindful Minutes to Apple Health on each completed session.
-// Uses capacitor-health (Cap-go) if installed; gracefully no-ops otherwise.
+// Uses @capgo/capacitor-health via window.Capacitor.Plugins (same pattern as
+// LocalNotifications and SpeechRecognition — works inside Capacitor WebView).
 
-let healthPlugin = null;
-let healthChecked = false;
-
-async function getHealthPlugin() {
-  if (healthChecked) return healthPlugin;
-  healthChecked = true;
+function getHealthPlugin() {
   if (!window.Capacitor || !window.Capacitor.isNativePlatform()) return null;
-  try {
-    const mod = await import('capacitor-health');
-    healthPlugin = mod.Health || mod.default || null;
-  } catch(e) {
-    healthPlugin = null;
-  }
-  return healthPlugin;
+  // Plugin registers itself as "Health" on window.Capacitor.Plugins
+  return window.Capacitor?.Plugins?.Health || null;
 }
 
 async function isHealthAuthorized() {
@@ -3359,48 +3350,39 @@ async function isHealthAuthorized() {
 }
 
 async function requestHealthPermission() {
-  const Health = await getHealthPlugin();
+  const Health = getHealthPlugin();
   if (!Health) return { ok: false, reason: 'plugin' };
   try {
     // Check availability first
-    const avail = await Health.isHealthAvailable();
-    if (!avail || avail.available === false) return { ok: false, reason: 'unavailable' };
+    const avail = await Health.isAvailable();
+    if (!avail || !avail.available) return { ok: false, reason: 'unavailable' };
 
-    // Request mindfulness write permission
-    await Health.requestHealthPermissions({
-      permissions: ['READ_MINDFULNESS', 'WRITE_MINDFULNESS'],
+    // @capgo/capacitor-health uses lowercase data type names
+    await Health.requestAuthorization({
+      read: ['mindfulness'],
+      write: ['mindfulness'],
     });
 
     if (currentUser) localStorage.setItem('gj_health_auth_' + currentUser.id, '1');
     return { ok: true };
   } catch(e) {
+    console.log('Health permission error:', e?.message);
     return { ok: false, reason: 'denied', error: e?.message };
   }
 }
 
 async function logMindfulMinutesToHealth(entryDate, durationMinutes) {
   if (!await isHealthAuthorized()) return;
-  const Health = await getHealthPlugin();
+  const Health = getHealthPlugin();
   if (!Health) return;
   try {
     const start = new Date(entryDate);
     const end = new Date(start.getTime() + durationMinutes * 60 * 1000);
-    // capacitor-health supports storing mindfulness sessions
-    if (typeof Health.storeMindfulness === 'function') {
-      await Health.storeMindfulness({
-        startDate: start.toISOString(),
-        endDate: end.toISOString(),
-      });
-    } else if (typeof Health.store === 'function') {
-      // Fallback signature for API variants
-      await Health.store({
-        dataType: 'mindfulness',
-        startDate: start.toISOString(),
-        endDate: end.toISOString(),
-        value: durationMinutes * 60,
-        unit: 'second',
-      });
-    }
+    await Health.saveSample({
+      dataType: 'mindfulness',
+      startDate: start.toISOString(),
+      endDate: end.toISOString(),
+    });
   } catch(e) {
     console.log('Health log failed:', e?.message);
   }
@@ -3424,7 +3406,7 @@ async function promptHealthOnFirstLaunch() {
   if (!currentUser) return;
   if (localStorage.getItem('gj_health_asked_' + currentUser.id)) return;
   if (!window.Capacitor || !window.Capacitor.isNativePlatform()) return;
-  const Health = await getHealthPlugin();
+  const Health = getHealthPlugin();
   if (!Health) return;
 
   // Don't prompt if user is mid-session
@@ -4423,7 +4405,7 @@ async function renderHealthStatus() {
   }
 
   // Check if plugin is available
-  const Health = await getHealthPlugin();
+  const Health = getHealthPlugin();
   if (!Health) {
     // Plugin not installed yet — hide section
     block.style.display = 'none';
