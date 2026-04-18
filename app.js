@@ -323,6 +323,11 @@ async function launchApp() {
     setTimeout(() => refreshNotifSchedule(), 3000);
   }
 
+  // Ask for Apple Health permission on first launch (after notifications settle)
+  if (!localStorage.getItem('gj_health_asked_' + currentUser.id)) {
+    setTimeout(() => promptHealthOnFirstLaunch(), 4500);
+  }
+
   // Set up shake-to-capture (delayed so it doesn't fire during sign-in animation)
   setTimeout(() => initShakeDetection(), 2000);
 }
@@ -3330,7 +3335,7 @@ function restartChallenge() {
 
 // ── APPLE HEALTH INTEGRATION ──────────────────────
 // Logs Mindful Minutes to Apple Health on each completed session.
-// Uses @capacitor-community/health if installed; gracefully no-ops otherwise.
+// Uses capacitor-health (Cap-go) if installed; gracefully no-ops otherwise.
 
 let healthPlugin = null;
 let healthChecked = false;
@@ -3340,10 +3345,9 @@ async function getHealthPlugin() {
   healthChecked = true;
   if (!window.Capacitor || !window.Capacitor.isNativePlatform()) return null;
   try {
-    const mod = await import('@capacitor-community/health');
+    const mod = await import('capacitor-health');
     healthPlugin = mod.Health || mod.default || null;
   } catch(e) {
-    // Plugin not installed yet — silently disable feature
     healthPlugin = null;
   }
   return healthPlugin;
@@ -3358,14 +3362,15 @@ async function requestHealthPermission() {
   const Health = await getHealthPlugin();
   if (!Health) return { ok: false, reason: 'plugin' };
   try {
-    // Check availability
-    const avail = await Health.isAvailable();
+    // Check availability first
+    const avail = await Health.isHealthAvailable();
     if (!avail || avail.available === false) return { ok: false, reason: 'unavailable' };
 
-    await Health.requestAuth({
-      read: [],
-      write: ['mindfulness'],
+    // Request mindfulness write permission
+    await Health.requestHealthPermissions({
+      permissions: ['READ_MINDFULNESS', 'WRITE_MINDFULNESS'],
     });
+
     if (currentUser) localStorage.setItem('gj_health_auth_' + currentUser.id, '1');
     return { ok: true };
   } catch(e) {
@@ -3380,30 +3385,123 @@ async function logMindfulMinutesToHealth(entryDate, durationMinutes) {
   try {
     const start = new Date(entryDate);
     const end = new Date(start.getTime() + durationMinutes * 60 * 1000);
-    await Health.store({
-      startDate: start.toISOString(),
-      endDate: end.toISOString(),
-      dataType: 'mindfulness',
-      value: '0',
-      unit: 's',
-    });
+    // capacitor-health supports storing mindfulness sessions
+    if (typeof Health.storeMindfulness === 'function') {
+      await Health.storeMindfulness({
+        startDate: start.toISOString(),
+        endDate: end.toISOString(),
+      });
+    } else if (typeof Health.store === 'function') {
+      // Fallback signature for API variants
+      await Health.store({
+        dataType: 'mindfulness',
+        startDate: start.toISOString(),
+        endDate: end.toISOString(),
+        value: durationMinutes * 60,
+        unit: 'second',
+      });
+    }
   } catch(e) {
-    // Silent — don't disrupt the user experience
     console.log('Health log failed:', e?.message);
   }
 }
 
 function estimateSessionMinutes(entry) {
   const totalWords = (entry.answers || []).reduce((s, a) => s + (a ? a.trim().split(/\s+/).filter(Boolean).length : 0), 0);
-  // Floor at 3 minutes (breath + reflection always takes time even with short answers)
   return Math.max(3, Math.round(totalWords / 80));
 }
 
 async function disconnectHealth() {
   if (!currentUser) return;
-  // We can't programmatically revoke iOS HealthKit permissions — only the user can in Settings.
-  // Just remove our local flag so we stop writing.
   localStorage.removeItem('gj_health_auth_' + currentUser.id);
+}
+
+// Pre-permission explainer shown once on first launch.
+// This improves acceptance rates — iOS only lets you ask once, so we want the user
+// to understand WHY before the native popup appears.
+async function promptHealthOnFirstLaunch() {
+  // Skip if already asked, not on iOS, or plugin not installed
+  if (!currentUser) return;
+  if (localStorage.getItem('gj_health_asked_' + currentUser.id)) return;
+  if (!window.Capacitor || !window.Capacitor.isNativePlatform()) return;
+  const Health = await getHealthPlugin();
+  if (!Health) return;
+
+  // Don't prompt if user is mid-session
+  const activePage = document.querySelector('.page.active')?.id;
+  if (['page-journal', 'page-mood-before', 'page-mood-after', 'page-breath', 'page-breathex'].includes(activePage)) {
+    // Try again in a bit
+    setTimeout(() => promptHealthOnFirstLaunch(), 30000);
+    return;
+  }
+
+  const overlay = document.createElement('div');
+  overlay.id = 'health-prompt-overlay';
+  overlay.className = 'health-prompt-overlay';
+  overlay.innerHTML = `
+    <div class="health-prompt-modal">
+      <div class="health-prompt-icon">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="#FF2D55"><path d="M12 21s-7-5-9-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c-2 5-9 10-9 10z"/></svg>
+      </div>
+      <div class="health-prompt-title">Log to Apple Health?</div>
+      <div class="health-prompt-sub">Gratitude can automatically log your completed sessions as <strong>Mindful Minutes</strong> in Apple Health — alongside your workouts, sleep, and meditation data.</div>
+
+      <div class="health-prompt-benefits">
+        <div class="health-prompt-benefit">
+          <span class="health-prompt-check">✓</span>
+          <span>Builds your wellness timeline</span>
+        </div>
+        <div class="health-prompt-benefit">
+          <span class="health-prompt-check">✓</span>
+          <span>Only writes mindful minutes — never reads anything</span>
+        </div>
+        <div class="health-prompt-benefit">
+          <span class="health-prompt-check">✓</span>
+          <span>Fully private, stays on your device</span>
+        </div>
+      </div>
+
+      <div class="health-prompt-actions">
+        <button class="btn" onclick="declineHealthPrompt()">Not now</button>
+        <button class="btn solid" onclick="acceptHealthPrompt()">Connect →</button>
+      </div>
+
+      <div class="health-prompt-footnote">You can change this any time in Settings.</div>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+}
+
+function declineHealthPrompt() {
+  if (currentUser) localStorage.setItem('gj_health_asked_' + currentUser.id, '1');
+  const o = document.getElementById('health-prompt-overlay');
+  if (o) o.remove();
+  document.body.style.overflow = '';
+}
+
+async function acceptHealthPrompt() {
+  const btn = document.querySelector('#health-prompt-overlay .btn.solid');
+  if (btn) { btn.disabled = true; btn.textContent = 'Requesting…'; }
+
+  const result = await requestHealthPermission();
+  // Mark asked regardless of outcome — iOS won't show native popup twice
+  if (currentUser) localStorage.setItem('gj_health_asked_' + currentUser.id, '1');
+
+  const o = document.getElementById('health-prompt-overlay');
+  if (o) o.remove();
+  document.body.style.overflow = '';
+
+  if (result.ok) {
+    // Subtle confirmation toast
+    const toast = document.createElement('div');
+    toast.className = 'quick-capture-toast';
+    toast.innerHTML = `<span class="quick-capture-toast-check">✓</span><span>Apple Health connected</span>`;
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.classList.add('fade-out'); setTimeout(() => toast.remove(), 400); }, 2200);
+  }
+
+  // Refresh settings if visible
+  if (document.getElementById('page-settings')?.classList.contains('active')) renderSettings();
 }
 
 

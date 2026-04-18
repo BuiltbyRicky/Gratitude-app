@@ -767,3 +767,19 @@ html, body { overscroll-behavior: none; background: #FAF8F4; color-scheme: light
 @keyframes shakeFlash{from{opacity:0;}50%{opacity:1;}to{opacity:0;}}
 .shake-status-row{display:flex;justify-content:space-between;align-items:center;gap:10px;}
 .shake-status-row .btn{padding:7px 14px;font-size:12px;flex-shrink:0;}
+
+/* ══════════════════════════════════════════════════
+   HEALTH PROMPT (first launch)
+══════════════════════════════════════════════════ */
+.health-prompt-overlay{position:fixed;inset:0;background:rgba(28,26,23,0.7);backdrop-filter:blur(10px);z-index:1050;display:flex;align-items:center;justify-content:center;padding:1.5rem;animation:fadeIn 0.3s ease;}
+.health-prompt-modal{background:var(--white);border-radius:24px;max-width:400px;width:100%;padding:2rem 1.75rem;text-align:center;animation:yrSlideIn 0.4s ease;box-shadow:0 20px 60px rgba(0,0,0,0.3);}
+.health-prompt-icon{margin-bottom:1rem;}
+.health-prompt-title{font-family:var(--font-serif);font-size:24px;font-weight:500;color:var(--ink);letter-spacing:-0.3px;margin-bottom:10px;}
+.health-prompt-sub{font-size:14px;color:var(--ink-60);line-height:1.6;margin-bottom:1.5rem;}
+.health-prompt-sub strong{color:var(--ink);font-weight:600;}
+.health-prompt-benefits{display:flex;flex-direction:column;gap:10px;background:var(--cream);border:1px solid var(--ink-15);border-radius:var(--radius-md);padding:14px 16px;margin-bottom:1.5rem;text-align:left;}
+.health-prompt-benefit{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--ink);line-height:1.5;}
+.health-prompt-check{color:var(--sage);font-weight:700;flex-shrink:0;margin-top:1px;}
+.health-prompt-actions{display:flex;gap:10px;margin-bottom:12px;}
+.health-prompt-actions .btn{flex:1;}
+.health-prompt-footnote{font-size:11px;color:var(--ink-60);font-style:italic;}
