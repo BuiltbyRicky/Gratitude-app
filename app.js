@@ -2717,7 +2717,50 @@ function calculateInsights() {
     firstEntry,
     tagBreakdown,
     dayOfWeekCounts,
+    topWords: calculateTopWords(es, 25),
   };
+}
+
+// Returns array of { word, count } sorted by frequency
+function calculateTopWords(entries, limit = 25) {
+  // Stop words to exclude — common filler
+  const stopWords = new Set([
+    'the','a','an','and','or','but','in','on','at','to','for','of','with','my','i','me','was',
+    'is','are','were','have','had','has','that','this','it','be','been','not','so','if','as',
+    'do','did','what','how','just','like','very','from','about','when','who','which','can','will',
+    'would','could','should','than','then','there','their','they','we','our','your','you','he',
+    'she','his','her','him','its','all','one','out','up','by','more','also','am','into','get',
+    'got','no','any','really','feel','feeling','felt','today','day','time','things','thing',
+    'some','been','im','ive','dont','youre','theres','isnt','wasnt','because','being','going',
+    'make','made','makes','know','knew','want','wanted','something','someone','anything',
+    'nothing','everything','much','many','most','even','such','still','now','here','over',
+    'down','off','only','own','same','other','well','way','say','said','see','saw','come',
+    'came','think','thought','though','lot','bit','take','took','good','bad','okay','ok',
+    'yes','yeah','nope','lol','haha','maybe','kinda','sorta','gonna','wanna','cant','wont',
+    'didnt', 'doesnt','shouldnt','wouldnt','couldnt','hasnt','havent','hadnt'
+  ]);
+
+  const counts = {};
+  entries.forEach(e => {
+    (e.answers || []).forEach(a => {
+      if (!a) return;
+      a.toLowerCase()
+        .replace(/[^a-z\s']/g, ' ')  // keep apostrophes, strip other punctuation
+        .replace(/'/g, '')            // then drop apostrophes too
+        .split(/\s+/)
+        .forEach(w => {
+          if (w.length < 4) return;   // require 4+ chars
+          if (stopWords.has(w)) return;
+          counts[w] = (counts[w] || 0) + 1;
+        });
+    });
+  });
+
+  return Object.entries(counts)
+    .filter(([, c]) => c >= 2)       // require word to appear at least twice
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, limit)
+    .map(([word, count]) => ({ word, count }));
 }
 
 function openInsights() {
@@ -2844,6 +2887,8 @@ function openInsights() {
         <div class="ins-day-bars">${dayBarsHtml}</div>
       </div>
 
+      ${renderWordCloudSection(insights.topWords)}
+
       ${tagsHtml}
 
       <div class="ins-footer-msg">
@@ -2854,6 +2899,39 @@ function openInsights() {
   document.body.appendChild(overlay);
   // Lock body scroll
   document.body.style.overflow = 'hidden';
+}
+
+function renderWordCloudSection(topWords) {
+  if (!topWords || topWords.length < 5) return '';
+
+  const maxCount = topWords[0].count;
+  const minCount = topWords[topWords.length - 1].count;
+  const range = Math.max(1, maxCount - minCount);
+
+  // Color rotation — cycle through a pleasing palette of related sage/earth tones
+  const colors = ['#2D7A5F', '#5B4A8A', '#C97B3D', '#1E6A8A', '#8A3030', '#7BBDA4', '#D4B95C', '#9A6520'];
+
+  // Shuffle deterministically (same input = same output so it doesn't jump around on re-render)
+  const shuffled = [...topWords].sort((a, b) => {
+    // Weight so bigger words come first, but slightly mix so the visual isn't pure descending
+    return (b.count - a.count) + (Math.random() - 0.5) * 0.3;
+  });
+
+  return `
+    <div class="ins-section">
+      <div class="ins-section-title">Your words</div>
+      <div class="word-cloud-wrap">
+        ${shuffled.map((w, i) => {
+          // Scale font size from 13px (least common) to 30px (most common)
+          const scale = (w.count - minCount) / range;
+          const fontSize = 13 + Math.round(scale * 17);
+          const weight = scale > 0.6 ? 600 : scale > 0.3 ? 500 : 400;
+          const color = colors[i % colors.length];
+          return `<span class="word-cloud-word" style="font-size:${fontSize}px;font-weight:${weight};color:${color};" title="${w.count}×">${esc(w.word)}</span>`;
+        }).join('')}
+      </div>
+      <div class="word-cloud-caption">The themes of your reflections.</div>
+    </div>`;
 }
 
 function closeInsights() {
