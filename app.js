@@ -6676,10 +6676,20 @@ function makeShareBtn(ans, dateRaw) {
   return '<button class="share-quote-btn" onclick="openQuoteCard(' + safeAns + ', ' + safeDate + ')">↗ Share</button>';
 }
 
+let _quoteFontReady = false;
+
 async function _loadQuoteFonts() {
   if (_quoteFontReady) return;
-  // Try to load Lora into the document font stack — but if it takes more than 2 seconds
-  // (or fails entirely, which can happen inside Capacitor WebView), we fall back gracefully.
+
+  // On native iOS (Capacitor WebView), skip remote font loading — Lora isn't packaged
+  // with the app so the fetch will fail or stall. Canvas falls back to system serif,
+  // which is still a good-looking Georgia-like font on iOS.
+  if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+    _quoteFontReady = true;
+    return;
+  }
+
+  // On web, try to load Lora with a 2-second timeout
   try {
     const loraRegular = new FontFace('Lora', "url(https://fonts.gstatic.com/s/lora/v35/0QI6MX1D_JOxE7fSYN3Kts3hrQ.woff2)", { weight: '400', style: 'normal' });
     const loraItalic  = new FontFace('Lora', "url(https://fonts.gstatic.com/s/lora/v35/0QI8MX1D_JOxE7fSYN3Kts3lrA.woff2)", { weight: '400', style: 'italic' });
@@ -6785,14 +6795,18 @@ async function renderQuoteCard(text, date) {
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, SIZE, SIZE);
 
-  // ── Subtle grain overlay ──
-  const grainData = ctx.createImageData(SIZE, SIZE);
-  for (let i = 0; i < grainData.data.length; i += 4) {
-    const v = Math.random() > 0.5 ? 255 : 0;
-    grainData.data[i] = grainData.data[i+1] = grainData.data[i+2] = v;
-    grainData.data[i+3] = Math.floor(Math.random() * 8);
-  }
-  ctx.putImageData(grainData, 0, 0);
+    // ── Subtle grain overlay (skip silently if canvas rejects large ImageData) ──
+    try {
+      const grainData = ctx.createImageData(SIZE, SIZE);
+      for (let i = 0; i < grainData.data.length; i += 4) {
+        const v = Math.random() > 0.5 ? 255 : 0;
+        grainData.data[i] = grainData.data[i+1] = grainData.data[i+2] = v;
+        grainData.data[i+3] = Math.floor(Math.random() * 8);
+      }
+      ctx.putImageData(grainData, 0, 0);
+    } catch(grainErr) {
+      // Grain is purely decorative — skip if the WebView chokes on large ImageData
+    }
 
   // ── Card shadow + body ──
   const MARGIN = 80;
@@ -6929,11 +6943,11 @@ async function renderQuoteCard(text, date) {
       preview.src = canvas.toDataURL('image/png');
     }
   } catch(e) {
-    console.log('Quote card render failed:', e?.message);
+    console.log('Quote card render failed:', e?.message, e?.stack);
     // Show an error in the spinner area instead of leaving it spinning forever
     const spinner = document.getElementById('quote-card-spinner');
     if (spinner) {
-      spinner.innerHTML = `<span style="font-size:13px;color:var(--ink-60);text-align:center;padding:20px;">Couldn't generate card. Please try again.</span>`;
+      spinner.innerHTML = `<div style="font-size:13px;color:var(--ink-60);text-align:center;padding:20px;line-height:1.5;"><div style="font-weight:500;color:var(--ink);margin-bottom:6px;">Couldn't generate card</div><div style="font-size:11px;color:var(--ink-30);">${esc(e?.message || 'unknown error')}</div></div>`;
     }
   }
 }
