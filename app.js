@@ -6968,44 +6968,6 @@ function _roundRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
-// ── SHAREABLE APP LINK ─────────────────────────────
-// Swap APP_LINK_URL to your App Store URL once live (e.g., 'https://apps.apple.com/app/idXXXXX')
-const APP_LINK_URL = 'https://ironrockcapitalventures.com';
-
-async function copyAppLink() {
-  const btn = document.getElementById('quote-copy-link-btn');
-  if (!btn) return;
-
-  try {
-    // Modern clipboard API — works on iOS Safari, Capacitor, and desktop
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      await navigator.clipboard.writeText(APP_LINK_URL);
-    } else {
-      // Fallback for very old browsers
-      const ta = document.createElement('textarea');
-      ta.value = APP_LINK_URL;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-    }
-
-    // Visual feedback
-    const originalText = btn.textContent;
-    btn.textContent = '✓ Copied!';
-    btn.classList.add('copied');
-    setTimeout(() => {
-      btn.textContent = originalText;
-      btn.classList.remove('copied');
-    }, 1800);
-  } catch(e) {
-    btn.textContent = 'Copy failed';
-    setTimeout(() => { btn.textContent = '🔗 Copy link'; }, 1800);
-  }
-}
-
 async function shareOrDownloadQuoteCard() {
   const canvas = document.getElementById('quote-card-canvas');
   if (!canvas) return;
