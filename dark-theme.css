@@ -1,265 +1,722 @@
 /* ══════════════════════════════════════════════════════════
-   DARK MODE — Comprehensive theme overrides
+   DARK MODE — Premium, layered, warm
+   Inspired by Things 3 + Notion + Linear dark themes
    Applied when <html data-theme="dark">
 ══════════════════════════════════════════════════════════ */
 
 html[data-theme="dark"] {
-  /* Surfaces: inverted and tuned for warmth (not pure black) */
-  --cream: #14120F;           /* deepest base — was #FAF8F4 */
-  --cream-dark: #1C1A17;      /* slightly elevated — was #F2EFE9 */
-  --cream-mid: #24211E;       /* mid elevation for inputs — was #EAE6DE */
-  --white: #1F1C18;           /* cards — was pure white; now warm charcoal */
+  /* ─── ELEVATION LAYERS (Things 3 approach) ───
+     Multiple distinct surface levels create visual hierarchy.
+     Layer 0 = page background (darkest)
+     Layer 1 = elevated surface (stat tiles, nav)
+     Layer 2 = double-elevated (modals, popovers)
+     Layer 3 = active/highlighted surfaces
+  */
+  --cream: #0F0E0C;           /* Layer 0: deepest warm-black bg */
+  --cream-dark: #171513;      /* Layer 1: subtle elevation for inputs */
+  --cream-mid: #1F1C19;       /* Layer 2: input fields, chips */
+  --white: #1A1816;           /* Card surface (most cards use this) */
 
-  /* Text: soft warm whites, not pure #FFF (easier on eyes) */
-  --ink: #F5F1EA;             /* primary text — was near-black */
-  --ink-60: #A69F96;          /* secondary — was #6B6560 */
-  --ink-30: #706A62;          /* tertiary — was #B5B0A8 */
-  --ink-15: #2E2A25;          /* borders — was #DDD9D3 */
+  /* Text colors — Things 3 uses warm off-whites, never pure #FFF */
+  --ink: #EDE7DE;             /* Primary: 92% luminance warm ivory */
+  --ink-60: #9A9288;          /* Secondary: 60% opacity equivalent */
+  --ink-30: #5E5850;          /* Tertiary: hints/placeholders */
+  --ink-15: #2E2A26;          /* Borders: subtle, warm */
 
-  /* Sage palette: lightened so it pops on dark */
-  --sage: #6BB295;            /* primary sage — was #2D7A5F; now brighter */
-  --sage-light: #1F2A25;      /* sage background — was very light */
-  --sage-mid: #8FD1B5;        /* accent sage — brighter */
-  --sage-dark: #7BBDA4;       /* hover — lighter, not darker, for dark mode */
+  /* Sage — noticeably brighter & more saturated on dark */
+  --sage: #7FC4A6;            /* Primary accent — pops on dark */
+  --sage-light: #17241E;      /* Sage bg tint: very dark sage-green */
+  --sage-mid: #9DD4BA;        /* Brighter accent for highlights */
+  --sage-dark: #A3DEC1;       /* "Dark" variant is actually LIGHTER in dark mode (for hover states) */
 
-  /* Accent colors: boosted saturation for dark backgrounds */
-  --amber: #D99752;           /* was #9A6520 */
-  --amber-bg: #2B2015;        /* was #FDF3E3 */
-  --red: #E67068;             /* was #B5302A */
-  --red-bg: #2B1716;          /* was #FDF0EF */
+  /* Accent palette — rebalanced for dark backgrounds */
+  --amber: #E0A468;           /* Brighter, warmer amber */
+  --amber-bg: #2A1F14;        /* Dark amber tint */
+  --red: #E87B73;             /* Softer red */
+  --red-bg: #2A1818;          /* Dark red tint */
 
-  /* Shadows: use black with higher opacity (dark-on-dark needs more depth) */
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.25);
-  --shadow-lg: 0 12px 40px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.3);
+  /* Shadows — black with high opacity for depth on dark */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.5), 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.6), 0 2px 6px rgba(0,0,0,0.4);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.7), 0 4px 12px rgba(0,0,0,0.5);
 }
 
-/* Body background texture — reduce opacity on dark */
+/* ═══ BODY & NOISE TEXTURE ═══ */
+html[data-theme="dark"] body {
+  background: var(--cream);
+  color: var(--ink);
+}
 html[data-theme="dark"] body::before {
-  opacity: 0.15;
+  opacity: 0.08;
 }
 
-/* ─── NAVIGATION ─── */
+/* ═══ NAVIGATION ═══ */
 html[data-theme="dark"] .app-nav {
-  background: rgba(20, 18, 16, 0.92);
-  border-bottom-color: var(--ink-15);
+  background: rgba(15, 14, 12, 0.88) !important;
+  border-bottom-color: var(--ink-15) !important;
 }
 html[data-theme="dark"] .mobile-tabs {
-  background: rgba(20, 18, 16, 0.95);
-  border-top-color: var(--ink-15);
+  background: rgba(15, 14, 12, 0.95) !important;
+  border-top-color: var(--ink-15) !important;
+}
+html[data-theme="dark"] .nav-logo {
+  color: var(--ink);
+}
+html[data-theme="dark"] .nav-pills {
+  background: var(--cream-mid);
+}
+html[data-theme="dark"] .nav-pill {
+  color: var(--ink-60);
+}
+html[data-theme="dark"] .nav-pill:hover {
+  color: var(--ink);
 }
 html[data-theme="dark"] .nav-pill.active {
-  background: var(--cream-mid);
+  background: var(--white);
   color: var(--ink);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
 }
-
-/* ─── WEEKLY CARD (already dark, swap to slightly lighter so it stands out) ─── */
-html[data-theme="dark"] .weekly-card {
-  background: #0A0806;
-  border: 1px solid var(--ink-15);
-}
-
-/* ─── CELEBRATION MESSAGE (dark card that needs to pop on dark bg) ─── */
-html[data-theme="dark"] .cel-message {
-  background: #0A0806;
-  border: 1px solid var(--ink-15);
-}
-
-/* ─── LEARN TIP (green gradient card — darken so it doesn't blast the eyes) ─── */
-html[data-theme="dark"] .learn-tip {
-  background: linear-gradient(135deg, #1E5C46, #154030);
-}
-
-/* ─── INK-BACKED CARDS (freeze, streak milestones etc) ─── */
-html[data-theme="dark"] .freeze-btn {
-  background: var(--sage);
-  color: #0A0806;
-}
-html[data-theme="dark"] .freeze-btn:hover {
-  background: var(--sage-dark);
-}
-
-/* ─── GRADIENT OVERLAYS that use dark colors — boost contrast ─── */
-html[data-theme="dark"] .quote-tile::before {
-  color: rgba(139, 209, 181, 0.15);
-}
-html[data-theme="dark"] .quote-body {
-  color: var(--sage-mid);
-}
-html[data-theme="dark"] .quote-attr {
+html[data-theme="dark"] .mobile-tab.active {
   color: var(--sage);
 }
-
-/* ─── FILTER / CHIP: invert the "selected" color scheme ─── */
-html[data-theme="dark"] .filter-chip.active {
-  background: var(--sage);
-  color: #0A0806;
-  border-color: var(--sage);
-}
-html[data-theme="dark"] .learn-cat-tab.active {
-  background: var(--sage);
-  color: #0A0806;
-  border-color: var(--sage);
-}
-
-/* ─── BADGE TILES ─── */
-html[data-theme="dark"] .badge-tile.earned {
-  background: rgba(217, 151, 82, 0.1);
-  border-color: var(--amber);
-}
-
-/* ─── SEARCH INPUT: darker input field ─── */
-html[data-theme="dark"] .search-input {
-  background: var(--cream-mid);
-  color: var(--ink);
-}
-html[data-theme="dark"] .search-input:focus {
-  background: var(--cream-dark);
-}
-
-/* ─── JAR, ACHIEVEMENTS, YEAR REVIEW OVERLAYS: darker background ─── */
-html[data-theme="dark"] .insights-overlay,
-html[data-theme="dark"] .achievements-overlay,
-html[data-theme="dark"] .year-review-overlay,
-html[data-theme="dark"] .jar-overlay,
-html[data-theme="dark"] .health-prompt-overlay,
-html[data-theme="dark"] .quick-capture-overlay,
-html[data-theme="dark"] .photo-fullscreen-overlay,
-html[data-theme="dark"] .modal-overlay,
-html[data-theme="dark"] .badge-modal {
-  background: rgba(0, 0, 0, 0.75);
-  backdrop-filter: blur(12px);
-}
-
-html[data-theme="dark"] .insights-modal,
-html[data-theme="dark"] .achievements-modal,
-html[data-theme="dark"] .jar-modal,
-html[data-theme="dark"] .quick-capture-modal,
-html[data-theme="dark"] .health-prompt-modal,
-html[data-theme="dark"] .modal,
-html[data-theme="dark"] .badge-modal-inner {
-  background: var(--cream-dark);
-  border: 1px solid var(--ink-15);
-}
-
-/* ─── LINE CHARTS: lighten the line so it pops on dark ─── */
-html[data-theme="dark"] .mood-log-chart-svg path[stroke] {
-  stroke: var(--sage-mid) !important;
-}
-
-/* ─── HISTORY EDIT TEXTAREA ─── */
-html[data-theme="dark"] .hist-a-edit {
-  background: var(--cream);
-  border-color: var(--sage);
-}
-
-/* ─── BREATH EXERCISE CIRCLE (in dark mode the light bg looks wrong) ─── */
-html[data-theme="dark"] .ring-circle {
-  background: rgba(107, 178, 149, 0.12);
-  border-color: var(--sage);
-}
-html[data-theme="dark"] .ring-circle.exhale {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: var(--ink-30);
-}
-
-/* ─── MIC RING (live state) ─── */
-html[data-theme="dark"] .mic-ring {
-  background: var(--cream-dark);
-}
-html[data-theme="dark"] .mic-ring.live {
-  background: rgba(107, 178, 149, 0.12);
-}
-
-/* ─── ANSWER DISPLAY / TEXTAREA (written content surfaces) ─── */
-html[data-theme="dark"] .answer-display,
-html[data-theme="dark"] .answer-textarea,
-html[data-theme="dark"] .quick-capture-textarea,
-html[data-theme="dark"] .qc-voice-display {
+html[data-theme="dark"] .signout-btn:hover {
   background: var(--cream-mid);
   color: var(--ink);
 }
 
-/* ─── MOOD BUTTONS ─── */
-html[data-theme="dark"] .mood-btn.picked {
+/* ═══ HERO / HOME PAGE TEXT ═══ */
+html[data-theme="dark"] .hero h2,
+html[data-theme="dark"] .page-head h2,
+html[data-theme="dark"] h1,
+html[data-theme="dark"] h2,
+html[data-theme="dark"] h3 {
+  color: var(--ink) !important;
+}
+html[data-theme="dark"] .hero p,
+html[data-theme="dark"] .hero-sub {
+  color: var(--ink-60) !important;
+}
+html[data-theme="dark"] .hero-eyebrow {
+  color: var(--sage);
   background: var(--sage-light);
   border-color: var(--sage);
 }
 
-/* ─── PTR INDICATOR ─── */
-html[data-theme="dark"] .ptr-indicator {
-  background: var(--cream-dark);
-  border-color: var(--ink-15);
+/* ═══ ALL CARDS (unified elevation) ═══ */
+html[data-theme="dark"] .stat-tile,
+html[data-theme="dark"] .recent-card,
+html[data-theme="dark"] .hist-entry,
+html[data-theme="dark"] .settings-block,
+html[data-theme="dark"] .science-card,
+html[data-theme="dark"] .heatmap-card,
+html[data-theme="dark"] .learn-card,
+html[data-theme="dark"] .learn-progress-bar,
+html[data-theme="dark"] .q-card,
+html[data-theme="dark"] .summary-card,
+html[data-theme="dark"] .mood-chart-card,
+html[data-theme="dark"] .mood-log-chart-card,
+html[data-theme="dark"] .reminder-card,
+html[data-theme="dark"] .badge-tile,
+html[data-theme="dark"] .freeze-card,
+html[data-theme="dark"] .feature-card,
+html[data-theme="dark"] .pricing-card,
+html[data-theme="dark"] .auth-card,
+html[data-theme="dark"] .empty-state,
+html[data-theme="dark"] .empty-card,
+html[data-theme="dark"] .loading-state,
+html[data-theme="dark"] .breath-opt,
+html[data-theme="dark"] .mood-btn,
+html[data-theme="dark"] .mic-ring,
+html[data-theme="dark"] .cel-stat,
+html[data-theme="dark"] .faq-list,
+html[data-theme="dark"] .word-cloud-wrap {
+  background: var(--white) !important;
+  border-color: var(--ink-15) !important;
 }
 
-/* ─── QC MODE SWITCH ─── */
-html[data-theme="dark"] .qc-mode-switch {
-  background: var(--cream);
+/* Text inside cards */
+html[data-theme="dark"] .stat-val,
+html[data-theme="dark"] .recent-text,
+html[data-theme="dark"] .hist-a,
+html[data-theme="dark"] .summary-a,
+html[data-theme="dark"] .learn-card-title,
+html[data-theme="dark"] .reminder-title,
+html[data-theme="dark"] .freeze-title,
+html[data-theme="dark"] .breath-opt-name,
+html[data-theme="dark"] .settings-block-title,
+html[data-theme="dark"] .badge-name,
+html[data-theme="dark"] .cel-title,
+html[data-theme="dark"] .q-text,
+html[data-theme="dark"] .heatmap-title,
+html[data-theme="dark"] .mood-chart-title,
+html[data-theme="dark"] .science-card-title,
+html[data-theme="dark"] .summary-card-title,
+html[data-theme="dark"] .mood-log-chart-title,
+html[data-theme="dark"] .profile-name {
+  color: var(--ink) !important;
 }
-html[data-theme="dark"] .qc-mode-btn.active {
-  background: var(--cream-dark);
+
+html[data-theme="dark"] .stat-key,
+html[data-theme="dark"] .recent-meta,
+html[data-theme="dark"] .hist-date,
+html[data-theme="dark"] .hist-q,
+html[data-theme="dark"] .summary-q,
+html[data-theme="dark"] .learn-card-meta,
+html[data-theme="dark"] .reminder-sub,
+html[data-theme="dark"] .freeze-sub,
+html[data-theme="dark"] .breath-opt-desc,
+html[data-theme="dark"] .badge-req,
+html[data-theme="dark"] .cel-sub,
+html[data-theme="dark"] .heatmap-sub,
+html[data-theme="dark"] .mood-chart-sub,
+html[data-theme="dark"] .science-desc,
+html[data-theme="dark"] .profile-email,
+html[data-theme="dark"] .form-label,
+html[data-theme="dark"] .ob-body,
+html[data-theme="dark"] .mic-status,
+html[data-theme="dark"] .history-count,
+html[data-theme="dark"] .word-cloud-caption,
+html[data-theme="dark"] .mood-log-chart-range {
+  color: var(--ink-60) !important;
+}
+
+/* ═══ WEEKLY CARD — already dark, but needs to "pop" on dark bg ═══ */
+html[data-theme="dark"] .weekly-card {
+  background: linear-gradient(135deg, #000000 0%, #0A0806 100%) !important;
+  border: 1px solid var(--ink-15);
+}
+html[data-theme="dark"] .weekly-stat-val {
+  color: var(--sage-mid);
+}
+html[data-theme="dark"] .weekly-message {
+  color: rgba(237, 231, 222, 0.75);
+}
+html[data-theme="dark"] .weekly-quote-text {
+  color: rgba(237, 231, 222, 0.85);
+}
+
+/* ═══ CELEBRATION (finished session) ═══ */
+html[data-theme="dark"] .cel-message {
+  background: linear-gradient(135deg, #000000 0%, #0A0806 100%) !important;
+  border: 1px solid var(--ink-15);
+}
+html[data-theme="dark"] .cel-message-text {
+  color: rgba(237, 231, 222, 0.88);
+}
+html[data-theme="dark"] .cel-mood-shift {
+  background: var(--sage-light);
+  border-color: var(--sage);
+}
+html[data-theme="dark"] .cel-stat-val {
   color: var(--sage);
 }
-
-/* ─── SHAKE FLASH: subtler in dark ─── */
-html[data-theme="dark"] .shake-flash {
-  background: radial-gradient(circle at center, rgba(107, 178, 149, 0.15), transparent 60%);
+html[data-theme="dark"] .cel-entries-title {
+  color: var(--ink);
 }
 
-/* ─── WORD CLOUD: override the hardcoded colors to tuned-for-dark ─── */
-html[data-theme="dark"] .word-cloud-wrap {
-  background: var(--cream-dark);
+/* ═══ LEARN TIP (green card) ═══ */
+html[data-theme="dark"] .learn-tip {
+  background: linear-gradient(135deg, #2D5C47, #1E4534);
+  border: 1px solid var(--ink-15);
+}
+
+/* ═══ QUOTE TILES ═══ */
+html[data-theme="dark"] .quote-tile {
+  background: var(--sage-light) !important;
+  border-color: var(--sage) !important;
+}
+html[data-theme="dark"] .quote-tile::before {
+  color: rgba(127, 196, 166, 0.15);
+}
+html[data-theme="dark"] .quote-body {
+  color: var(--sage-mid) !important;
+}
+html[data-theme="dark"] .quote-attr {
+  color: var(--sage) !important;
+}
+html[data-theme="dark"] .quote-tile-neutral {
+  background: var(--cream-mid) !important;
+  border-color: var(--ink-15) !important;
+}
+
+/* ═══ MEMORY CARD (purple "On this day") ═══ */
+html[data-theme="dark"] .memory-card {
+  background: linear-gradient(135deg, #1F1729, #2A1F3A) !important;
+  border-color: #4A3B6B !important;
+}
+html[data-theme="dark"] .memory-card:hover {
+  border-color: #6B5BA0 !important;
+}
+html[data-theme="dark"] .memory-label {
+  color: #B8A9D8 !important;
+}
+html[data-theme="dark"] .memory-cta {
+  color: #B8A9D8 !important;
+}
+
+/* ═══ CHALLENGE CARD (amber) ═══ */
+html[data-theme="dark"] .challenge-eyebrow {
+  color: var(--amber) !important;
+}
+html[data-theme="dark"] .challenge-start-btn {
+  background: var(--amber) !important;
+  color: #0F0E0C !important;
+}
+html[data-theme="dark"] .challenge-done {
+  background: linear-gradient(135deg, var(--sage-light), #1D3028) !important;
+  border-color: var(--sage) !important;
+}
+
+/* ═══ AFFIRMATION CARD (purple) ═══ */
+html[data-theme="dark"] .affirmation-eyebrow {
+  color: #B8A9D8 !important;
+}
+html[data-theme="dark"] .affirmation-dismiss {
+  color: #B8A9D8 !important;
+}
+html[data-theme="dark"] .affirmation-fav-btn,
+html[data-theme="dark"] .affirmation-share-btn {
+  background: rgba(184, 169, 216, 0.1) !important;
+  border-color: rgba(184, 169, 216, 0.3) !important;
+  color: #B8A9D8 !important;
+}
+html[data-theme="dark"] .affirmation-fav-btn.is-fav {
+  background: #6B5BA0 !important;
+  color: #fff !important;
+  border-color: #6B5BA0 !important;
+}
+
+/* ═══ CEL WISDOM (amber) ═══ */
+html[data-theme="dark"] .cel-wisdom-eyebrow {
+  color: var(--amber) !important;
+}
+
+/* ═══ JAR (gold) ═══ */
+html[data-theme="dark"] .jar-btn {
+  background: linear-gradient(135deg, #4A3818, #6B5324) !important;
+  border-color: #8A6820 !important;
+  color: var(--amber) !important;
+}
+html[data-theme="dark"] .jar-eyebrow {
+  background: linear-gradient(135deg, #4A3818, #6B5324) !important;
+  border-color: #8A6820 !important;
+  color: var(--amber) !important;
+}
+
+/* ═══ STREAK MILESTONE CARDS ═══ */
+html[data-theme="dark"] .streak-milestone-card {
+  box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+}
+html[data-theme="dark"] .streak-milestone-share {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* ═══ REVIVE BUTTON (orange) ═══ */
+html[data-theme="dark"] .revive-btn {
+  background: var(--amber) !important;
+  color: #0F0E0C !important;
+}
+
+/* ═══ QUICK MOOD CARDS ═══ */
+html[data-theme="dark"] .quick-mood-eyebrow {
+  color: #7BB8D4 !important;
+}
+html[data-theme="dark"] .quick-mood-logged {
+  background: linear-gradient(135deg, var(--white), #142330) !important;
+  border-color: #2D4A63 !important;
+}
+
+/* ═══ RESUME DRAFT (amber) ═══ */
+html[data-theme="dark"] .resume-draft-card {
+  background: rgba(224, 164, 104, 0.08) !important;
+  border-color: var(--amber) !important;
+}
+html[data-theme="dark"] .resume-draft-eyebrow,
+html[data-theme="dark"] .resume-draft-dismiss {
+  color: var(--amber) !important;
+}
+html[data-theme="dark"] .resume-draft-btn {
+  background: var(--amber) !important;
+  color: #0F0E0C !important;
+}
+
+/* ═══ BADGES ═══ */
+html[data-theme="dark"] .badge-tile.earned {
+  background: linear-gradient(135deg, var(--amber-bg), #2F2315) !important;
+  border-color: var(--amber) !important;
+}
+html[data-theme="dark"] .badge-tile.earned .badge-name {
+  color: var(--amber) !important;
+}
+
+/* ═══ STREAK CHIP ═══ */
+html[data-theme="dark"] .streak-chip {
+  color: var(--amber);
+  background: var(--amber-bg);
+  border-color: var(--amber);
+}
+
+/* ═══ TAG FILTER CHIPS ═══ */
+html[data-theme="dark"] .tag-filter-chip {
+  background: var(--cream-mid) !important;
+  border-color: var(--ink-15) !important;
+  color: var(--ink-60) !important;
+}
+html[data-theme="dark"] .tag-filter-chip.active .tag-filter-count {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* ═══ FILTER CHIPS (history) ═══ */
+html[data-theme="dark"] .filter-chip {
   border-color: var(--ink-15);
+  color: var(--ink-60);
+  background: transparent;
+}
+html[data-theme="dark"] .filter-chip:hover {
+  border-color: var(--ink-30);
+  color: var(--ink);
+}
+html[data-theme="dark"] .filter-chip.active {
+  background: var(--sage) !important;
+  border-color: var(--sage) !important;
+  color: #0F0E0C !important;
+}
+html[data-theme="dark"] .learn-cat-tab.active {
+  background: var(--sage) !important;
+  border-color: var(--sage) !important;
+  color: #0F0E0C !important;
 }
 
-/* ─── HEATMAP EMPTY CELLS: reduce stripe contrast ─── */
-html[data-theme="dark"] .heatmap-empty {
-  background: repeating-linear-gradient(45deg, var(--cream-dark), var(--cream-dark) 2px, var(--cream-mid) 2px, var(--cream-mid) 3px);
-  opacity: 0.3;
-}
-
-/* ─── FORM INPUTS IN GENERAL ─── */
+/* ═══ FORM INPUTS ═══ */
 html[data-theme="dark"] .form-input,
 html[data-theme="dark"] .key-input,
-html[data-theme="dark"] .reminder-time {
-  background: var(--cream-mid);
-  color: var(--ink);
-  border-color: var(--ink-15);
+html[data-theme="dark"] .reminder-time,
+html[data-theme="dark"] .search-input,
+html[data-theme="dark"] .answer-textarea,
+html[data-theme="dark"] .quick-capture-textarea,
+html[data-theme="dark"] .hist-a-edit {
+  background: var(--cream-mid) !important;
+  color: var(--ink) !important;
+  border-color: var(--ink-15) !important;
 }
 html[data-theme="dark"] .form-input::placeholder,
+html[data-theme="dark"] .search-input::placeholder,
 html[data-theme="dark"] .answer-textarea::placeholder,
 html[data-theme="dark"] .quick-capture-textarea::placeholder {
-  color: var(--ink-30);
+  color: var(--ink-30) !important;
+}
+html[data-theme="dark"] .form-input:focus,
+html[data-theme="dark"] .search-input:focus {
+  border-color: var(--sage) !important;
+  box-shadow: 0 0 0 3px rgba(127, 196, 166, 0.15) !important;
 }
 
-/* ─── AUTH TABS ─── */
+html[data-theme="dark"] .answer-display {
+  background: var(--cream-mid);
+  color: var(--ink);
+}
+
+/* ═══ AUTH SCREEN ═══ */
+html[data-theme="dark"] #screen-auth,
+html[data-theme="dark"] #screen-onboard,
+html[data-theme="dark"] #loading-screen {
+  background: var(--cream);
+}
 html[data-theme="dark"] .auth-tabs {
   background: var(--cream-mid);
 }
 html[data-theme="dark"] .auth-tab.active {
-  background: var(--cream-dark);
+  background: var(--white);
+  color: var(--ink);
+}
+html[data-theme="dark"] .auth-divider::before,
+html[data-theme="dark"] .auth-divider::after {
+  background: var(--ink-15);
+}
+
+/* ═══ BUTTONS ═══ */
+html[data-theme="dark"] .btn {
+  color: var(--ink);
+  border-color: var(--ink-15);
+  background: transparent;
+}
+html[data-theme="dark"] .btn:hover {
+  background: var(--cream-mid);
+  border-color: var(--ink-30);
+}
+html[data-theme="dark"] .btn.solid {
+  background: var(--sage);
+  border-color: var(--sage);
+  color: #0F0E0C;
+}
+html[data-theme="dark"] .btn.solid:hover {
+  background: var(--sage-dark);
+}
+html[data-theme="dark"] .freeze-btn {
+  background: var(--sage);
+  color: #0F0E0C;
+}
+
+/* ═══ CTA BUTTON ═══ */
+html[data-theme="dark"] .cta-btn {
+  background: var(--sage);
+  color: #0F0E0C;
+  box-shadow: 0 4px 20px rgba(127, 196, 166, 0.25);
+}
+html[data-theme="dark"] .cta-btn:hover {
+  background: var(--sage-dark);
+}
+html[data-theme="dark"] .ob-btn {
+  background: var(--sage);
+  color: #0F0E0C;
+  box-shadow: 0 4px 20px rgba(127, 196, 166, 0.22);
+}
+html[data-theme="dark"] .auth-submit {
+  background: var(--sage);
+  color: #0F0E0C;
+}
+html[data-theme="dark"] .auth-submit:hover {
+  background: var(--sage-dark);
+}
+
+/* ═══ QUICK CAPTURE BUTTON ═══ */
+html[data-theme="dark"] .quick-capture-btn {
+  background: var(--cream-mid);
+  color: var(--ink-60);
+  border-color: var(--ink-15);
+}
+html[data-theme="dark"] .quick-capture-btn:hover {
+  border-color: var(--sage);
+  color: var(--sage);
+  background: var(--sage-light);
+}
+
+/* ═══ MODALS & OVERLAYS ═══ */
+html[data-theme="dark"] .modal-overlay,
+html[data-theme="dark"] .badge-modal,
+html[data-theme="dark"] .insights-overlay,
+html[data-theme="dark"] .achievements-overlay,
+html[data-theme="dark"] .jar-overlay,
+html[data-theme="dark"] .health-prompt-overlay,
+html[data-theme="dark"] .quick-capture-overlay,
+html[data-theme="dark"] .photo-fullscreen-overlay {
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(16px);
+}
+html[data-theme="dark"] .modal,
+html[data-theme="dark"] .badge-modal-inner,
+html[data-theme="dark"] .insights-modal,
+html[data-theme="dark"] .achievements-modal,
+html[data-theme="dark"] .jar-modal,
+html[data-theme="dark"] .quick-capture-modal,
+html[data-theme="dark"] .health-prompt-modal {
+  background: var(--cream-mid);
+  border: 1px solid var(--ink-15);
+}
+html[data-theme="dark"] .modal-title,
+html[data-theme="dark"] .badge-cel-title,
+html[data-theme="dark"] .health-prompt-title {
+  color: var(--ink);
+}
+html[data-theme="dark"] .modal-body,
+html[data-theme="dark"] .badge-cel-sub,
+html[data-theme="dark"] .health-prompt-sub {
+  color: var(--ink-60);
+}
+html[data-theme="dark"] .health-prompt-benefits {
+  background: var(--cream);
+  border-color: var(--ink-15);
+}
+html[data-theme="dark"] .quick-capture-close {
+  background: var(--cream);
+  color: var(--ink-60);
+}
+html[data-theme="dark"] .quick-capture-prompt {
   color: var(--ink);
 }
 
-/* ─── SHARE CARDS — the dark card already works; just touch up ─── */
-html[data-theme="dark"] .card-style-btn.picked {
-  border-color: var(--sage);
-  background: rgba(107, 178, 149, 0.15);
-}
-
-/* ─── DAY-BAR CHART ─── */
-html[data-theme="dark"] .ins-day-bar-wrap {
+/* ═══ TOGGLE SWITCH ═══ */
+html[data-theme="dark"] .toggle-track {
   background: var(--cream-mid);
 }
+html[data-theme="dark"] .toggle-switch input:checked + .toggle-track {
+  background: var(--sage);
+}
+html[data-theme="dark"] .toggle-thumb {
+  background: var(--ink);
+}
+html[data-theme="dark"] .toggle-switch input:checked + .toggle-track .toggle-thumb {
+  background: #0F0E0C;
+}
 
-/* ─── PROGRESS TRACK ─── */
+/* ═══ BREATH EXERCISE ═══ */
+html[data-theme="dark"] .ring-outer,
+html[data-theme="dark"] .ring-mid {
+  border-color: var(--ink-15);
+}
+html[data-theme="dark"] .ring-circle {
+  background: rgba(127, 196, 166, 0.1);
+  border-color: var(--sage);
+}
+html[data-theme="dark"] .ring-circle.exhale {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: var(--ink-30);
+}
+html[data-theme="dark"] .ring-word {
+  color: var(--sage);
+}
+html[data-theme="dark"] .ring-circle.exhale .ring-word {
+  color: var(--ink-60);
+}
+html[data-theme="dark"] .ring-count {
+  color: var(--sage-mid);
+}
+html[data-theme="dark"] .round-dot {
+  background: var(--cream-mid);
+}
+html[data-theme="dark"] .round-dot.lit {
+  background: var(--sage);
+}
+
+/* ═══ MIC RING (live state) ═══ */
+html[data-theme="dark"] .mic-ring.live {
+  background: rgba(127, 196, 166, 0.12);
+  border-color: var(--sage);
+}
+html[data-theme="dark"] .mic-svg {
+  fill: var(--ink-60);
+}
+html[data-theme="dark"] .mic-ring.live .mic-svg {
+  fill: var(--sage);
+}
+
+/* ═══ MOOD BUTTONS ═══ */
+html[data-theme="dark"] .mood-btn {
+  border-color: var(--ink-15);
+}
+html[data-theme="dark"] .mood-btn.picked {
+  border-color: var(--sage);
+  background: var(--sage-light);
+}
+html[data-theme="dark"] .breath-opt.picked {
+  border-color: var(--sage);
+  background: var(--sage-light);
+}
+
+/* ═══ MODE SWITCHER ═══ */
+html[data-theme="dark"] .mode-switcher,
+html[data-theme="dark"] .qc-mode-switch {
+  background: var(--cream-mid);
+}
+html[data-theme="dark"] .mode-pill.on,
+html[data-theme="dark"] .qc-mode-btn.active {
+  background: var(--white);
+  color: var(--ink);
+}
+
+/* ═══ PROGRESS TRACKS ═══ */
+html[data-theme="dark"] .progress-seg {
+  background: var(--cream-mid);
+}
+html[data-theme="dark"] .progress-seg.done {
+  background: var(--sage);
+}
 html[data-theme="dark"] .learn-progress-track {
   background: var(--cream-mid);
 }
 
-/* ─── VOICE/ACTION BUTTONS IN NAV ─── */
+/* ═══ SUMMARY MOOD / DATE TAGS ═══ */
+html[data-theme="dark"] .summary-mood-row,
+html[data-theme="dark"] .summary-date-tag {
+  background: var(--cream-mid);
+}
+html[data-theme="dark"] .summary-banner {
+  background: var(--sage-light);
+  border-color: var(--sage);
+}
+html[data-theme="dark"] .summary-banner-text {
+  color: var(--sage-mid);
+}
+
+/* ═══ CHARTS ═══ */
+html[data-theme="dark"] .mood-log-chart-svg line {
+  stroke: var(--ink-15);
+}
+html[data-theme="dark"] .mood-log-chart-svg path[stroke="var(--sage)"],
+html[data-theme="dark"] .mood-log-chart-svg path[stroke*="2D7A5F"] {
+  stroke: var(--sage) !important;
+}
+html[data-theme="dark"] .mood-log-chart-svg circle {
+  stroke: var(--white);
+}
+
+html[data-theme="dark"] .mood-log-chart-insight {
+  background: var(--sage-light);
+  border-color: var(--sage);
+  color: var(--ink);
+}
+html[data-theme="dark"] .mood-log-chart-insight strong {
+  color: var(--sage);
+}
+
+html[data-theme="dark"] .mood-avg-tile {
+  background: var(--cream-mid);
+}
+
+/* Heatmap */
+html[data-theme="dark"] .heatmap-cell {
+  background: var(--cream-mid);
+}
+html[data-theme="dark"] .heatmap-empty {
+  background: repeating-linear-gradient(45deg, var(--cream-mid), var(--cream-mid) 2px, var(--cream-dark) 2px, var(--cream-dark) 3px);
+  opacity: 0.4;
+}
+
+/* ═══ INSIGHTS MODAL SPECIFICS ═══ */
+html[data-theme="dark"] .ins-section-title {
+  color: var(--ink);
+}
+html[data-theme="dark"] .ins-day-bar-wrap {
+  background: var(--cream-mid);
+}
+html[data-theme="dark"] .ins-total-primary {
+  background: linear-gradient(135deg, var(--sage), #5EAA88) !important;
+  color: #0F0E0C !important;
+}
+html[data-theme="dark"] .ins-total-primary .ins-total-val {
+  color: #0F0E0C !important;
+}
+
+/* ═══ PROFILE AVATAR ═══ */
+html[data-theme="dark"] .profile-avatar {
+  background: var(--sage-light);
+  border-color: var(--sage);
+  color: var(--sage);
+}
+
+/* ═══ SETTINGS INFO (amber warning box) ═══ */
+html[data-theme="dark"] .settings-info {
+  background: var(--amber-bg);
+  border-color: var(--amber);
+  color: var(--amber);
+}
+html[data-theme="dark"] .settings-info a {
+  color: var(--amber);
+}
+
+/* ═══ REMINDER CARD ═══ */
+html[data-theme="dark"] .reminder-icon {
+  background: var(--amber-bg);
+  border-color: var(--amber);
+}
+html[data-theme="dark"] .freeze-icon {
+  background: rgba(66, 133, 244, 0.1);
+  border-color: rgba(66, 133, 244, 0.3);
+}
+
+/* ═══ VOICE BUTTON ═══ */
 html[data-theme="dark"] .voice-btn {
-  background: transparent;
   color: var(--ink-60);
   border-color: var(--ink-15);
 }
@@ -273,77 +730,132 @@ html[data-theme="dark"] .voice-btn.on {
   background: var(--sage-light);
 }
 
-/* ─── HEALTH-PROMPT BENEFITS BOX ─── */
-html[data-theme="dark"] .health-prompt-benefits {
-  background: var(--cream);
-  border-color: var(--ink-15);
+/* ═══ Q-READ BUTTON ═══ */
+html[data-theme="dark"] .q-read-btn {
+  color: var(--sage);
+  background: var(--sage-light);
+  border-color: var(--sage);
+}
+html[data-theme="dark"] .q-read-btn.reading {
+  background: var(--sage);
+  color: #0F0E0C;
+  border-color: var(--sage);
 }
 
-/* ─── MOOD LOG CHART GRIDLINES ─── */
-html[data-theme="dark"] .mood-log-chart-svg line {
-  stroke: var(--ink-15) !important;
-}
-
-/* ─── TAG FILTER CHIPS ─── */
-html[data-theme="dark"] .tag-filter-chip {
-  background: var(--cream-mid);
-}
-html[data-theme="dark"] .tag-filter-chip.active {
-  background: var(--ink);
-  color: var(--cream);
-}
-
-/* ─── SETTINGS INFO BOX (amber warning) ─── */
-html[data-theme="dark"] .settings-info {
+/* ═══ SYNC BAR ═══ */
+html[data-theme="dark"] .sync-bar.syncing {
   background: var(--amber-bg);
   color: var(--amber);
 }
+html[data-theme="dark"] .sync-bar.synced {
+  background: var(--sage-light);
+  color: var(--sage);
+}
+html[data-theme="dark"] .sync-bar.error {
+  background: var(--red-bg);
+  color: var(--red);
+}
 
-/* ─── SKELETON SHIMMER: darker tones ─── */
+/* ═══ LEARN STEPS ═══ */
+html[data-theme="dark"] .learn-steps li::before {
+  background: var(--sage-light);
+  border-color: var(--sage);
+  color: var(--sage);
+}
+html[data-theme="dark"] .learn-tip-box {
+  background: var(--cream-mid);
+  color: var(--ink-60);
+  border-left-color: var(--sage);
+}
+html[data-theme="dark"] .learn-done-btn.done {
+  background: var(--sage);
+  border-color: var(--sage);
+  color: #0F0E0C;
+}
+
+/* ═══ HISTORY EDIT BUTTONS ═══ */
+html[data-theme="dark"] .hist-edit-btn {
+  color: var(--ink-60);
+  border-color: var(--ink-15);
+}
+html[data-theme="dark"] .hist-edit-btn:hover {
+  color: var(--sage);
+  border-color: var(--sage);
+  background: var(--sage-light);
+}
+html[data-theme="dark"] .hist-del {
+  color: var(--ink-30);
+  border-color: var(--ink-15);
+}
+html[data-theme="dark"] .hist-del:hover {
+  color: var(--red);
+  border-color: var(--red);
+  background: var(--red-bg);
+}
+
+/* ═══ QUICK CAPTURE TOAST ═══ */
+html[data-theme="dark"] .quick-capture-toast {
+  background: var(--sage);
+  color: #0F0E0C;
+  box-shadow: 0 10px 30px rgba(127, 196, 166, 0.3);
+}
+html[data-theme="dark"] .quick-capture-toast-check {
+  background: rgba(0, 0, 0, 0.2);
+  color: #0F0E0C;
+}
+html[data-theme="dark"] .quick-mood-toast {
+  background: var(--cream-mid);
+  color: var(--ink);
+}
+
+/* ═══ PTR INDICATOR ═══ */
+html[data-theme="dark"] .ptr-indicator {
+  background: var(--cream-mid);
+  border-color: var(--ink-15);
+}
+html[data-theme="dark"] .ptr-spinner {
+  border-color: var(--ink-15);
+  border-top-color: var(--sage);
+}
+
+/* ═══ THEME TOGGLE PICKER ═══ */
+html[data-theme="dark"] .theme-opt {
+  background: var(--cream-mid);
+  border-color: var(--ink-15);
+}
+html[data-theme="dark"] .theme-opt:hover {
+  border-color: var(--sage);
+  background: var(--sage-light);
+}
+html[data-theme="dark"] .theme-opt.active {
+  border-color: var(--sage);
+  background: var(--sage-light);
+}
+
+/* ═══ SHAKE STATUS ═══ */
+html[data-theme="dark"] .shake-flash {
+  background: radial-gradient(circle at center, rgba(127, 196, 166, 0.15), transparent 60%);
+}
+
+/* ═══ HEATMAP INSIGHT CARDS (in insights modal) ═══ */
+html[data-theme="dark"] .heatmap-insight-item {
+  background: var(--cream-mid);
+  border-color: var(--ink-15);
+}
+html[data-theme="dark"] .heatmap-insight-value {
+  color: var(--ink);
+}
+html[data-theme="dark"] .heatmap-insight-label {
+  color: var(--ink-60);
+}
+
+/* ═══ SKELETON SHIMMER ═══ */
 html[data-theme="dark"] .skeleton-line {
   background: linear-gradient(90deg, var(--cream-mid) 25%, var(--cream-dark) 50%, var(--cream-mid) 75%);
   background-size: 200% 100%;
 }
 
-/* ─── RESUME DRAFT CARD (amber tone) ─── */
-html[data-theme="dark"] .resume-draft-card {
-  background: rgba(217, 151, 82, 0.08);
-  border-color: var(--amber);
-}
-
-/* ─── MILESTONE CELEBRATION CARDS: dark treatments ─── */
-html[data-theme="dark"] .milestone-gradient {
-  filter: brightness(0.92);
-}
-
-/* ─── SUMMARY BANNER ─── */
-html[data-theme="dark"] .summary-banner {
-  background: var(--sage-light);
-  border-color: var(--sage);
-}
-
-/* ─── CHALLENGE CARD ─── */
-html[data-theme="dark"] .challenge-card {
-  background: linear-gradient(135deg, #2D1B4D, #1E1432);
-}
-
-/* ─── AVATAR / PROFILE ─── */
-html[data-theme="dark"] .profile-avatar {
-  background: var(--sage-light);
-  border-color: var(--sage);
-  color: var(--sage);
-}
-
-/* ─── TOAST / SHAKE NOTIFICATIONS ─── */
-html[data-theme="dark"] .quick-capture-toast {
-  background: var(--sage);
-  color: #0A0806;
-}
-html[data-theme="dark"] .quick-capture-toast-check {
-  background: rgba(0, 0, 0, 0.2);
-}
-
-/* ─── SCROLLBARS ─── */
+/* ═══ SCROLLBARS ═══ */
 html[data-theme="dark"] ::-webkit-scrollbar-thumb {
   background: var(--ink-15);
 }
@@ -351,7 +863,46 @@ html[data-theme="dark"] ::-webkit-scrollbar-track {
   background: var(--cream);
 }
 
-/* ─── SMOOTH THEME TRANSITION ─── */
+/* ═══ SAVED AFFIRMATIONS ═══ */
+html[data-theme="dark"] .saved-aff-remove {
+  color: #B8A9D8 !important;
+  border-color: rgba(184, 169, 216, 0.3) !important;
+}
+
+/* ═══ EMPTY STATE RICH CTA ═══ */
+html[data-theme="dark"] .empty-rich-cta {
+  background: var(--sage);
+  color: #0F0E0C;
+}
+
+/* ═══ BREATH BADGE REC ═══ */
+html[data-theme="dark"] .breath-badge-rec {
+  background: var(--sage);
+  color: #0F0E0C;
+}
+
+/* ═══ PAYWALL ═══ */
+html[data-theme="dark"] .paywall-plan-badge {
+  background: var(--amber);
+  color: #0F0E0C;
+}
+
+/* ═══ HIST-ENTRY-HEAD BORDER ═══ */
+html[data-theme="dark"] .hist-entry-head {
+  border-bottom-color: var(--ink-15);
+}
+
+/* ═══ MOOD LOG CHART-EMOJIS ═══ */
+html[data-theme="dark"] .mood-log-chart-emojis span {
+  filter: none;
+}
+
+/* ═══ ON-THIS-DAY CARD VARIANT ═══ */
+html[data-theme="dark"] .recent-card:hover {
+  border-color: var(--sage);
+}
+
+/* ═══ SMOOTH THEME TRANSITION ═══ */
 html.theme-transitioning,
 html.theme-transitioning *,
 html.theme-transitioning *::before,

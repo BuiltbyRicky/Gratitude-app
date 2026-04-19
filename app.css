@@ -26,7 +26,7 @@
 
 /* ── NATIVE APP FIXES ── */
 * { -webkit-tap-highlight-color: transparent; }
-html, body { overscroll-behavior: none; background: #FAF8F4; color-scheme: light only; }
+html, body { overscroll-behavior: none; }
 .page { -webkit-overflow-scrolling: touch; }
 .page-wrap { -webkit-overflow-scrolling: touch; }
 .filter-row, .learn-cat-tabs, .heatmap-grid, .heatmap-months { -webkit-overflow-scrolling: touch; }
