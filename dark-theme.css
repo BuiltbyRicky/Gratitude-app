@@ -1,0 +1,360 @@
+/* ══════════════════════════════════════════════════════════
+   DARK MODE — Comprehensive theme overrides
+   Applied when <html data-theme="dark">
+══════════════════════════════════════════════════════════ */
+
+html[data-theme="dark"] {
+  /* Surfaces: inverted and tuned for warmth (not pure black) */
+  --cream: #14120F;           /* deepest base — was #FAF8F4 */
+  --cream-dark: #1C1A17;      /* slightly elevated — was #F2EFE9 */
+  --cream-mid: #24211E;       /* mid elevation for inputs — was #EAE6DE */
+  --white: #1F1C18;           /* cards — was pure white; now warm charcoal */
+
+  /* Text: soft warm whites, not pure #FFF (easier on eyes) */
+  --ink: #F5F1EA;             /* primary text — was near-black */
+  --ink-60: #A69F96;          /* secondary — was #6B6560 */
+  --ink-30: #706A62;          /* tertiary — was #B5B0A8 */
+  --ink-15: #2E2A25;          /* borders — was #DDD9D3 */
+
+  /* Sage palette: lightened so it pops on dark */
+  --sage: #6BB295;            /* primary sage — was #2D7A5F; now brighter */
+  --sage-light: #1F2A25;      /* sage background — was very light */
+  --sage-mid: #8FD1B5;        /* accent sage — brighter */
+  --sage-dark: #7BBDA4;       /* hover — lighter, not darker, for dark mode */
+
+  /* Accent colors: boosted saturation for dark backgrounds */
+  --amber: #D99752;           /* was #9A6520 */
+  --amber-bg: #2B2015;        /* was #FDF3E3 */
+  --red: #E67068;             /* was #B5302A */
+  --red-bg: #2B1716;          /* was #FDF0EF */
+
+  /* Shadows: use black with higher opacity (dark-on-dark needs more depth) */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.25);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.3);
+}
+
+/* Body background texture — reduce opacity on dark */
+html[data-theme="dark"] body::before {
+  opacity: 0.15;
+}
+
+/* ─── NAVIGATION ─── */
+html[data-theme="dark"] .app-nav {
+  background: rgba(20, 18, 16, 0.92);
+  border-bottom-color: var(--ink-15);
+}
+html[data-theme="dark"] .mobile-tabs {
+  background: rgba(20, 18, 16, 0.95);
+  border-top-color: var(--ink-15);
+}
+html[data-theme="dark"] .nav-pill.active {
+  background: var(--cream-mid);
+  color: var(--ink);
+}
+
+/* ─── WEEKLY CARD (already dark, swap to slightly lighter so it stands out) ─── */
+html[data-theme="dark"] .weekly-card {
+  background: #0A0806;
+  border: 1px solid var(--ink-15);
+}
+
+/* ─── CELEBRATION MESSAGE (dark card that needs to pop on dark bg) ─── */
+html[data-theme="dark"] .cel-message {
+  background: #0A0806;
+  border: 1px solid var(--ink-15);
+}
+
+/* ─── LEARN TIP (green gradient card — darken so it doesn't blast the eyes) ─── */
+html[data-theme="dark"] .learn-tip {
+  background: linear-gradient(135deg, #1E5C46, #154030);
+}
+
+/* ─── INK-BACKED CARDS (freeze, streak milestones etc) ─── */
+html[data-theme="dark"] .freeze-btn {
+  background: var(--sage);
+  color: #0A0806;
+}
+html[data-theme="dark"] .freeze-btn:hover {
+  background: var(--sage-dark);
+}
+
+/* ─── GRADIENT OVERLAYS that use dark colors — boost contrast ─── */
+html[data-theme="dark"] .quote-tile::before {
+  color: rgba(139, 209, 181, 0.15);
+}
+html[data-theme="dark"] .quote-body {
+  color: var(--sage-mid);
+}
+html[data-theme="dark"] .quote-attr {
+  color: var(--sage);
+}
+
+/* ─── FILTER / CHIP: invert the "selected" color scheme ─── */
+html[data-theme="dark"] .filter-chip.active {
+  background: var(--sage);
+  color: #0A0806;
+  border-color: var(--sage);
+}
+html[data-theme="dark"] .learn-cat-tab.active {
+  background: var(--sage);
+  color: #0A0806;
+  border-color: var(--sage);
+}
+
+/* ─── BADGE TILES ─── */
+html[data-theme="dark"] .badge-tile.earned {
+  background: rgba(217, 151, 82, 0.1);
+  border-color: var(--amber);
+}
+
+/* ─── SEARCH INPUT: darker input field ─── */
+html[data-theme="dark"] .search-input {
+  background: var(--cream-mid);
+  color: var(--ink);
+}
+html[data-theme="dark"] .search-input:focus {
+  background: var(--cream-dark);
+}
+
+/* ─── JAR, ACHIEVEMENTS, YEAR REVIEW OVERLAYS: darker background ─── */
+html[data-theme="dark"] .insights-overlay,
+html[data-theme="dark"] .achievements-overlay,
+html[data-theme="dark"] .year-review-overlay,
+html[data-theme="dark"] .jar-overlay,
+html[data-theme="dark"] .health-prompt-overlay,
+html[data-theme="dark"] .quick-capture-overlay,
+html[data-theme="dark"] .photo-fullscreen-overlay,
+html[data-theme="dark"] .modal-overlay,
+html[data-theme="dark"] .badge-modal {
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(12px);
+}
+
+html[data-theme="dark"] .insights-modal,
+html[data-theme="dark"] .achievements-modal,
+html[data-theme="dark"] .jar-modal,
+html[data-theme="dark"] .quick-capture-modal,
+html[data-theme="dark"] .health-prompt-modal,
+html[data-theme="dark"] .modal,
+html[data-theme="dark"] .badge-modal-inner {
+  background: var(--cream-dark);
+  border: 1px solid var(--ink-15);
+}
+
+/* ─── LINE CHARTS: lighten the line so it pops on dark ─── */
+html[data-theme="dark"] .mood-log-chart-svg path[stroke] {
+  stroke: var(--sage-mid) !important;
+}
+
+/* ─── HISTORY EDIT TEXTAREA ─── */
+html[data-theme="dark"] .hist-a-edit {
+  background: var(--cream);
+  border-color: var(--sage);
+}
+
+/* ─── BREATH EXERCISE CIRCLE (in dark mode the light bg looks wrong) ─── */
+html[data-theme="dark"] .ring-circle {
+  background: rgba(107, 178, 149, 0.12);
+  border-color: var(--sage);
+}
+html[data-theme="dark"] .ring-circle.exhale {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--ink-30);
+}
+
+/* ─── MIC RING (live state) ─── */
+html[data-theme="dark"] .mic-ring {
+  background: var(--cream-dark);
+}
+html[data-theme="dark"] .mic-ring.live {
+  background: rgba(107, 178, 149, 0.12);
+}
+
+/* ─── ANSWER DISPLAY / TEXTAREA (written content surfaces) ─── */
+html[data-theme="dark"] .answer-display,
+html[data-theme="dark"] .answer-textarea,
+html[data-theme="dark"] .quick-capture-textarea,
+html[data-theme="dark"] .qc-voice-display {
+  background: var(--cream-mid);
+  color: var(--ink);
+}
+
+/* ─── MOOD BUTTONS ─── */
+html[data-theme="dark"] .mood-btn.picked {
+  background: var(--sage-light);
+  border-color: var(--sage);
+}
+
+/* ─── PTR INDICATOR ─── */
+html[data-theme="dark"] .ptr-indicator {
+  background: var(--cream-dark);
+  border-color: var(--ink-15);
+}
+
+/* ─── QC MODE SWITCH ─── */
+html[data-theme="dark"] .qc-mode-switch {
+  background: var(--cream);
+}
+html[data-theme="dark"] .qc-mode-btn.active {
+  background: var(--cream-dark);
+  color: var(--sage);
+}
+
+/* ─── SHAKE FLASH: subtler in dark ─── */
+html[data-theme="dark"] .shake-flash {
+  background: radial-gradient(circle at center, rgba(107, 178, 149, 0.15), transparent 60%);
+}
+
+/* ─── WORD CLOUD: override the hardcoded colors to tuned-for-dark ─── */
+html[data-theme="dark"] .word-cloud-wrap {
+  background: var(--cream-dark);
+  border-color: var(--ink-15);
+}
+
+/* ─── HEATMAP EMPTY CELLS: reduce stripe contrast ─── */
+html[data-theme="dark"] .heatmap-empty {
+  background: repeating-linear-gradient(45deg, var(--cream-dark), var(--cream-dark) 2px, var(--cream-mid) 2px, var(--cream-mid) 3px);
+  opacity: 0.3;
+}
+
+/* ─── FORM INPUTS IN GENERAL ─── */
+html[data-theme="dark"] .form-input,
+html[data-theme="dark"] .key-input,
+html[data-theme="dark"] .reminder-time {
+  background: var(--cream-mid);
+  color: var(--ink);
+  border-color: var(--ink-15);
+}
+html[data-theme="dark"] .form-input::placeholder,
+html[data-theme="dark"] .answer-textarea::placeholder,
+html[data-theme="dark"] .quick-capture-textarea::placeholder {
+  color: var(--ink-30);
+}
+
+/* ─── AUTH TABS ─── */
+html[data-theme="dark"] .auth-tabs {
+  background: var(--cream-mid);
+}
+html[data-theme="dark"] .auth-tab.active {
+  background: var(--cream-dark);
+  color: var(--ink);
+}
+
+/* ─── SHARE CARDS — the dark card already works; just touch up ─── */
+html[data-theme="dark"] .card-style-btn.picked {
+  border-color: var(--sage);
+  background: rgba(107, 178, 149, 0.15);
+}
+
+/* ─── DAY-BAR CHART ─── */
+html[data-theme="dark"] .ins-day-bar-wrap {
+  background: var(--cream-mid);
+}
+
+/* ─── PROGRESS TRACK ─── */
+html[data-theme="dark"] .learn-progress-track {
+  background: var(--cream-mid);
+}
+
+/* ─── VOICE/ACTION BUTTONS IN NAV ─── */
+html[data-theme="dark"] .voice-btn {
+  background: transparent;
+  color: var(--ink-60);
+  border-color: var(--ink-15);
+}
+html[data-theme="dark"] .voice-btn:hover {
+  color: var(--ink);
+  border-color: var(--ink-30);
+}
+html[data-theme="dark"] .voice-btn.on {
+  color: var(--sage);
+  border-color: var(--sage);
+  background: var(--sage-light);
+}
+
+/* ─── HEALTH-PROMPT BENEFITS BOX ─── */
+html[data-theme="dark"] .health-prompt-benefits {
+  background: var(--cream);
+  border-color: var(--ink-15);
+}
+
+/* ─── MOOD LOG CHART GRIDLINES ─── */
+html[data-theme="dark"] .mood-log-chart-svg line {
+  stroke: var(--ink-15) !important;
+}
+
+/* ─── TAG FILTER CHIPS ─── */
+html[data-theme="dark"] .tag-filter-chip {
+  background: var(--cream-mid);
+}
+html[data-theme="dark"] .tag-filter-chip.active {
+  background: var(--ink);
+  color: var(--cream);
+}
+
+/* ─── SETTINGS INFO BOX (amber warning) ─── */
+html[data-theme="dark"] .settings-info {
+  background: var(--amber-bg);
+  color: var(--amber);
+}
+
+/* ─── SKELETON SHIMMER: darker tones ─── */
+html[data-theme="dark"] .skeleton-line {
+  background: linear-gradient(90deg, var(--cream-mid) 25%, var(--cream-dark) 50%, var(--cream-mid) 75%);
+  background-size: 200% 100%;
+}
+
+/* ─── RESUME DRAFT CARD (amber tone) ─── */
+html[data-theme="dark"] .resume-draft-card {
+  background: rgba(217, 151, 82, 0.08);
+  border-color: var(--amber);
+}
+
+/* ─── MILESTONE CELEBRATION CARDS: dark treatments ─── */
+html[data-theme="dark"] .milestone-gradient {
+  filter: brightness(0.92);
+}
+
+/* ─── SUMMARY BANNER ─── */
+html[data-theme="dark"] .summary-banner {
+  background: var(--sage-light);
+  border-color: var(--sage);
+}
+
+/* ─── CHALLENGE CARD ─── */
+html[data-theme="dark"] .challenge-card {
+  background: linear-gradient(135deg, #2D1B4D, #1E1432);
+}
+
+/* ─── AVATAR / PROFILE ─── */
+html[data-theme="dark"] .profile-avatar {
+  background: var(--sage-light);
+  border-color: var(--sage);
+  color: var(--sage);
+}
+
+/* ─── TOAST / SHAKE NOTIFICATIONS ─── */
+html[data-theme="dark"] .quick-capture-toast {
+  background: var(--sage);
+  color: #0A0806;
+}
+html[data-theme="dark"] .quick-capture-toast-check {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+/* ─── SCROLLBARS ─── */
+html[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: var(--ink-15);
+}
+html[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: var(--cream);
+}
+
+/* ─── SMOOTH THEME TRANSITION ─── */
+html.theme-transitioning,
+html.theme-transitioning *,
+html.theme-transitioning *::before,
+html.theme-transitioning *::after {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease !important;
+}
