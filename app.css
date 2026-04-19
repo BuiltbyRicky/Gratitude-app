@@ -783,3 +783,18 @@ html, body { overscroll-behavior: none; background: #FAF8F4; color-scheme: light
 .health-prompt-actions{display:flex;gap:10px;margin-bottom:12px;}
 .health-prompt-actions .btn{flex:1;}
 .health-prompt-footnote{font-size:11px;color:var(--ink-60);font-style:italic;}
+
+/* ══════════════════════════════════════════════════
+   MOOD LOG CHART
+══════════════════════════════════════════════════ */
+.mood-log-chart-card{background:var(--white);border:1px solid var(--ink-15);border-radius:var(--radius-xl);padding:1.25rem 1.25rem 1rem;margin:1.25rem 0;animation:fadeUp 0.4s ease;}
+.mood-log-chart-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.mood-log-chart-title{font-family:var(--font-serif);font-size:18px;font-weight:500;color:var(--ink);letter-spacing:-0.2px;}
+.mood-log-chart-range{font-size:11px;color:var(--ink-60);font-weight:500;}
+.mood-log-chart-emojis{display:flex;flex-direction:column;position:absolute;margin-left:-4px;margin-top:4px;gap:22px;pointer-events:none;}
+.mood-log-chart-svg-wrap{position:relative;width:100%;height:110px;margin-bottom:14px;}
+.mood-log-chart-svg{width:100%;height:100%;display:block;}
+.mood-log-chart-insight{display:flex;align-items:flex-start;gap:10px;background:var(--sage-light);border:1px solid var(--sage-mid);border-radius:var(--radius-md);padding:10px 14px;font-size:13px;color:var(--ink);line-height:1.5;}
+.mood-log-chart-insight strong{color:var(--sage);font-weight:600;}
+.mood-log-chart-insight-icon{font-size:16px;flex-shrink:0;line-height:1.3;}
+.mood-log-chart-insight-text{flex:1;}

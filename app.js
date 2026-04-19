@@ -2201,6 +2201,7 @@ function renderHome() {
   renderAffirmation();
   renderResumeDraft();
   renderQuickMood();
+  renderMoodLogChart();
   const es = getEntries().slice(0, 3), el = document.getElementById('recent-entries');
   if (!es.length) {
     const goal = localStorage.getItem('gj_goal') || 'gratitude';
@@ -3990,6 +3991,133 @@ function renderQuickMood() {
         </div>
       </div>`;
   }
+}
+
+// ── MOOD LOG CHART ────────────────────────────────
+function renderMoodLogChart() {
+  const wrap = document.getElementById('mood-log-chart-wrap');
+  if (!wrap) return;
+
+  const logs = getMoodLogs();
+  // Don't show until we have at least 3 days of data
+  if (logs.length < 3) { wrap.innerHTML = ''; return; }
+
+  // Group by day — take LATEST mood per day over the last 14 days
+  const dayBuckets = {};
+  const now = new Date();
+  const cutoff = new Date(now); cutoff.setDate(cutoff.getDate() - 13); cutoff.setHours(0,0,0,0);
+
+  logs.forEach(l => {
+    const d = new Date(l.date);
+    if (d < cutoff) return;
+    const key = d.toDateString();
+    // Keep most recent log of the day
+    if (!dayBuckets[key] || l.date > dayBuckets[key].date) {
+      dayBuckets[key] = l;
+    }
+  });
+
+  // Build array for last N days that have data
+  const daysSortedAsc = Object.keys(dayBuckets).sort((a,b) => new Date(a) - new Date(b));
+  if (daysSortedAsc.length < 3) { wrap.innerHTML = ''; return; }
+
+  const data = daysSortedAsc.map(dayStr => ({
+    day: new Date(dayStr),
+    mood: dayBuckets[dayStr].mood, // 0-4
+  }));
+
+  // SVG dimensions
+  const W = 320;
+  const H = 110;
+  const PAD_X = 16;
+  const PAD_Y = 20;
+  const innerW = W - PAD_X * 2;
+  const innerH = H - PAD_Y * 2;
+  const stepX = data.length > 1 ? innerW / (data.length - 1) : 0;
+  // Mood 0 = bottom, 4 = top
+  const yFor = (mood) => PAD_Y + innerH - (mood / 4) * innerH;
+
+  // Build smooth line path
+  const points = data.map((d, i) => ({
+    x: PAD_X + i * stepX,
+    y: yFor(d.mood),
+    mood: d.mood,
+    day: d.day,
+  }));
+
+  // Path for line
+  let linePath = '';
+  points.forEach((p, i) => {
+    linePath += (i === 0 ? 'M' : 'L') + ` ${p.x.toFixed(1)} ${p.y.toFixed(1)} `;
+  });
+
+  // Area path (fill below line)
+  const areaPath = linePath + `L ${points[points.length-1].x.toFixed(1)} ${H - PAD_Y} L ${points[0].x.toFixed(1)} ${H - PAD_Y} Z`;
+
+  // Horizontal gridlines at each mood level
+  const gridlines = [0,1,2,3,4].map(m => {
+    const y = yFor(m);
+    return `<line x1="${PAD_X}" y1="${y}" x2="${W - PAD_X}" y2="${y}" stroke="var(--ink-15)" stroke-width="1" stroke-dasharray="2 3" opacity="0.5"/>`;
+  }).join('');
+
+  // Calculate trend and insight
+  const firstHalf = data.slice(0, Math.ceil(data.length / 2));
+  const secondHalf = data.slice(Math.floor(data.length / 2));
+  const firstAvg = firstHalf.reduce((s, d) => s + d.mood, 0) / firstHalf.length;
+  const secondAvg = secondHalf.reduce((s, d) => s + d.mood, 0) / secondHalf.length;
+  const diff = secondAvg - firstAvg;
+
+  const avgMood = data.reduce((s, d) => s + d.mood, 0) / data.length;
+  const latestMood = data[data.length - 1].mood;
+
+  let insight;
+  if (diff >= 0.5) {
+    insight = { icon: '📈', text: `<strong>Trending up</strong> — your mood has been lifting over these ${data.length} days.` };
+  } else if (diff <= -0.5) {
+    insight = { icon: '🌊', text: `<strong>A dip lately</strong> — you're not failing, you're noticing. That's the work.` };
+  } else if (avgMood >= 3) {
+    insight = { icon: '✨', text: `<strong>Steady and good</strong> — you've been in a solid place most days.` };
+  } else if (avgMood <= 1) {
+    insight = { icon: '💙', text: `<strong>Hard stretch</strong> — be extra gentle with yourself right now.` };
+  } else {
+    insight = { icon: '🌿', text: `<strong>Even-keeled</strong> — your mood has stayed pretty steady.` };
+  }
+
+  const startLabel = data[0].day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  const endLabel = data[data.length - 1].day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+  wrap.innerHTML = `
+    <div class="mood-log-chart-card">
+      <div class="mood-log-chart-head">
+        <div class="mood-log-chart-title">Mood log</div>
+        <div class="mood-log-chart-range">${startLabel} – ${endLabel}</div>
+      </div>
+      <div class="mood-log-chart-emojis">
+        <span style="font-size:12px;">${MOODS[4].e}</span>
+        <span style="font-size:12px;opacity:0.4;">${MOODS[2].e}</span>
+        <span style="font-size:12px;opacity:0.4;">${MOODS[0].e}</span>
+      </div>
+      <div class="mood-log-chart-svg-wrap">
+        <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="mood-log-chart-svg">
+          <defs>
+            <linearGradient id="moodAreaGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="var(--sage)" stop-opacity="0.25"/>
+              <stop offset="100%" stop-color="var(--sage)" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          ${gridlines}
+          <path d="${areaPath}" fill="url(#moodAreaGrad)" />
+          <path d="${linePath}" fill="none" stroke="var(--sage)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          ${points.map((p, i) => `
+            <circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${i === points.length - 1 ? 5 : 3.5}" fill="var(--sage)" stroke="var(--white)" stroke-width="2"/>
+          `).join('')}
+        </svg>
+      </div>
+      <div class="mood-log-chart-insight">
+        <span class="mood-log-chart-insight-icon">${insight.icon}</span>
+        <span class="mood-log-chart-insight-text">${insight.text}</span>
+      </div>
+    </div>`;
 }
 
 
