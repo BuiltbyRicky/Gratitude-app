@@ -193,69 +193,7 @@ let cachedEntries = [];
 // ══════════════════════════════════════════════════
 // INIT — check auth on load
 // ══════════════════════════════════════════════════
-// ── THEME SYSTEM (dark/light/system) ──────────────
-function getSavedTheme() {
-  return localStorage.getItem('gj_theme') || 'system';
-}
-
-function getEffectiveTheme() {
-  const saved = getSavedTheme();
-  if (saved === 'system') {
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  }
-  return saved;
-}
-
-function applyTheme(theme) {
-  // theme is 'light' or 'dark' (resolved, never 'system')
-  document.documentElement.setAttribute('data-theme', theme);
-}
-
-function setTheme(choice) {
-  // choice is 'light', 'dark', or 'system'
-  localStorage.setItem('gj_theme', choice);
-
-  // Enable smooth CSS transitions during the swap, then disable after to keep things snappy
-  document.documentElement.classList.add('theme-transitioning');
-  setTimeout(() => document.documentElement.classList.remove('theme-transitioning'), 400);
-
-  const effective = choice === 'system'
-    ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
-    : choice;
-  applyTheme(effective);
-
-  renderThemeChoice();
-}
-
-function renderThemeChoice() {
-  const saved = getSavedTheme();
-  document.querySelectorAll('[data-theme-opt]').forEach(el => {
-    el.classList.toggle('active', el.dataset.themeOpt === saved);
-  });
-}
-
-function initThemeSystem() {
-  // Already applied via inline script in <head>, but re-apply to be safe after app load
-  applyTheme(getEffectiveTheme());
-
-  // Watch for OS-level theme changes when user is set to "system"
-  if (window.matchMedia) {
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const onChange = () => {
-      if (getSavedTheme() === 'system') {
-        document.documentElement.classList.add('theme-transitioning');
-        setTimeout(() => document.documentElement.classList.remove('theme-transitioning'), 400);
-        applyTheme(mq.matches ? 'dark' : 'light');
-      }
-    };
-    // Support both new (addEventListener) and old (addListener) APIs
-    if (mq.addEventListener) mq.addEventListener('change', onChange);
-    else if (mq.addListener) mq.addListener(onChange);
-  }
-}
-
 async function init() {
-  initThemeSystem();
   if (!initSupabase()) {
     clearTimeout(hardFallback);
     hideLoading();
@@ -4801,9 +4739,6 @@ function renderSettings() {
 
   // Apple Health status (only shows on iOS)
   renderHealthStatus();
-
-  // Theme picker active state
-  renderThemeChoice();
 }
 
 async function renderHealthStatus() {

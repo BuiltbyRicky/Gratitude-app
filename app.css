@@ -26,7 +26,7 @@
 
 /* ── NATIVE APP FIXES ── */
 * { -webkit-tap-highlight-color: transparent; }
-html, body { overscroll-behavior: none; }
+html, body { overscroll-behavior: none; background: #FAF8F4; color-scheme: light only; }
 .page { -webkit-overflow-scrolling: touch; }
 .page-wrap { -webkit-overflow-scrolling: touch; }
 .filter-row, .learn-cat-tabs, .heatmap-grid, .heatmap-months { -webkit-overflow-scrolling: touch; }
@@ -843,13 +843,3 @@ html, body { overscroll-behavior: none; }
 .heatmap-insight-label{font-size:10px;font-weight:600;color:var(--ink-60);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;}
 .heatmap-insight-value{font-size:13px;font-weight:500;color:var(--ink);line-height:1.3;}
 
-/* ══════════════════════════════════════════════════
-   THEME TOGGLE (settings)
-══════════════════════════════════════════════════ */
-.theme-toggle-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
-.theme-opt{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px 10px;background:var(--cream);border:1.5px solid var(--ink-15);border-radius:var(--radius-md);cursor:pointer;transition:var(--transition);font-family:var(--font-sans);}
-.theme-opt:hover{border-color:var(--sage-mid);background:var(--sage-light);}
-.theme-opt.active{border-color:var(--sage);background:var(--sage-light);box-shadow:0 0 0 3px rgba(45,122,95,0.12);}
-.theme-opt-icon{font-size:22px;line-height:1;}
-.theme-opt-label{font-size:12px;font-weight:500;color:var(--ink);}
-.theme-opt.active .theme-opt-label{color:var(--sage);font-weight:600;}
