@@ -328,6 +328,9 @@ async function launchApp() {
     setTimeout(() => promptHealthOnFirstLaunch(), 4500);
   }
 
+  // Show "What's New" tour for returning users if they've missed recent features
+  setTimeout(() => maybeShowWhatsNew(), 2500);
+
   // Set up shake-to-capture (delayed so it doesn't fire during sign-in animation)
   setTimeout(() => initShakeDetection(), 2000);
 }
@@ -876,7 +879,12 @@ async function rescheduleNotif(hour, minute) {
 
 function finishOnboard() {
   document.getElementById('screen-onboard').classList.remove('active');
-  if (currentUser) localStorage.setItem('gj_onboarded_' + currentUser.id, '1');
+  if (currentUser) {
+    localStorage.setItem('gj_onboarded_' + currentUser.id, '1');
+    localStorage.setItem('gj_onboarded_at_' + currentUser.id, String(Date.now()));
+    // Pre-mark the current "What's New" as seen so new users don't see it on day 3
+    localStorage.setItem('gj_whats_new_' + WHATS_NEW_VERSION + '_' + currentUser.id, '1');
+  }
   // Personalise greeting on first load
   if (userGoal) applyGoalPersonalization();
 }
@@ -3555,7 +3563,136 @@ function restartChallenge() {
 }
 
 
-// ── APPLE HEALTH INTEGRATION ──────────────────────
+// ── WHAT'S NEW TOUR ────────────────────────────────
+// Version is bumped manually when new features ship. Returning users
+// who haven't seen the current version's tour get a gentle "What's new" modal.
+const WHATS_NEW_VERSION = '2026.04.18';
+
+// Each item is a feature we want to highlight. Keep to 3-5 — any more feels spammy.
+const WHATS_NEW_ITEMS = [
+  {
+    icon: '💭',
+    title: 'Quick Capture',
+    sub: 'A thought you don\'t want to lose? Tap the 💭 button on Home — type or speak it in 30 seconds.',
+    color: '#2D7A5F',
+  },
+  {
+    icon: '📱',
+    title: 'Shake to Capture',
+    sub: 'Shake your phone anywhere in the app to instantly open Quick Capture. Enable in Settings.',
+    color: '#9A6520',
+  },
+  {
+    icon: '❤️',
+    title: 'Apple Health',
+    sub: 'Log your sessions as Mindful Minutes automatically — alongside your workouts and sleep.',
+    color: '#E54B4B',
+  },
+  {
+    icon: '☁️',
+    title: 'Mood Log Chart',
+    sub: 'See your mood trend over the past 14 days right on Home. Patterns emerge.',
+    color: '#5B8BBF',
+  },
+  {
+    icon: '✨',
+    title: 'Your Words',
+    sub: 'Tap any stat tile to see a word cloud of your most-used words — the themes of your reflections.',
+    color: '#8557B2',
+  },
+];
+
+function maybeShowWhatsNew() {
+  if (!currentUser) return;
+
+  // Don't show to brand-new users — they just onboarded, no point showing them "what's new"
+  const onboardedAt = localStorage.getItem('gj_onboarded_at_' + currentUser.id);
+  const now = Date.now();
+  if (!onboardedAt) {
+    // Stamp onboarded time if missing (migration for existing users)
+    localStorage.setItem('gj_onboarded_at_' + currentUser.id, String(now));
+    return;
+  }
+  const ageDays = (now - parseInt(onboardedAt, 10)) / (24 * 60 * 60 * 1000);
+  if (ageDays < 2) return; // must have used the app at least 2 days
+
+  // Already seen this version?
+  if (localStorage.getItem('gj_whats_new_' + WHATS_NEW_VERSION + '_' + currentUser.id) === '1') return;
+
+  // Don't interrupt a session
+  const activePage = document.querySelector('.page.active')?.id;
+  if (['page-journal', 'page-mood-before', 'page-mood-after', 'page-breath', 'page-breathex', 'page-summary'].includes(activePage)) {
+    setTimeout(() => maybeShowWhatsNew(), 30000);
+    return;
+  }
+
+  // Don't stack on top of other overlays
+  if (document.getElementById('health-prompt-overlay') ||
+      document.getElementById('quick-capture-overlay') ||
+      document.querySelector('.modal-overlay.open')) {
+    setTimeout(() => maybeShowWhatsNew(), 8000);
+    return;
+  }
+
+  showWhatsNew();
+}
+
+function showWhatsNew() {
+  const overlay = document.createElement('div');
+  overlay.id = 'whats-new-overlay';
+  overlay.className = 'whats-new-overlay';
+  overlay.innerHTML = `
+    <div class="whats-new-modal">
+      <button class="whats-new-close" onclick="dismissWhatsNew()">✕</button>
+
+      <div class="whats-new-hero">
+        <div class="whats-new-sparkle">✨</div>
+        <div class="whats-new-eyebrow">Fresh updates</div>
+        <div class="whats-new-title">What's new in Gratitude</div>
+        <div class="whats-new-sub">Here's what we've added while you were away.</div>
+      </div>
+
+      <div class="whats-new-list">
+        ${WHATS_NEW_ITEMS.map((item, i) => `
+          <div class="whats-new-item" style="animation-delay: ${0.15 + i * 0.08}s;">
+            <div class="whats-new-icon" style="background: ${item.color}20; color: ${item.color};">
+              ${item.icon}
+            </div>
+            <div class="whats-new-content">
+              <div class="whats-new-item-title">${esc(item.title)}</div>
+              <div class="whats-new-item-sub">${esc(item.sub)}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="whats-new-actions">
+        <button class="btn solid whats-new-primary" onclick="dismissWhatsNew()">Start exploring →</button>
+      </div>
+
+      <div class="whats-new-footnote">
+        Thanks for being here since the early days. 💙
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+}
+
+function dismissWhatsNew() {
+  if (currentUser) {
+    localStorage.setItem('gj_whats_new_' + WHATS_NEW_VERSION + '_' + currentUser.id, '1');
+  }
+  const o = document.getElementById('whats-new-overlay');
+  if (o) {
+    o.classList.add('fade-out');
+    setTimeout(() => {
+      o.remove();
+      document.body.style.overflow = '';
+    }, 300);
+  }
+}
+
+
 // Logs Mindful Minutes to Apple Health on each completed session.
 // Uses @capgo/capacitor-health via window.Capacitor.Plugins (same pattern as
 // LocalNotifications and SpeechRecognition — works inside Capacitor WebView).
