@@ -843,3 +843,249 @@ html, body { overscroll-behavior: none; background: #FAF8F4; color-scheme: light
 .heatmap-insight-label{font-size:10px;font-weight:600;color:var(--ink-60);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:2px;}
 .heatmap-insight-value{font-size:13px;font-weight:500;color:var(--ink);line-height:1.3;}
 
+
+/* ══════════════════════════════════════════════════════════
+   PREMIUM ANIMATIONS & MICRO-INTERACTIONS
+══════════════════════════════════════════════════════════ */
+
+/* ═══ 1. BUTTON PRESS FEEDBACK ═══
+   Every interactive element should feel alive when tapped. */
+.cta-btn, .btn, .ob-btn, .auth-submit, .mood-btn, .nav-pill, .mobile-tab,
+.filter-chip, .tag-filter-chip, .learn-cat-tab, .breath-opt,
+.quick-capture-btn, .quick-mood-btn, .stat-tile, .recent-card,
+.hist-entry, .card-style-btn, .q-read-btn, .voice-btn, .freeze-btn,
+.reminder-btn, .key-save, .hist-edit-btn, .hist-del, .ob-goal-btn,
+.theme-opt, .qc-mode-btn, .mode-pill, .share-quote-btn,
+.jar-btn, .revive-btn, .challenge-start-btn, .resume-draft-btn,
+.empty-rich-cta, .paywall-btn {
+  -webkit-tap-highlight-color: transparent;
+  transform-origin: center;
+}
+
+.cta-btn:active, .btn:active, .ob-btn:active, .auth-submit:active,
+.mood-btn:active, .quick-capture-btn:active, .quick-mood-btn:active,
+.card-style-btn:active, .q-read-btn:active, .voice-btn:active,
+.freeze-btn:active, .reminder-btn:active, .key-save:active,
+.jar-btn:active, .revive-btn:active, .challenge-start-btn:active,
+.resume-draft-btn:active, .empty-rich-cta:active {
+  transform: scale(0.96) !important;
+  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.stat-tile:active, .recent-card:active, .hist-entry:active,
+.breath-opt:active, .ob-goal-btn:active, .theme-opt:active,
+.learn-card-header:active {
+  transform: scale(0.985) !important;
+  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* ═══ 2. HERO & PAGE ENTRANCE ═══
+   Content cascades in when you open a page. */
+@keyframes heroEnter {
+  0%   { opacity: 0; transform: translateY(12px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes contentFadeUp {
+  0%   { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+.page.active .hero {
+  animation: heroEnter 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.page.active .hero-eyebrow {
+  animation: contentFadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+}
+.page.active .hero h2 {
+  animation: contentFadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.14s both;
+}
+.page.active .hero p {
+  animation: contentFadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+}
+
+/* Stagger stat tiles */
+.page.active .stats-grid .stat-tile:nth-child(1) { animation: contentFadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.22s both; }
+.page.active .stats-grid .stat-tile:nth-child(2) { animation: contentFadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.27s both; }
+.page.active .stats-grid .stat-tile:nth-child(3) { animation: contentFadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.32s both; }
+
+.page.active .cta-btn {
+  animation: contentFadeUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.38s both;
+}
+
+/* History page entrance */
+#page-history.active .hist-entry:nth-child(1) { animation: contentFadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both; }
+#page-history.active .hist-entry:nth-child(2) { animation: contentFadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both; }
+#page-history.active .hist-entry:nth-child(3) { animation: contentFadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both; }
+#page-history.active .hist-entry:nth-child(4) { animation: contentFadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both; }
+#page-history.active .hist-entry:nth-child(5) { animation: contentFadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.25s both; }
+
+/* Learn page cards */
+#page-learn.active .learn-card:nth-child(1) { animation: contentFadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both; }
+#page-learn.active .learn-card:nth-child(2) { animation: contentFadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both; }
+#page-learn.active .learn-card:nth-child(3) { animation: contentFadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both; }
+#page-learn.active .learn-card:nth-child(4) { animation: contentFadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both; }
+
+/* Settings */
+#page-settings.active .settings-block:nth-child(1) { animation: contentFadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.05s both; }
+#page-settings.active .settings-block:nth-child(2) { animation: contentFadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both; }
+#page-settings.active .settings-block:nth-child(3) { animation: contentFadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both; }
+#page-settings.active .settings-block:nth-child(4) { animation: contentFadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both; }
+
+/* ═══ 3. STAT NUMBER COUNT-UP ═══
+   Stats subtly scale in for delight. */
+@keyframes statPop {
+  0%   { transform: scale(0.85); opacity: 0; }
+  60%  { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.page.active .stat-val {
+  animation: statPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.35s both;
+  display: inline-block;
+}
+
+/* ═══ 4. CARD HOVER & TAP FLOW ═══
+   Cards lift slightly when pressed — feels physical. */
+.stat-tile {
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.25s ease,
+              border-color 0.25s ease;
+}
+.recent-card, .hist-entry, .learn-card, .breath-opt {
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.25s ease,
+              border-color 0.2s ease;
+}
+
+/* ═══ 5. MOBILE TAB ICON SCALE ═══
+   Tab icons do a satisfying bounce when switched. */
+@keyframes tabIconPop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+
+.mobile-tab.active svg {
+  animation: tabIconPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ═══ 6. NAV PILL SWITCH ═══
+   Desktop nav pills feel snappier. */
+.nav-pill {
+  transition: color 0.2s ease,
+              background 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.25s ease;
+}
+
+/* ═══ 7. STREAK CHIP PULSE ═══
+   The streak chip subtly pulses when you have a fire going. */
+@keyframes streakPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(154, 101, 32, 0.3); }
+  50%      { box-shadow: 0 0 0 6px rgba(154, 101, 32, 0); }
+}
+
+.streak-chip {
+  animation: streakPulse 2.4s ease-in-out infinite;
+}
+
+/* ═══ 8. CTA BUTTON IDLE "BREATHING" ═══
+   Subtle suggest-tap shimmer on the primary action. */
+@keyframes ctaBreathe {
+  0%, 100% { box-shadow: 0 4px 20px rgba(45, 122, 95, 0.25); }
+  50%      { box-shadow: 0 6px 28px rgba(45, 122, 95, 0.4); }
+}
+
+.cta-btn {
+  animation: ctaBreathe 3.5s ease-in-out infinite;
+}
+.cta-btn:hover, .cta-btn:active {
+  animation: none;
+}
+
+/* ═══ 9. CARD ENTRY STAGGER (added cards on home) ═══ */
+.recent-card { animation: contentFadeUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.recent-card:nth-child(1) { animation-delay: 0.42s; }
+.recent-card:nth-child(2) { animation-delay: 0.46s; }
+.recent-card:nth-child(3) { animation-delay: 0.5s; }
+
+/* ═══ 10. MODAL ENTRANCE ENHANCEMENTS ═══ */
+.modal, .badge-modal-inner, .insights-modal, .jar-modal,
+.achievements-modal, .health-prompt-modal {
+  transform-origin: center;
+}
+
+/* ═══ 11. SMOOTHER PAGE TRANSITIONS ═══
+   Override existing with richer curves. */
+@keyframes slideInRight {
+  0%   { opacity: 0; transform: translateX(24px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+@keyframes slideInLeft {
+  0%   { opacity: 0; transform: translateX(-24px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+.page.slide-in-right { animation: slideInRight 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.page.slide-in-left  { animation: slideInLeft 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* ═══ 12. MOOD EMOJI HOVER JIGGLE ═══
+   Mood buttons do a playful wiggle on hover. */
+@keyframes moodWiggle {
+  0%, 100% { transform: rotate(0deg) scale(1.1); }
+  25%      { transform: rotate(-5deg) scale(1.1); }
+  75%      { transform: rotate(5deg) scale(1.1); }
+}
+
+.mood-btn:hover {
+  animation: moodWiggle 0.6s ease-in-out;
+}
+.quick-mood-btn:hover {
+  animation: moodWiggle 0.6s ease-in-out;
+  transform: scale(1.1);
+}
+
+/* ═══ 13. SUBTLE EMOJI BOB ON IDLE ═══
+   Quick mood btns breathe slightly to suggest tapping. */
+@keyframes emojiBob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-2px); }
+}
+
+.quick-mood-btn {
+  animation: emojiBob 3s ease-in-out infinite;
+  animation-delay: calc(var(--bob-delay, 0) * 0.3s);
+}
+.quick-mood-btn:nth-child(1) { --bob-delay: 0; }
+.quick-mood-btn:nth-child(2) { --bob-delay: 1; }
+.quick-mood-btn:nth-child(3) { --bob-delay: 2; }
+.quick-mood-btn:nth-child(4) { --bob-delay: 3; }
+.quick-mood-btn:nth-child(5) { --bob-delay: 4; }
+
+/* ═══ 14. CHECK-MARK DRAW for completions ═══
+   Already exists for session complete — expand pattern. */
+.hist-edit-btn:active, .hist-del:active {
+  transform: scale(0.94);
+  transition: transform 0.1s ease;
+}
+
+/* ═══ 15. SPECIAL ENTRANCE: quick capture toast, ptr, etc ═══ */
+.quick-capture-toast, .quick-mood-toast {
+  animation: toastSpring 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes toastSpring {
+  0%   { opacity: 0; transform: translateX(-50%) translateY(40px) scale(0.85); }
+  60%  { transform: translateX(-50%) translateY(-4px) scale(1.02); }
+  100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+}
+
+/* ═══ 16. REDUCED MOTION FOR ACCESSIBILITY ═══
+   Respect users who prefer less animation. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.1s !important;
+    scroll-behavior: auto !important;
+  }
+}
