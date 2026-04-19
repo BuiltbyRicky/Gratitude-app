@@ -2721,6 +2721,147 @@ function calculateInsights() {
   };
 }
 
+// Returns 7×4 grid [day][timeSlot] = { avg, count } or null if no data
+// Days: 0=Sun, 6=Sat.  Slots: 0=Morning (5-12), 1=Afternoon (12-17), 2=Evening (17-21), 3=Night (21-5)
+function calculateMoodHeatmap(entries) {
+  // Collect all mood data points: from full entries (mood_after) + quick mood logs
+  const dataPoints = [];
+
+  entries.forEach(e => {
+    if (e.mood_after != null) {
+      dataPoints.push({ date: new Date(e.date), mood: e.mood_after });
+    } else if (e.mood_before != null) {
+      dataPoints.push({ date: new Date(e.date), mood: e.mood_before });
+    }
+  });
+
+  const moodLogs = getMoodLogs();
+  moodLogs.forEach(l => {
+    dataPoints.push({ date: new Date(l.date), mood: l.mood });
+  });
+
+  if (dataPoints.length < 5) return null; // not enough data
+
+  // Build 7×4 grid
+  const grid = Array.from({ length: 7 }, () => Array.from({ length: 4 }, () => ({ sum: 0, count: 0 })));
+
+  dataPoints.forEach(p => {
+    const day = p.date.getDay();
+    const h = p.date.getHours();
+    let slot;
+    if (h >= 5 && h < 12) slot = 0;
+    else if (h >= 12 && h < 17) slot = 1;
+    else if (h >= 17 && h < 21) slot = 2;
+    else slot = 3; // night
+    grid[day][slot].sum += p.mood;
+    grid[day][slot].count++;
+  });
+
+  // Convert to { avg, count }
+  return grid.map(row => row.map(cell => {
+    if (cell.count === 0) return null;
+    return { avg: cell.sum / cell.count, count: cell.count };
+  }));
+}
+
+function renderMoodHeatmapSection(heatmap) {
+  if (!heatmap) return '';
+
+  // Count how many cells have data — need at least 5 unique cells for a meaningful visual
+  const filledCells = heatmap.flat().filter(c => c !== null).length;
+  if (filledCells < 5) return '';
+
+  const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const slotLabels = ['Morning', 'Afternoon', 'Evening', 'Night'];
+  const slotIcons = ['🌅', '☀️', '🌆', '🌙'];
+
+  // Compute color for each cell based on avg mood
+  // Mood 0 (😔) = #c56b8a (pink/red), 4 (😄) = #2D7A5F (sage)
+  const moodToColor = (mood) => {
+    const clamped = Math.max(0, Math.min(4, mood));
+    const t = clamped / 4;
+    // Interpolate: struggling (soft red) → okay (warm tan) → great (sage)
+    const r = Math.round(197 * (1 - t) + 45 * t);
+    const g = Math.round(107 * (1 - t) + 122 * t);
+    const b = Math.round(138 * (1 - t) + 95 * t);
+    return `rgb(${r},${g},${b})`;
+  };
+
+  // Find best/worst cells for insight (need 2+ data points)
+  let bestCell = null, worstCell = null;
+  for (let d = 0; d < 7; d++) {
+    for (let s = 0; s < 4; s++) {
+      const cell = heatmap[d][s];
+      if (!cell || cell.count < 2) continue;
+      if (!bestCell || cell.avg > bestCell.avg) bestCell = { ...cell, day: d, slot: s };
+      if (!worstCell || cell.avg < worstCell.avg) worstCell = { ...cell, day: d, slot: s };
+    }
+  }
+
+  let insightHtml = '';
+  if (bestCell && worstCell && bestCell.avg - worstCell.avg >= 1) {
+    insightHtml = `
+      <div class="heatmap-insight">
+        <div class="heatmap-insight-item">
+          <span class="heatmap-insight-emoji">${MOODS[Math.round(bestCell.avg)].e}</span>
+          <div>
+            <div class="heatmap-insight-label">Best time</div>
+            <div class="heatmap-insight-value">${dayLabels[bestCell.day]} ${slotLabels[bestCell.slot]}s</div>
+          </div>
+        </div>
+        <div class="heatmap-insight-item">
+          <span class="heatmap-insight-emoji">${MOODS[Math.round(worstCell.avg)].e}</span>
+          <div>
+            <div class="heatmap-insight-label">Hardest time</div>
+            <div class="heatmap-insight-value">${dayLabels[worstCell.day]} ${slotLabels[worstCell.slot]}s</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // Build header row: empty cell + 7 day labels
+  const headerRow = `
+    <div class="heatmap-cell heatmap-corner"></div>
+    ${dayLabels.map(d => `<div class="heatmap-day-label">${d}</div>`).join('')}
+  `;
+
+  // Build 4 rows (one per time slot)
+  const slotRows = slotLabels.map((slot, s) => {
+    const cells = [];
+    cells.push(`<div class="heatmap-slot-label"><span class="heatmap-slot-icon">${slotIcons[s]}</span><span>${slot}</span></div>`);
+    for (let d = 0; d < 7; d++) {
+      const cell = heatmap[d][s];
+      if (!cell) {
+        cells.push(`<div class="heatmap-cell heatmap-empty"></div>`);
+      } else {
+        const color = moodToColor(cell.avg);
+        const opacity = 0.3 + Math.min(cell.count / 5, 0.7); // more samples = more opaque
+        cells.push(`<div class="heatmap-cell heatmap-filled" style="background:${color};opacity:${opacity};" title="${dayLabels[d]} ${slot}: ${MOODS[Math.round(cell.avg)].label} (${cell.count} check-in${cell.count === 1 ? '' : 's'})"></div>`);
+      }
+    }
+    return cells.join('');
+  }).join('');
+
+  return `
+    <div class="ins-section">
+      <div class="ins-section-title">Mood by time</div>
+      <div class="heatmap-card">
+        <div class="heatmap-grid">
+          ${headerRow}
+          ${slotRows}
+        </div>
+        <div class="heatmap-legend-row">
+          <span class="heatmap-legend-swatch" style="background:${moodToColor(0)};"></span>
+          <span class="heatmap-legend-label">Struggling</span>
+          <span class="heatmap-legend-arrow">→</span>
+          <span class="heatmap-legend-swatch" style="background:${moodToColor(4)};"></span>
+          <span class="heatmap-legend-label">Great</span>
+        </div>
+      </div>
+      ${insightHtml}
+    </div>`;
+}
+
 // Returns array of { word, count } sorted by frequency
 function calculateTopWords(entries, limit = 25) {
   // Stop words to exclude — common filler
@@ -2865,6 +3006,8 @@ function openInsights() {
       </div>
 
       ${moodHtml}
+
+      ${renderMoodHeatmapSection(calculateMoodHeatmap(getEntries()))}
 
       <div class="ins-section">
         <div class="ins-section-title">When you journal</div>
