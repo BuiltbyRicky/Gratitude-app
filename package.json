@@ -11,12 +11,12 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@capacitor-community/speech-recognition": "^7.0.1",
     "@capacitor/cli": "^8.3.0",
     "@capacitor/core": "^8.3.0",
+    "@capacitor/haptics": "^8.0.2",
     "@capacitor/ios": "^8.3.0",
     "@capacitor/local-notifications": "^8.0.2",
-    "capacitor-health": "^8.1.0",
-    "capacitor-voice-recorder": "^7.0.6"
+    "@capgo/capacitor-health": "^8.4.6",
+    "@capgo/capacitor-speech-recognition": "^8.1.0"
   }
 }

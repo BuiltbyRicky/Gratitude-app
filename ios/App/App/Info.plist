@@ -24,6 +24,10 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSHealthShareUsageDescription</key>
+	<string>Gratitude reads no data — this is required by the framework.</string>
+	<key>NSHealthUpdateUsageDescription</key>
+	<string>Gratitude logs your completed sessions as Mindful Minutes in Apple Health.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Gratitude uses your microphone so you can speak your journal entries aloud.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
