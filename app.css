@@ -712,9 +712,9 @@ html, body { overscroll-behavior: none; background: #FAF8F4; color-scheme: light
 .quick-capture-text{flex:1;text-align:left;font-weight:500;}
 .quick-capture-meta{font-size:11px;color:var(--ink-30);}
 
-.quick-capture-overlay{position:fixed;inset:0;background:rgba(28,26,23,0.6);backdrop-filter:blur(10px);z-index:900;display:flex;align-items:flex-end;justify-content:center;padding:0;animation:fadeIn 0.3s ease;}
+.quick-capture-overlay{position:fixed;inset:0;background:rgba(28,26,23,0.6);backdrop-filter:blur(10px);z-index:900;display:flex;align-items:flex-end;justify-content:center;padding:0;animation:fadeIn 0.3s ease;overscroll-behavior:contain;touch-action:none;}
 @media(min-width:600px){.quick-capture-overlay{align-items:center;padding:1rem;}}
-.quick-capture-modal{background:var(--white);border-radius:24px 24px 0 0;width:100%;max-width:500px;padding:1.75rem 1.5rem;animation:slideUp 0.4s ease;position:relative;}
+.quick-capture-modal{background:var(--white);border-radius:24px 24px 0 0;width:100%;max-width:500px;padding:1.75rem 1.5rem;animation:slideUp 0.4s ease;position:relative;max-height:90vh;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain;}
 @media(min-width:600px){.quick-capture-modal{border-radius:24px;}}
 
 .quick-capture-close{position:absolute;top:14px;right:14px;background:var(--cream-dark);border:none;color:var(--ink-60);width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--transition);}
