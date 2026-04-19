@@ -2809,19 +2809,19 @@ function renderMoodHeatmapSection(heatmap) {
   let insightHtml = '';
   if (bestCell && worstCell && bestCell.avg - worstCell.avg >= 1) {
     insightHtml = `
-      <div class="heatmap-insight">
-        <div class="heatmap-insight-item">
-          <span class="heatmap-insight-emoji">${MOODS[Math.round(bestCell.avg)].e}</span>
+      <div class="mheatmap-insight">
+        <div class="mheatmap-insight-item">
+          <span class="mheatmap-insight-emoji">${MOODS[Math.round(bestCell.avg)].e}</span>
           <div>
-            <div class="heatmap-insight-label">Best time</div>
-            <div class="heatmap-insight-value">${dayLabels[bestCell.day]} ${slotLabels[bestCell.slot]}s</div>
+            <div class="mheatmap-insight-label">Best time</div>
+            <div class="mheatmap-insight-value">${dayLabels[bestCell.day]} ${slotLabels[bestCell.slot]}s</div>
           </div>
         </div>
-        <div class="heatmap-insight-item">
-          <span class="heatmap-insight-emoji">${MOODS[Math.round(worstCell.avg)].e}</span>
+        <div class="mheatmap-insight-item">
+          <span class="mheatmap-insight-emoji">${MOODS[Math.round(worstCell.avg)].e}</span>
           <div>
-            <div class="heatmap-insight-label">Hardest time</div>
-            <div class="heatmap-insight-value">${dayLabels[worstCell.day]} ${slotLabels[worstCell.slot]}s</div>
+            <div class="mheatmap-insight-label">Hardest time</div>
+            <div class="mheatmap-insight-value">${dayLabels[worstCell.day]} ${slotLabels[worstCell.slot]}s</div>
           </div>
         </div>
       </div>`;
@@ -2829,22 +2829,22 @@ function renderMoodHeatmapSection(heatmap) {
 
   // Build header row: empty cell + 7 day labels
   const headerRow = `
-    <div class="heatmap-cell heatmap-corner"></div>
-    ${dayLabels.map(d => `<div class="heatmap-day-label">${d}</div>`).join('')}
+    <div class="mheatmap-cell mheatmap-corner"></div>
+    ${dayLabels.map(d => `<div class="mheatmap-day-label">${d}</div>`).join('')}
   `;
 
   // Build 4 rows (one per time slot)
   const slotRows = slotLabels.map((slot, s) => {
     const cells = [];
-    cells.push(`<div class="heatmap-slot-label"><span class="heatmap-slot-icon">${slotIcons[s]}</span><span>${slot}</span></div>`);
+    cells.push(`<div class="mheatmap-slot-label"><span class="mheatmap-slot-icon">${slotIcons[s]}</span><span>${slot}</span></div>`);
     for (let d = 0; d < 7; d++) {
       const cell = heatmap[d][s];
       if (!cell) {
-        cells.push(`<div class="heatmap-cell heatmap-empty"></div>`);
+        cells.push(`<div class="mheatmap-cell mheatmap-empty"></div>`);
       } else {
         const color = moodToColor(cell.avg);
         const opacity = 0.3 + Math.min(cell.count / 5, 0.7); // more samples = more opaque
-        cells.push(`<div class="heatmap-cell heatmap-filled" style="background:${color};opacity:${opacity};" title="${dayLabels[d]} ${slot}: ${MOODS[Math.round(cell.avg)].label} (${cell.count} check-in${cell.count === 1 ? '' : 's'})"></div>`);
+        cells.push(`<div class="mheatmap-cell mheatmap-filled" style="background:${color};opacity:${opacity};" title="${dayLabels[d]} ${slot}: ${MOODS[Math.round(cell.avg)].label} (${cell.count} check-in${cell.count === 1 ? '' : 's'})"></div>`);
       }
     }
     return cells.join('');
@@ -2853,17 +2853,17 @@ function renderMoodHeatmapSection(heatmap) {
   return `
     <div class="ins-section">
       <div class="ins-section-title">Mood by time</div>
-      <div class="heatmap-card">
-        <div class="heatmap-grid">
+      <div class="mheatmap-card">
+        <div class="mheatmap-grid">
           ${headerRow}
           ${slotRows}
         </div>
-        <div class="heatmap-legend-row">
-          <span class="heatmap-legend-swatch" style="background:${moodToColor(0)};"></span>
-          <span class="heatmap-legend-label">Struggling</span>
-          <span class="heatmap-legend-arrow">→</span>
-          <span class="heatmap-legend-swatch" style="background:${moodToColor(4)};"></span>
-          <span class="heatmap-legend-label">Great</span>
+        <div class="mheatmap-legend-row">
+          <span class="mheatmap-legend-swatch" style="background:${moodToColor(0)};"></span>
+          <span class="mheatmap-legend-label">Struggling</span>
+          <span class="mheatmap-legend-arrow">→</span>
+          <span class="mheatmap-legend-swatch" style="background:${moodToColor(4)};"></span>
+          <span class="mheatmap-legend-label">Great</span>
         </div>
       </div>
       ${insightHtml}
@@ -4085,7 +4085,12 @@ async function qcStartVoice() {
   // iOS Capacitor path
   if (window.Capacitor && window.Capacitor.isNativePlatform()) {
     try {
-      const { SpeechRecognition } = await import('@capacitor-community/speech-recognition');
+      const SpeechRecognition = window.Capacitor?.Plugins?.SpeechRecognition;
+      if (!SpeechRecognition) {
+        const s = document.getElementById('qc-mic-status');
+        if (s) s.textContent = 'Voice not available on this device';
+        return;
+      }
       const perm = await SpeechRecognition.requestPermissions();
       if (perm.speechRecognition !== 'granted' && perm.microphone !== 'granted') {
         const s = document.getElementById('qc-mic-status');
@@ -4134,6 +4139,7 @@ async function qcStartVoice() {
         qcUpdateCounter();
       });
     } catch(e) {
+      console.log('QC voice error:', e?.message);
       const s = document.getElementById('qc-mic-status');
       if (s) s.textContent = 'Voice not available on this device';
     }
@@ -4186,8 +4192,8 @@ async function qcStopVoice() {
   if (!qcRecOn) return;
   if (window.Capacitor && window.Capacitor.isNativePlatform()) {
     try {
-      const { SpeechRecognition } = await import('@capacitor-community/speech-recognition');
-      await SpeechRecognition.stop();
+      const SpeechRecognition = window.Capacitor?.Plugins?.SpeechRecognition;
+      if (SpeechRecognition) await SpeechRecognition.stop();
     } catch(e) {}
   } else if (qcRec) {
     try { qcRec.stop(); } catch(e) {}
@@ -6223,7 +6229,12 @@ async function startRec() {
   stopAudio();
 
   try {
-    const { SpeechRecognition } = await import('@capacitor-community/speech-recognition');
+    const SpeechRecognition = window.Capacitor?.Plugins?.SpeechRecognition;
+    if (!SpeechRecognition) {
+      const s = document.getElementById('mic-status');
+      if (s) s.textContent = 'Microphone not available on this device';
+      return;
+    }
 
     // Request permission
     const perm = await SpeechRecognition.requestPermissions();
@@ -6324,8 +6335,8 @@ async function startRec() {
 async function stopRec() {
   if (rec) { rec.stop(); rec = null; return; }
   try {
-    const { SpeechRecognition } = await import('@capacitor-community/speech-recognition');
-    await SpeechRecognition.stop();
+    const SpeechRecognition = window.Capacitor?.Plugins?.SpeechRecognition;
+    if (SpeechRecognition) await SpeechRecognition.stop();
   } catch(e) { /* not running */ }
   recOn = false;
   const r = document.getElementById('mic-ring'); if (r) r.classList.remove('live');
@@ -6667,18 +6678,22 @@ function makeShareBtn(ans, dateRaw) {
 
 async function _loadQuoteFonts() {
   if (_quoteFontReady) return;
-  // Load Lora into the document font stack so canvas can use it
-  const loraRegular = new FontFace('Lora', "url(https://fonts.gstatic.com/s/lora/v35/0QI6MX1D_JOxE7fSYN3Kts3hrQ.woff2)", { weight: '400', style: 'normal' });
-  const loraItalic  = new FontFace('Lora', "url(https://fonts.gstatic.com/s/lora/v35/0QI8MX1D_JOxE7fSYN3Kts3lrA.woff2)", { weight: '400', style: 'italic' });
-  const loraMedium  = new FontFace('Lora', "url(https://fonts.gstatic.com/s/lora/v35/0QI6MX1D_JOxE7fSYN3Kts3irQ.woff2)", { weight: '500', style: 'normal' });
+  // Try to load Lora into the document font stack — but if it takes more than 2 seconds
+  // (or fails entirely, which can happen inside Capacitor WebView), we fall back gracefully.
   try {
-    const [f1, f2, f3] = await Promise.all([loraRegular.load(), loraItalic.load(), loraMedium.load()]);
-    document.fonts.add(f1); document.fonts.add(f2); document.fonts.add(f3);
-    _quoteFontReady = true;
+    const loraRegular = new FontFace('Lora', "url(https://fonts.gstatic.com/s/lora/v35/0QI6MX1D_JOxE7fSYN3Kts3hrQ.woff2)", { weight: '400', style: 'normal' });
+    const loraItalic  = new FontFace('Lora', "url(https://fonts.gstatic.com/s/lora/v35/0QI8MX1D_JOxE7fSYN3Kts3lrA.woff2)", { weight: '400', style: 'italic' });
+    const loraMedium  = new FontFace('Lora', "url(https://fonts.gstatic.com/s/lora/v35/0QI6MX1D_JOxE7fSYN3Kts3irQ.woff2)", { weight: '500', style: 'normal' });
+    const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('font timeout')), 2000));
+    const fontsLoaded = Promise.all([loraRegular.load(), loraItalic.load(), loraMedium.load()]);
+    const [f1, f2, f3] = await Promise.race([fontsLoaded, timeout]);
+    if (f1 && f2 && f3) {
+      document.fonts.add(f1); document.fonts.add(f2); document.fonts.add(f3);
+    }
   } catch(e) {
-    // Font failed — canvas will fall back to serif
-    _quoteFontReady = true;
+    console.log('Fonts failed to load, using serif fallback:', e?.message);
   }
+  _quoteFontReady = true;
 }
 
 function openQuoteCard(text, date) {
@@ -6745,29 +6760,30 @@ function changeCardStyle(style) {
 }
 
 async function renderQuoteCard(text, date) {
-  await _loadQuoteFonts();
+  try {
+    await _loadQuoteFonts();
 
-  const canvas = document.getElementById('quote-card-canvas');
-  if (!canvas) return;
-  const SIZE = 1080;
-  canvas.width = SIZE;
-  canvas.height = SIZE;
-  const ctx = canvas.getContext('2d');
+    const canvas = document.getElementById('quote-card-canvas');
+    if (!canvas) return;
+    const SIZE = 1080;
+    canvas.width = SIZE;
+    canvas.height = SIZE;
+    const ctx = canvas.getContext('2d');
 
-  const isDark = currentCardStyle === 'midnight';
-  const theme = CARD_STYLES[currentCardStyle] || CARD_STYLES.forest;
+    const isDark = currentCardStyle === 'midnight';
+    const theme = CARD_STYLES[currentCardStyle] || CARD_STYLES.forest;
 
-  // ── Background ──
-  const bg    = theme.bg;
-  const card  = theme.card;
-  const sage  = theme.accent;
-  const sageMid = theme.accent2;
-  const ink   = theme.ink;
-  const ink60 = theme.ink60;
-  const ink30 = theme.ink30;
+    // ── Background ──
+    const bg    = theme.bg;
+    const card  = theme.card;
+    const sage  = theme.accent;
+    const sageMid = theme.accent2;
+    const ink   = theme.ink;
+    const ink60 = theme.ink60;
+    const ink30 = theme.ink30;
 
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, SIZE, SIZE);
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, SIZE, SIZE);
 
   // ── Subtle grain overlay ──
   const grainData = ctx.createImageData(SIZE, SIZE);
@@ -6907,10 +6923,18 @@ async function renderQuoteCard(text, date) {
   ctx.textAlign = 'right';
   ctx.fillText('gratitudeapp.netlify.app', SIZE - MARGIN - 56, FOOTER_TOP + 52);
 
-  // Update preview
-  const preview = document.getElementById('quote-card-preview');
-  if (preview) {
-    preview.src = canvas.toDataURL('image/png');
+    // Update preview
+    const preview = document.getElementById('quote-card-preview');
+    if (preview) {
+      preview.src = canvas.toDataURL('image/png');
+    }
+  } catch(e) {
+    console.log('Quote card render failed:', e?.message);
+    // Show an error in the spinner area instead of leaving it spinning forever
+    const spinner = document.getElementById('quote-card-spinner');
+    if (spinner) {
+      spinner.innerHTML = `<span style="font-size:13px;color:var(--ink-60);text-align:center;padding:20px;">Couldn't generate card. Please try again.</span>`;
+    }
   }
 }
 
