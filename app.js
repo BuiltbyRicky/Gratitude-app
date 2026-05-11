@@ -3716,9 +3716,10 @@ async function requestHealthPermission() {
     const avail = await Health.isAvailable();
     if (!avail || !avail.available) return { ok: false, reason: 'unavailable' };
 
-    // @capgo/capacitor-health uses lowercase data type names
+    // @capgo/capacitor-health uses lowercase data type names.
+    // We only request write — the UI promise "never reads anything" stays literally true,
+    // and dropping read lets us omit NSHealthShareUsageDescription from Info.plist.
     await Health.requestAuthorization({
-      read: ['mindfulness'],
       write: ['mindfulness'],
     });
 

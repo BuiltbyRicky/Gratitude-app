@@ -24,16 +24,18 @@
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>NSHealthShareUsageDescription</key>
-	<string>Gratitude reads no data — this is required by the framework.</string>
 	<key>NSHealthUpdateUsageDescription</key>
-	<string>Gratitude logs your completed sessions as Mindful Minutes in Apple Health.</string>
+	<string>Gratitude logs your completed journaling sessions as Mindful Minutes in Apple Health, so your reflection time appears alongside your other wellness activity.</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Gratitude uses your microphone so you can speak your journal entries aloud.</string>
+	<string>Gratitude uses your microphone so you can speak your journal entries aloud instead of typing them.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Gratitude uses motion to detect when you shake your device, letting you quickly capture a moment of gratitude without opening the app.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Gratitude lets you attach a photo from your library to a journal entry so you can revisit the moment alongside what you wrote.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>Gratitude uses speech recognition to transcribe your spoken journal entries.</string>
+	<string>Gratitude uses on-device speech recognition to transcribe what you say into your journal entry text. Audio is not stored.</string>
 	<key>NSUserNotificationsUsageDescription</key>
-	<string>Gratitude sends you a daily reminder to journal.</string>
+	<string>Gratitude sends you a gentle daily reminder to journal at the time you choose.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
