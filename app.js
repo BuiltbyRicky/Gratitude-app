@@ -11,7 +11,6 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 // Until set, IAP code no-ops and paywall buttons show a "not configured yet" alert.
 const REVENUECAT_API_KEY = 'YOUR_REVENUECAT_API_KEY';
 const PREMIUM_ENTITLEMENT_ID = 'premium';
-const TRIAL_DAYS = 3; // UI copy only — Apple manages the actual intro offer server-side.
 
 let _rcConfigured = false;
 let _rcOfferings = null;
@@ -49,22 +48,6 @@ async function initPurchases() {
 // registered in initPurchases(). Safe to call from any UI handler.
 function isPremium() {
   return _premiumActive;
-}
-
-function startTrial() {
-  if (!currentUser) return;
-  const key = 'gj_trial_start_' + currentUser.id;
-  if (!localStorage.getItem(key)) {
-    localStorage.setItem(key, Date.now().toString());
-  }
-}
-
-function getTrialDaysLeft() {
-  const trialStart = localStorage.getItem('gj_trial_start_' + (currentUser?.id || ''));
-  if (!trialStart) return 0;
-  const elapsed = Date.now() - parseInt(trialStart);
-  const trialMs = TRIAL_DAYS * 24 * 60 * 60 * 1000;
-  return Math.max(0, Math.ceil((trialMs - elapsed) / (24 * 60 * 60 * 1000)));
 }
 
 // Initiate an IAP purchase. packageIdentifier is one of RevenueCat's default
@@ -134,29 +117,6 @@ function hidePaywall() {
   if (el) el.remove();
 }
 
-async function testPaywall() {
-  // Simulate trial ended by setting trial_end to past
-  if (currentUser && sb) {
-    await sb.from('subscriptions')
-      .update({ trial_end: new Date(Date.now() - 1000).toISOString() })
-      .eq('user_id', currentUser.id);
-  }
-  showPaywall();
-}
-
-async function resetTrial() {
-  if (currentUser && sb) {
-    await sb.from('subscriptions')
-      .update({
-        status: 'trial',
-        trial_end: new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000).toISOString()
-      })
-      .eq('user_id', currentUser.id);
-    hidePaywall();
-    alert('Trial reset successfully.');
-  }
-}
-
 async function restorePurchase() {
   const Purchases = window.Capacitor?.Plugins?.Purchases;
   if (!Purchases || !_rcConfigured) {
@@ -176,47 +136,6 @@ async function restorePurchase() {
     alert('Restore failed: ' + (e?.message || 'Please try again.'));
   }
 }
-
-// Check subscription status from Supabase — cannot be faked by users
-async function checkPremiumAccess() {
-  if (!currentUser || !sb) return;
-  try {
-    const { data, error } = await sb
-      .from('subscriptions')
-      .select('status, trial_end, current_period_end')
-      .eq('user_id', currentUser.id)
-      .single();
-
-    if (error || !data) {
-      // No subscription record — create trial
-      await sb.from('subscriptions').insert({
-        user_id: currentUser.id,
-        status: 'trial',
-        trial_start: new Date().toISOString(),
-        trial_end: new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000).toISOString()
-      });
-      return; // Still in trial
-    }
-
-    const now = new Date();
-    if (data.status === 'active') return; // Paid subscriber — all good
-    if (data.status === 'trial') {
-      const trialEnd = new Date(data.trial_end);
-      if (now < trialEnd) return; // Still in trial
-      // Trial expired — show paywall
-      showPaywall();
-      return;
-    }
-    // Any other status (cancelled, past_due, etc.) — show paywall
-    showPaywall();
-  } catch(e) {
-    console.log('Premium check error:', e.message);
-    // On error fall back to localStorage to avoid blocking legitimate users
-    if (!isPremium()) showPaywall();
-  }
-}
-
-
 
 function initSupabase() {
   try {
