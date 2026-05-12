@@ -138,6 +138,16 @@ async function restorePurchase() {
   }
 }
 
+// Open iOS Subscription management page in the App Store.
+function openManageSubscriptions() {
+  const url = 'https://apps.apple.com/account/subscriptions';
+  if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+    window.open(url, '_system');
+  } else {
+    window.open(url, '_blank');
+  }
+}
+
 function initSupabase() {
   try {
     if (typeof supabase === 'undefined') return false;
@@ -1275,8 +1285,8 @@ function useFreeze() {
   renderFreezeCard();
   // Re-render home stats since streak may have changed
   const s = streak();
-  document.getElementById('nav-streak').textContent = s;
-  document.getElementById('st-streak').textContent = s;
+  document.getElementById('nav-streak').textContent = isPremium() ? s : '🔒';
+  document.getElementById('st-streak').textContent = isPremium() ? s : '🔒';
   renderBadges(s);
 }
 
@@ -1472,6 +1482,7 @@ function checkMilestone(total) {
 }
 
 function checkStreakMilestone(streakDays) {
+  if (!isPremium()) return; // Streak is a Premium feature; don't fire celebration popups for free users
   const milestone = STREAK_MILESTONES.find(m => m.days === streakDays);
   if (!milestone) return;
   const seenKey = 'gj_streak_milestone_seen_' + streakDays;
@@ -1547,6 +1558,7 @@ function getWeekEntries() {
 
 function renderWeeklyReflection() {
   const el = document.getElementById('weekly-reflection'); if (!el) return;
+  if (!isPremium()) { el.innerHTML = ''; return; } // Weekly reflection is part of the premium Insights surface
   const userKey = currentUser ? 'gj_weekly_' + currentUser.id + '_' + getWeekKey() : 'gj_weekly_' + getWeekKey();
   if (localStorage.getItem(userKey + '_dismissed') === '1') { el.innerHTML = ''; return; }
   const we = getWeekEntries();
@@ -2140,8 +2152,8 @@ function renderHome() {
   const affirmation = HOME_AFFIRMATIONS[dayOfYear % HOME_AFFIRMATIONS.length];
   document.getElementById('hero-eyebrow').textContent = affirmation;
 
-  document.getElementById('nav-streak').textContent = s;
-  document.getElementById('st-streak').textContent = s;
+  document.getElementById('nav-streak').textContent = isPremium() ? s : '🔒';
+  document.getElementById('st-streak').textContent = isPremium() ? s : '🔒';
   document.getElementById('st-total').textContent = getEntries().length;
   document.getElementById('st-week').textContent = weekCount();
 
@@ -2167,7 +2179,7 @@ function renderHome() {
   }
   const progressMsg = getStreakProgressMessage(s, journaledToday);
   streakProgressEl.textContent = progressMsg || '';
-  streakProgressEl.style.display = progressMsg ? 'block' : 'none';
+  streakProgressEl.style.display = (progressMsg && isPremium()) ? 'block' : 'none';
 
   renderWeeklyReflection();
   renderReminderCard();
@@ -4841,6 +4853,19 @@ async function saveEdit(id) {
 // SETTINGS
 // ══════════════════════════════════════════════════
 function renderSettings() {
+  // Premium upsell / status card at the top of the page
+  const settingsPage = document.getElementById('page-settings');
+  if (settingsPage) {
+    let premiumCard = document.getElementById('settings-premium-card');
+    if (!premiumCard) {
+      premiumCard = document.createElement('div');
+      premiumCard.id = 'settings-premium-card';
+      settingsPage.insertBefore(premiumCard, settingsPage.firstChild);
+    }
+    premiumCard.innerHTML = isPremium()
+      ? `<div style="background:rgba(45,122,95,0.08);padding:16px;border-radius:14px;margin:16px;display:flex;align-items:center;gap:14px;"><div style="font-size:28px;">✓</div><div style="flex:1;"><div style="font-weight:600;color:var(--sage);">Premium member</div><div style="font-size:13px;color:var(--ink-60);margin-top:2px;">Thanks for supporting Gratitude.</div></div><button onclick="openManageSubscriptions()" style="background:transparent;border:1px solid var(--sage);color:var(--sage);padding:8px 14px;border-radius:8px;font-size:13px;cursor:pointer;">Manage</button></div>`
+      : `<div onclick="showPaywall()" style="cursor:pointer;background:linear-gradient(135deg, var(--sage) 0%, var(--sage-mid) 100%);color:white;padding:20px;border-radius:16px;margin:16px;display:flex;align-items:center;gap:16px;box-shadow:0 4px 14px rgba(45,122,95,0.25);"><div style="font-size:36px;">🌟</div><div style="flex:1;"><div style="font-weight:600;font-size:16px;margin-bottom:2px;">Unlock Gratitude Premium</div><div style="font-size:13px;opacity:0.92;">Insights, Year in Review, photos, reminders, and more.</div></div><div style="font-size:20px;">→</div></div>`;
+  }
   const u = currentUser;
   if (u) {
     const name = u.user_metadata?.full_name || u.email;
