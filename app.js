@@ -159,7 +159,7 @@ function initSupabase() {
   }
 }
 
-// Hard fallback — never show spinner for more than 4 seconds
+// Hard fallback - never show spinner for more than 4 seconds
 const hardFallback = setTimeout(() => {
   hideLoading();
   showAuth();
@@ -169,7 +169,7 @@ let currentUser = null;
 let cachedEntries = [];
 
 // ══════════════════════════════════════════════════
-// INIT — check auth on load
+// INIT - check auth on load
 // ══════════════════════════════════════════════════
 async function init() {
   if (!initSupabase()) {
@@ -208,7 +208,7 @@ async function init() {
         currentUser = session.user;
         await launchApp();
       } else {
-        // Token processed but no session yet — show login with success message
+        // Token processed but no session yet - show login with success message
         showAuth();
         document.getElementById('auth-ok').textContent = '✓ Email confirmed! You can now sign in.';
         switchAuthTab('login');
@@ -228,7 +228,7 @@ async function init() {
     return;
   }
 
-  // Normal load — check for existing session
+  // Normal load - check for existing session
   let session = null;
   try {
     const result = await Promise.race([
@@ -283,7 +283,7 @@ async function launchApp() {
   if (!localStorage.getItem('gj_onboarded_' + currentUser.id)) {
     showOnboarding();
   }
-  // Show home immediately — load entries in background
+  // Show home immediately - load entries in background
   goPage('home');
   loadEntries().then(() => {
     if (document.getElementById('page-home').classList.contains('active')) {
@@ -335,7 +335,7 @@ async function requestNotifPermission() {
     // Check current status first
     const current = await LocalNotifications.checkPermissions();
     if (current.display === 'granted') {
-      // Already granted — just schedule if not done yet
+      // Already granted - just schedule if not done yet
       if (!localStorage.getItem('gj_notif_enabled')) {
         await scheduleLocalNotif(LocalNotifications, 20, 0);
         localStorage.setItem('gj_notif_enabled', '1');
@@ -348,7 +348,7 @@ async function requestNotifPermission() {
       localStorage.setItem('gj_notif_asked', '1');
       return;
     }
-    // Prompt — iOS will show the native permission dialog
+    // Prompt - iOS will show the native permission dialog
     const perm = await LocalNotifications.requestPermissions();
     localStorage.setItem('gj_notif_asked', '1');
     if (perm.display === 'granted') {
@@ -358,7 +358,7 @@ async function requestNotifPermission() {
       const ns = document.getElementById('notif-status');
       if (ns) ns.textContent = '✓ Daily reminders enabled at 8:00 PM';
     }
-  } catch(e) { /* silently ignore — not on native */ }
+  } catch(e) { /* silently ignore - not on native */ }
 }
 
 // ══════════════════════════════════════════════════
@@ -449,7 +449,7 @@ async function resendConfirmation() {
   btn.disabled = true; btn.textContent = 'Sending…';
   const { error } = await sb.auth.resend({ type: 'signup', email: lastSignupEmail });
   btn.disabled = false; btn.textContent = 'Resend confirmation email';
-  if (error) { status.textContent = 'Could not resend — ' + error.message; status.style.color = 'var(--red)'; }
+  if (error) { status.textContent = 'Could not resend - ' + error.message; status.style.color = 'var(--red)'; }
   else { status.textContent = '✓ Sent! Check your inbox again.'; status.style.color = 'var(--sage)'; }
 }
 
@@ -502,7 +502,7 @@ const GOAL_PLANS = {
     title: 'Your Anti-Stress Plan',
     body: "Built specifically to help you decompress, ground, and find calm in the middle of overwhelm.",
     items: [
-      { icon: '🫁', text: 'Box & 4-7-8 breathing — fastest stress-off switch' },
+      { icon: '🫁', text: 'Box & 4-7-8 breathing - fastest stress-off switch' },
       { icon: '🎯', text: '30 stress-specific reflection prompts' },
       { icon: '🧠', text: 'Body scan, RAIN, and self-compassion techniques' },
       { icon: '📊', text: 'Mood tracking to see what\'s working' },
@@ -577,7 +577,7 @@ function obNext() {
 async function requestNotifAndFinish() {
   try {
     if (window.Capacitor && window.Capacitor.isNativePlatform()) {
-      // Use Capacitor Local Notifications — works without a server
+      // Use Capacitor Local Notifications - works without a server
       const LocalNotifications = window.Capacitor?.Plugins?.LocalNotifications; if (!LocalNotifications) throw new Error('LocalNotifications plugin not available');
       const perm = await LocalNotifications.requestPermissions();
       if (perm.display === 'granted') {
@@ -632,25 +632,25 @@ function getNotifMessages(hour) {
   const titlePool = titles[tier];
   const title = titlePool[Math.floor(Date.now() / (24*60*60*1000)) % titlePool.length];
 
-  // Time-of-day specific messages — universal across goals
+  // Time-of-day specific messages - universal across goals
   const timeMessages = isMorning ? [
     "Start your day with intention. 5 minutes of reflection. 🌅",
-    "Before the noise begins — write one thing you're grateful for. 🌿",
+    "Before the noise begins - write one thing you're grateful for. 🌿",
     "Morning is the cleanest mind you'll have all day. Use it. ☕",
     "What do you want this day to mean? Write it down. 🌱",
     "First thing in the morning is when your brain is most receptive. ✨",
   ] : isAfternoon ? [
-    "Midday check-in — how are you actually doing? 🌿",
+    "Midday check-in - how are you actually doing? 🌿",
     "Pause. Breathe. 5 minutes for yourself. ☀️",
     "Your afternoon dip is real. Reflection helps. 📖",
     "Step away from the day for a moment. Come back to yourself. 🕯️",
   ] : isEvening ? [
     "Your day deserves to be remembered. Open your journal. 🕯️",
-    "Before the night winds down — what stood out today? 🌅",
+    "Before the night winds down - what stood out today? 🌅",
     "Evening reflection sets up tomorrow's clarity. ✨",
     "Today happened. Don't let it disappear. 📝",
   ] : [
-    "Before you sleep — write one thing worth remembering. 🌙",
+    "Before you sleep - write one thing worth remembering. 🌙",
     "Tomorrow you'll wish you'd captured today. Take 5 minutes. 🕯️",
     "Quiet hours are for honest reflection. ✨",
   ];
@@ -673,7 +673,7 @@ function getNotifMessages(hour) {
       "A week+ of showing up. The practice is starting to give back.",
     ],
     building: [
-      `${currentStreak} days. Don't break the chain — you're so close to a week. 🌱`,
+      `${currentStreak} days. Don't break the chain - you're so close to a week. 🌱`,
       "The first week is the hardest. You're almost there.",
       `Day ${currentStreak + 1} starts your real practice. Don't skip it.`,
     ],
@@ -715,7 +715,7 @@ function getNotifMessages(hour) {
       "Something good happened today. Don't let it slip away. ✨",
       "Gratitude compounds. Five minutes now pays off all week. 🌱",
       "What made you smile today, even briefly? 🌿",
-      "The specific things — not the generic ones. That's where gratitude lives. 📖",
+      "The specific things - not the generic ones. That's where gratitude lives. 📖",
       "Your brain is scanning for problems. Redirect it. 🧠",
       "Name three things. Just three. That's all it takes. 🙏",
       "What ordinary thing do you have that someone else wishes for? 💙",
@@ -741,7 +741,7 @@ function getNotifMessages(hour) {
       "What did today teach you that yesterday couldn't? 🧠",
       "The version of you from a year ago would be proud. Keep going. ✨",
       "Patterns only become visible when you write them down. 📝",
-      "What boundary did you hold today — or wish you had? 💙",
+      "What boundary did you hold today - or wish you had? 💙",
       "You are not who you were. Journal the distance. 🌿",
       "Reflection is the difference between experience and wisdom. 📖",
       "What's one thing you did better than you would have a year ago? 🌱",
@@ -749,7 +749,7 @@ function getNotifMessages(hour) {
     ],
   };
 
-  // Build the pool — weighted: tier (high signal), time (high signal), goal (depth), then mix
+  // Build the pool - weighted: tier (high signal), time (high signal), goal (depth), then mix
   const pool = [
     ...tierMessages[tier],
     ...timeMessages,
@@ -773,7 +773,7 @@ async function scheduleLocalNotif(LocalNotifications, hour = 20, minute = 0) {
 
   // Schedule 30 notifications spread across next 30 days
   // Each fires at the exact chosen time and never repeats the same message
-  // On iOS, schedule: { on: { hour, minute } } repeats daily forever — but only allows 1 message
+  // On iOS, schedule: { on: { hour, minute } } repeats daily forever - but only allows 1 message
   // So we use 30 individual dates for message variety, and reschedule when app opens
   const notifications = [];
   for (let i = 0; i < 30; i++) {
@@ -790,7 +790,7 @@ async function scheduleLocalNotif(LocalNotifications, hour = 20, minute = 0) {
   }
   await LocalNotifications.schedule({ notifications });
 
-  // Also schedule a single repeating notification as backup — fires daily forever
+  // Also schedule a single repeating notification as backup - fires daily forever
   // This ensures the user still gets reminded even after 30 days without opening the app
   try {
     await LocalNotifications.schedule({ notifications: [{
@@ -896,16 +896,16 @@ function initBV() {
   const pick = () => {
     const vs = window.speechSynthesis.getVoices();
     if (!vs.length) return;
-    // Priority list — calming, natural English voices available on iOS/macOS
+    // Priority list - calming, natural English voices available on iOS/macOS
     const preferred = [
-      'Samantha',   // iOS default — warm, natural
-      'Ava',        // iOS — very calm and clear
-      'Allison',    // macOS — smooth and warm
-      'Victoria',   // macOS — soft
-      'Karen',      // Australian — gentle
-      'Moira',      // Irish — warm
-      'Tessa',      // South African — calm
-      'Kate',       // British — clear
+      'Samantha',   // iOS default - warm, natural
+      'Ava',        // iOS - very calm and clear
+      'Allison',    // macOS - smooth and warm
+      'Victoria',   // macOS - soft
+      'Karen',      // Australian - gentle
+      'Moira',      // Irish - warm
+      'Tessa',      // South African - calm
+      'Kate',       // British - clear
     ];
     for (const name of preferred) {
       const v = vs.find(x => x.name.includes(name));
@@ -938,8 +938,8 @@ function bTTS(text, done) {
   // Small delay lets the browser catch up before speaking
   setTimeout(() => {
     const u = new SpeechSynthesisUtterance(text);
-    u.rate  = 0.82;   // slightly slower — more calming
-    u.pitch = 0.95;   // slightly lower — warmer
+    u.rate  = 0.82;   // slightly slower - more calming
+    u.pitch = 0.95;   // slightly lower - warmer
     u.volume = 1;
     if (bVoice) u.voice = bVoice;
     u.onend  = () => { showBars(false); if (done) done(); };
@@ -1013,7 +1013,7 @@ async function deleteEntry(id) {
 // Helper getters using cached data
 function getEntries() { return cachedEntries; }
 
-// ── HTML ESCAPE — always use when injecting user content into innerHTML ──
+// ── HTML ESCAPE - always use when injecting user content into innerHTML ──
 function esc(str) {
   if (!str) return '';
   return String(str)
@@ -1055,7 +1055,7 @@ function streak() {
       s++;
       d.setDate(d.getDate() - 1);
     } else if (i === 0) {
-      // Grace: today not yet journaled — skip to yesterday
+      // Grace: today not yet journaled - skip to yesterday
       d.setDate(d.getDate() - 1);
     } else {
       break;
@@ -1091,7 +1091,7 @@ function renderFreezeCard() {
   const canFreeze = !journaledYesterday && !frozenYesterday && !usedThisWeek;
 
   if (usedThisWeek && !canFreeze) {
-    // Freeze already used — show status
+    // Freeze already used - show status
     wrap.innerHTML = `
       <div class="freeze-card">
         <div class="freeze-icon">🧊</div>
@@ -1105,7 +1105,7 @@ function renderFreezeCard() {
   }
 
   if (canFreeze) {
-    // Yesterday was missed — offer to freeze it
+    // Yesterday was missed - offer to freeze it
     const yLabel = yesterday.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
     wrap.innerHTML = `
       <div class="freeze-card">
@@ -1119,7 +1119,7 @@ function renderFreezeCard() {
     return;
   }
 
-  // Streak is healthy — show freeze is available
+  // Streak is healthy - show freeze is available
   wrap.innerHTML = `
     <div class="freeze-card">
       <div class="freeze-icon">🧊</div>
@@ -1303,7 +1303,7 @@ const MOOD_BEFORE_RESPONSES = [
   "It takes courage to name that. This is exactly when journaling matters most.",
   "Tough days are real. The fact that you're here means something.",
   "Okay is a perfectly valid place to start from.",
-  "Nice — let's build on that energy.",
+  "Nice - let's build on that energy.",
   "Beautiful starting point. Let's deepen this feeling.",
 ];
 
@@ -1350,7 +1350,7 @@ function setMoodBeforeIntro() {
 
   // Time-of-day sub copy
   if (h < 12) sub.textContent = 'Whatever you bring this morning is welcome. Start where you are.';
-  else if (h < 17) sub.textContent = 'Pause for a moment — how is the day actually treating you?';
+  else if (h < 17) sub.textContent = 'Pause for a moment - how is the day actually treating you?';
   else if (h < 21) sub.textContent = 'Evening is a good time to be honest. What\'s the truth right now?';
   else sub.textContent = 'Quiet hours are for honesty. Whatever you feel is fine to feel.';
 }
@@ -1455,23 +1455,23 @@ const MILESTONES = [
   { count: 1,   icon: '🌱', title: 'First entry',        message: 'The hardest one is always the first. You just did something your future self will thank you for.' },
   { count: 7,   icon: '🔥', title: '7 entries',          message: 'One week of showing up for yourself. Most people never make it this far. You are in rare company.' },
   { count: 14,  icon: '⚡', title: '14 entries',         message: 'Two weeks in. The habit is forming. Your brain is literally rewiring around this practice.' },
-  { count: 30,  icon: '🏆', title: '30 entries',         message: 'Thirty reflections. Research shows it takes 21 days to form a habit — you have just surpassed it. This is yours now.' },
+  { count: 30,  icon: '🏆', title: '30 entries',         message: 'Thirty reflections. Research shows it takes 21 days to form a habit - you have just surpassed it. This is yours now.' },
   { count: 50,  icon: '💎', title: '50 entries',         message: 'Fifty moments of honest reflection. You have built something most people only talk about building.' },
   { count: 100, icon: '🌟', title: '100 entries',        message: 'One hundred entries. You have created a record of your inner life that almost no one in history has ever had. This is extraordinary.' },
-  { count: 200, icon: '🦋', title: '200 entries',        message: 'Two hundred. You are not building a habit anymore — you have built a practice. This is who you are.' },
+  { count: 200, icon: '🦋', title: '200 entries',        message: 'Two hundred. You are not building a habit anymore - you have built a practice. This is who you are.' },
   { count: 365, icon: '👑', title: 'A year of entries',  message: 'A full year of reflection. Whatever happened this year, you showed up for it with honesty and intention. That is rare. That is powerful.' },
 ];
 
-// Streak milestone celebrations — separate from total entry milestones
+// Streak milestone celebrations - separate from total entry milestones
 const STREAK_MILESTONES = [
-  { days: 3,   icon: '🌱', title: '3-day streak!',     subtitle: 'The habit is taking root', message: 'Three days in a row. The first three are the hardest — you just got past them.', gradient: 'linear-gradient(135deg,#7BBDA4,#2D7A5F)' },
-  { days: 7,   icon: '🔥', title: '7-day streak!',     subtitle: 'You showed up all week',   message: 'A full week of consistency. This is the moment most people quit — and you didn\'t. The compounding starts now.', gradient: 'linear-gradient(135deg,#E8B05A,#C97B3D)' },
-  { days: 14,  icon: '⚡', title: '14-day streak!',    subtitle: 'Two weeks of showing up', message: 'Two solid weeks. You\'re past the "trying it out" phase — this is becoming part of who you are.', gradient: 'linear-gradient(135deg,#5B4A8A,#3a2f5e)' },
+  { days: 3,   icon: '🌱', title: '3-day streak!',     subtitle: 'The habit is taking root', message: 'Three days in a row. The first three are the hardest - you just got past them.', gradient: 'linear-gradient(135deg,#7BBDA4,#2D7A5F)' },
+  { days: 7,   icon: '🔥', title: '7-day streak!',     subtitle: 'You showed up all week',   message: 'A full week of consistency. This is the moment most people quit - and you didn\'t. The compounding starts now.', gradient: 'linear-gradient(135deg,#E8B05A,#C97B3D)' },
+  { days: 14,  icon: '⚡', title: '14-day streak!',    subtitle: 'Two weeks of showing up', message: 'Two solid weeks. You\'re past the "trying it out" phase - this is becoming part of who you are.', gradient: 'linear-gradient(135deg,#5B4A8A,#3a2f5e)' },
   { days: 30,  icon: '🏆', title: '30-day streak!',    subtitle: 'A real practice',          message: 'A full month. Habit researchers say you\'ve crossed the line where this stops being effort and starts being identity. You ARE someone who journals.', gradient: 'linear-gradient(135deg,#D4B95C,#8a7240)' },
-  { days: 60,  icon: '💎', title: '60-day streak!',    subtitle: 'Two months strong',        message: 'Sixty consecutive days. You\'re in the top 1% of consistency. The science of gratitude has had time to work — your baseline mood is genuinely shifting.', gradient: 'linear-gradient(135deg,#1E6A8A,#114866)' },
+  { days: 60,  icon: '💎', title: '60-day streak!',    subtitle: 'Two months strong',        message: 'Sixty consecutive days. You\'re in the top 1% of consistency. The science of gratitude has had time to work - your baseline mood is genuinely shifting.', gradient: 'linear-gradient(135deg,#1E6A8A,#114866)' },
   { days: 100, icon: '🌟', title: '100-day streak!',   subtitle: 'Triple digits',            message: 'One hundred days. Most adults never sustain a personal practice this long. You\'ve built proof that you can keep promises to yourself.', gradient: 'linear-gradient(135deg,#8A3030,#5e1f1f)' },
-  { days: 200, icon: '🦋', title: '200-day streak!',   subtitle: 'A practice you\'ve made',  message: 'Two hundred days in a row. This is no longer something you do — it\'s who you are. The version of you from 200 days ago wouldn\'t recognize this discipline.', gradient: 'linear-gradient(135deg,#9A6520,#6e4615)' },
-  { days: 365, icon: '👑', title: '365-day streak!',   subtitle: 'A full year, every day',   message: 'One year. Every. Single. Day. You\'ve done what almost no one ever does. This streak isn\'t just a number — it\'s a record of your character.', gradient: 'linear-gradient(135deg,#2D7A5F,#7BBDA4)' },
+  { days: 200, icon: '🦋', title: '200-day streak!',   subtitle: 'A practice you\'ve made',  message: 'Two hundred days in a row. This is no longer something you do - it\'s who you are. The version of you from 200 days ago wouldn\'t recognize this discipline.', gradient: 'linear-gradient(135deg,#9A6520,#6e4615)' },
+  { days: 365, icon: '👑', title: '365-day streak!',   subtitle: 'A full year, every day',   message: 'One year. Every. Single. Day. You\'ve done what almost no one ever does. This streak isn\'t just a number - it\'s a record of your character.', gradient: 'linear-gradient(135deg,#2D7A5F,#7BBDA4)' },
 ];
 
 function checkMilestone(total) {
@@ -1513,7 +1513,7 @@ function showStreakMilestone(m) {
 
 function shareStreakMilestone(days, icon, title) {
   // Build a beautiful shareable card using existing canvas system
-  const text = `${icon} ${days}-day Gratitude streak — and counting.`;
+  const text = `${icon} ${days}-day Gratitude streak - and counting.`;
   if (typeof openQuoteCard === 'function') {
     const dateStr = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
     openQuoteCard(text, dateStr);
@@ -1587,7 +1587,7 @@ function renderWeeklyReflection() {
   });
   const topWords = Object.entries(wordCount).sort((a,b) => b[1]-a[1]).slice(0, 5).map(([w]) => w);
 
-  const msgs = [[7,'You showed up every single day this week. That kind of commitment is rare and powerful.'],[5,"Five days this week. You're building something real — one entry at a time."],[3,"Three sessions this week. Consistency is a practice, not a perfection. You're doing it."],[2,'Two entries this week. Every reflection counts.'],[0,'You journaled this week. That alone is worth celebrating.']];
+  const msgs = [[7,'You showed up every single day this week. That kind of commitment is rare and powerful.'],[5,"Five days this week. You're building something real - one entry at a time."],[3,"Three sessions this week. Consistency is a practice, not a perfection. You're doing it."],[2,'Two entries this week. Every reflection counts.'],[0,'You journaled this week. That alone is worth celebrating.']];
   const msg = msgs.find(([d]) => days >= d)[1];
 
   const moodHtml = avgB != null && avgA != null ? '<div class="weekly-mood-row"><div class="weekly-mood-block"><span class="weekly-mood-emoji">' + MOODS[avgB].e + '</span><div class="weekly-mood-label">avg before</div></div><div class="weekly-mood-arrow">→</div><div class="weekly-mood-block"><span class="weekly-mood-emoji">' + MOODS[avgA].e + '</span><div class="weekly-mood-label">avg after</div></div>' + (lift != null && lift > 0 ? '<span class="weekly-mood-lift">↑ ' + lift + ' avg lift</span>' : '') + '</div>' : '';
@@ -1716,7 +1716,7 @@ function calcMoodInsights() {
     worstDay = sorted[sorted.length - 1];
   }
 
-  // Trend over time — split entries in half, compare averages
+  // Trend over time - split entries in half, compare averages
   let trend = null;
   if (es.length >= 10) {
     const sorted = [...es].sort((a,b) => new Date(a.date) - new Date(b.date));
@@ -1765,7 +1765,7 @@ function renderMoodInsights() {
   if (insights.bestDay && insights.worstDay && insights.bestDay.day !== insights.worstDay.day) {
     items.push({
       icon: '📅',
-      text: `<strong>${insights.bestDay.name}s</strong> tend to be your best — average mood ${MOODS[Math.round(insights.bestDay.avg)].e}`
+      text: `<strong>${insights.bestDay.name}s</strong> tend to be your best - average mood ${MOODS[Math.round(insights.bestDay.avg)].e}`
     });
   }
 
@@ -1777,12 +1777,12 @@ function renderMoodInsights() {
   } else if (insights.trend === 'falling') {
     items.push({
       icon: '🌊',
-      text: `Your mood has dipped recently. You're not failing — you're noticing. That's the work.`
+      text: `Your mood has dipped recently. You're not failing - you're noticing. That's the work.`
     });
   } else if (insights.trend === 'stable') {
     items.push({
       icon: '🌿',
-      text: `Your mood is staying steady — a sign your practice is regulating you.`
+      text: `Your mood is staying steady - a sign your practice is regulating you.`
     });
   }
 
@@ -1836,15 +1836,15 @@ function renderMoodChart() {
   const avgTiles = `
     <div class="mood-avg-row">
       <div class="mood-avg-tile">
-        <span class="mood-avg-val">${avgBefore!=null?MOODS[Math.round(avgBefore)].e:'—'}</span>
+        <span class="mood-avg-val">${avgBefore!=null?MOODS[Math.round(avgBefore)].e:'-'}</span>
         <span class="mood-avg-key">Avg before</span>
       </div>
       <div class="mood-avg-tile">
-        <span class="mood-avg-val">${avgAfter!=null?MOODS[Math.round(avgAfter)].e:'—'}</span>
+        <span class="mood-avg-val">${avgAfter!=null?MOODS[Math.round(avgAfter)].e:'-'}</span>
         <span class="mood-avg-key">Avg after</span>
       </div>
       <div class="mood-avg-tile">
-        <span class="mood-avg-val" style="font-size:18px;color:${avgLift>0?'var(--sage)':avgLift<0?'var(--red)':'var(--ink-60)'};">${avgLift!=null?(avgLift>0?'+':'')+avgLift:'—'}</span>
+        <span class="mood-avg-val" style="font-size:18px;color:${avgLift>0?'var(--sage)':avgLift<0?'var(--red)':'var(--ink-60)'};">${avgLift!=null?(avgLift>0?'+':'')+avgLift:'-'}</span>
         <span class="mood-avg-key">Avg lift</span>
       </div>
     </div>`;
@@ -2025,7 +2025,7 @@ function setReminder() {
   const [h, m] = time.split(':').map(Number);
   const displayTime = formatTime(time);
 
-  // Build a calendar URL — works on iOS, Android, and desktop
+  // Build a calendar URL - works on iOS, Android, and desktop
   // Uses the webcal / data URI approach for broad compatibility
   const now = new Date();
   now.setHours(h, m, 0, 0);
@@ -2044,7 +2044,7 @@ function setReminder() {
     `DTSTART:${fmt(now)}`,
     `DTEND:${fmt(end)}`,
     'RRULE:FREQ=DAILY',
-    'SUMMARY:Gratitude — Daily Journal',
+    'SUMMARY:Gratitude - Daily Journal',
     `DESCRIPTION:Time for your daily gratitude journal session. Open the app at ${window.location.origin}`,
     `URL:${window.location.origin}`,
     'BEGIN:VALARM',
@@ -2199,7 +2199,7 @@ function renderHome() {
     const goal = localStorage.getItem('gj_goal') || 'gratitude';
     const goalCopy = {
       stress: { title: 'Ready to set down today?', sub: 'Your first session is 5 minutes. By the end you\'ll feel something shift.' },
-      gratitude: { title: 'Your gratitude practice begins now', sub: 'Just 5 minutes a day. The science says this rewires your brain — and you\'ll start feeling it within a week.' },
+      gratitude: { title: 'Your gratitude practice begins now', sub: 'Just 5 minutes a day. The science says this rewires your brain - and you\'ll start feeling it within a week.' },
       clarity: { title: 'Time to get clear', sub: 'Five minutes of honest reflection beats hours of rumination. Your mind already knows what to write.' },
       growth: { title: 'Day one of becoming', sub: 'Every entry is a data point about who you\'re becoming. Start the practice that future-you will thank you for.' },
     };
@@ -2650,7 +2650,7 @@ function calculateInsights() {
   }
   bestStreak = Math.max(bestStreak, currentRun);
 
-  // Mood trends — average lift over time
+  // Mood trends - average lift over time
   const withBoth = es.filter(e => e.mood_before != null && e.mood_after != null);
   const avgLift = withBoth.length
     ? +(withBoth.reduce((s,e) => s + (e.mood_after - e.mood_before), 0) / withBoth.length).toFixed(1)
@@ -2759,7 +2759,7 @@ function calculateMoodHeatmap(entries) {
 function renderMoodHeatmapSection(heatmap) {
   if (!heatmap) return '';
 
-  // Count how many cells have data — need at least 5 unique cells for a meaningful visual
+  // Count how many cells have data - need at least 5 unique cells for a meaningful visual
   const filledCells = heatmap.flat().filter(c => c !== null).length;
   if (filledCells < 5) return '';
 
@@ -2856,7 +2856,7 @@ function renderMoodHeatmapSection(heatmap) {
 
 // Returns array of { word, count } sorted by frequency
 function calculateTopWords(entries, limit = 25) {
-  // Stop words to exclude — common filler
+  // Stop words to exclude - common filler
   const stopWords = new Set([
     'the','a','an','and','or','but','in','on','at','to','for','of','with','my','i','me','was',
     'is','are','were','have','had','has','that','this','it','be','been','not','so','if','as',
@@ -3044,7 +3044,7 @@ function renderWordCloudSection(topWords) {
   const minCount = topWords[topWords.length - 1].count;
   const range = Math.max(1, maxCount - minCount);
 
-  // Color rotation — cycle through a pleasing palette of related sage/earth tones
+  // Color rotation - cycle through a pleasing palette of related sage/earth tones
   const colors = ['#2D7A5F', '#5B4A8A', '#C97B3D', '#1E6A8A', '#8A3030', '#7BBDA4', '#D4B95C', '#9A6520'];
 
   // Shuffle deterministically (same input = same output so it doesn't jump around on re-render)
@@ -3208,7 +3208,7 @@ const AFFIRMATIONS = {
     "I am surrounded by ordinary miracles I take for granted.",
     "The good in my life is not luck. It is real and it is mine.",
     "I notice beauty in small, easy-to-miss places today.",
-    "Gratitude is not denial of difficulty — it is balance.",
+    "Gratitude is not denial of difficulty - it is balance.",
     "I am rich in things money cannot buy.",
     "Today, I see what is going right.",
     "My life has been shaped by the kindness of others.",
@@ -3227,7 +3227,7 @@ const AFFIRMATIONS = {
   ],
   clarity: [
     "I trust the wisdom within me to guide my next step.",
-    "I do not need all the answers — just the next one.",
+    "I do not need all the answers - just the next one.",
     "What I focus on grows. I focus deliberately.",
     "I am allowed to change my mind as I grow.",
     "My intuition is a trustworthy compass.",
@@ -3302,16 +3302,8 @@ function toggleFavAffirmation(text) {
 function renderAffirmation() {
   const wrap = document.getElementById('affirmation-wrap');
   if (!wrap) return;
-  if (!isPremium()) {
-    wrap.innerHTML = `<div class="affirmation-card" onclick="showPaywall('Daily affirmations')" style="cursor:pointer;">
-      <div class="affirmation-eyebrow"><span>✨ Daily affirmation 🔒</span></div>
-      <div class="affirmation-text" style="font-style:italic;color:var(--ink-60);">Tap to unlock today's affirmation — tailored to your reflection goal.</div>
-    </div>`;
-    return;
-  }
+
   const { text, goal } = getDailyAffirmation();
-  const favs = getFavAffirmations();
-  const isFav = favs.some(f => (typeof f === 'string' ? f : f.text) === text);
 
   // Don't show if user dismissed today
   const dismissed = localStorage.getItem('gj_aff_dismissed_' + new Date().toDateString());
@@ -3319,6 +3311,14 @@ function renderAffirmation() {
 
   // Stash text on a global so onclick handlers can access it without escaping issues
   window._currentAffText = text;
+
+  const premium = isPremium();
+  const favs = premium ? getFavAffirmations() : [];
+  const isFav = premium && favs.some(f => (typeof f === 'string' ? f : f.text) === text);
+
+  const saveBtn = premium
+    ? `<button class="affirmation-fav-btn ${isFav ? 'is-fav' : ''}" onclick="toggleFavAffirmation(window._currentAffText)">${isFav ? '♥ Saved' : '♡ Save'}</button>`
+    : `<button class="affirmation-fav-btn" onclick="showPaywall('Saved affirmations')">🔒 Save</button>`;
 
   wrap.innerHTML = `
     <div class="affirmation-card">
@@ -3328,9 +3328,7 @@ function renderAffirmation() {
       </div>
       <div class="affirmation-text">"${esc(text)}"</div>
       <div class="affirmation-actions">
-        <button class="affirmation-fav-btn ${isFav ? 'is-fav' : ''}" onclick="toggleFavAffirmation(window._currentAffText)">
-          ${isFav ? '♥ Saved' : '♡ Save'}
-        </button>
+        ${saveBtn}
         <button class="affirmation-share-btn" onclick="shareAffirmation(window._currentAffText)">↗ Share</button>
       </div>
     </div>`;
@@ -3349,7 +3347,7 @@ function shareAffirmation(text) {
 
 
 const CHALLENGE_DAYS = [
-  { day: 1, theme: 'People', icon: '💝', title: 'Day 1 — Someone Who Shaped You',
+  { day: 1, theme: 'People', icon: '💝', title: 'Day 1 - Someone Who Shaped You',
     desc: 'Today we focus on the people who have made you who you are.',
     questions: [
       "Who is someone who believed in you before you believed in yourself? What did they see?",
@@ -3358,25 +3356,25 @@ const CHALLENGE_DAYS = [
       "Who taught you what love or kindness actually looks like in practice?",
       "If you could write a thank-you to one person right now, who would it be and what would it say?",
     ]},
-  { day: 2, theme: 'Body', icon: '🌿', title: 'Day 2 — Your Body',
+  { day: 2, theme: 'Body', icon: '🌿', title: 'Day 2 - Your Body',
     desc: 'A day to appreciate the body that carries you through every moment.',
     questions: [
       "What's one thing your body does that you take completely for granted?",
       "Where in your body do you feel strongest right now?",
-      "What's one sense — sight, smell, taste, touch, hearing — you're especially grateful for today?",
+      "What's one sense - sight, smell, taste, touch, hearing - you're especially grateful for today?",
       "What has your body survived that you don't give it credit for?",
       "What's one way you could thank your body this week?",
     ]},
-  { day: 3, theme: 'Place', icon: '🏠', title: 'Day 3 — Where You Are',
+  { day: 3, theme: 'Place', icon: '🏠', title: 'Day 3 - Where You Are',
     desc: 'Notice and appreciate the place where your life is happening.',
     questions: [
       "What's one thing about where you live that you'd miss if you moved?",
       "Describe a corner of your home that feels most like you.",
-      "What place — anywhere in the world — do you feel most like yourself in?",
+      "What place - anywhere in the world - do you feel most like yourself in?",
       "What do you love about your neighborhood, town, or city right now?",
       "What's one ordinary view, sound, or smell from your daily life that's actually beautiful?",
     ]},
-  { day: 4, theme: 'Struggle', icon: '⛰️', title: 'Day 4 — A Hidden Gift',
+  { day: 4, theme: 'Struggle', icon: '⛰️', title: 'Day 4 - A Hidden Gift',
     desc: 'The hardest things often teach us the most. Today we look for the gift inside difficulty.',
     questions: [
       "What's one struggle from your past that you can now see was actually a turning point?",
@@ -3385,16 +3383,16 @@ const CHALLENGE_DAYS = [
       "Which of your strengths came directly from going through something hard?",
       "What current challenge might be making you stronger in ways you can't see yet?",
     ]},
-  { day: 5, theme: 'Small Things', icon: '☕', title: 'Day 5 — The Tiny Joys',
+  { day: 5, theme: 'Small Things', icon: '☕', title: 'Day 5 - The Tiny Joys',
     desc: 'Today we slow down and notice the small things that make life worth living.',
     questions: [
-      "What's a tiny pleasure — a smell, taste, sound, or feeling — you experienced today?",
+      "What's a tiny pleasure - a smell, taste, sound, or feeling - you experienced today?",
       "What's one small daily ritual that brings you quiet joy?",
       "What's something you'd put in a 'jar of good moments' from the past week?",
       "What's a sound that immediately makes you feel at home?",
-      "What's something free — that costs nothing — that you genuinely treasure?",
+      "What's something free - that costs nothing - that you genuinely treasure?",
     ]},
-  { day: 6, theme: 'Future Self', icon: '🌅', title: 'Day 6 — Looking Forward',
+  { day: 6, theme: 'Future Self', icon: '🌅', title: 'Day 6 - Looking Forward',
     desc: 'Gratitude isn\'t only for the past. Today we\'re grateful for what\'s ahead.',
     questions: [
       "What's one thing you're genuinely excited about in the next 6 months?",
@@ -3403,7 +3401,7 @@ const CHALLENGE_DAYS = [
       "What new chapter do you sense beginning?",
       "What do you want to be grateful for one year from today?",
     ]},
-  { day: 7, theme: 'Yourself', icon: '✨', title: 'Day 7 — Yourself',
+  { day: 7, theme: 'Yourself', icon: '✨', title: 'Day 7 - Yourself',
     desc: 'The hardest one. The most important. Today, gratitude for you.',
     questions: [
       "What's one thing about yourself that you genuinely like?",
@@ -3482,12 +3480,12 @@ function renderChallenge() {
   const data = getChallengeData();
 
   if (!data.active && data.completed.length === 0) {
-    // Promote — invite to start
+    // Promote - invite to start
     wrap.innerHTML = `
       <div class="challenge-card challenge-promo">
         <div class="challenge-promo-icon">🌟</div>
         <div class="challenge-promo-title">7-Day Gratitude Challenge</div>
-        <div class="challenge-promo-sub">A guided journey through 7 themes — people, body, place, struggle, small things, future, and yourself.</div>
+        <div class="challenge-promo-sub">A guided journey through 7 themes - people, body, place, struggle, small things, future, and yourself.</div>
         <button class="challenge-start-btn" onclick="startChallenge()">Begin the challenge →</button>
       </div>`;
     return;
@@ -3506,7 +3504,7 @@ function renderChallenge() {
   }
 
   if (!data.active) {
-    // Paused — show resume button
+    // Paused - show resume button
     wrap.innerHTML = `
       <div class="challenge-card">
         <div class="challenge-head">
@@ -3519,7 +3517,7 @@ function renderChallenge() {
     return;
   }
 
-  // Active — show today's day
+  // Active - show today's day
   const dayData = CHALLENGE_DAYS[data.day - 1];
   if (!dayData) return;
   const isDayDone = data.completed.includes(data.day);
@@ -3560,12 +3558,12 @@ function restartChallenge() {
 // who haven't seen the current version's tour get a gentle "What's new" modal.
 const WHATS_NEW_VERSION = '2026.04.18';
 
-// Each item is a feature we want to highlight. Keep to 3-5 — any more feels spammy.
+// Each item is a feature we want to highlight. Keep to 3-5 - any more feels spammy.
 const WHATS_NEW_ITEMS = [
   {
     icon: '💭',
     title: 'Quick Capture',
-    sub: 'A thought you don\'t want to lose? Tap the 💭 button on Home — type or speak it in 30 seconds.',
+    sub: 'A thought you don\'t want to lose? Tap the 💭 button on Home - type or speak it in 30 seconds.',
     color: '#2D7A5F',
   },
   {
@@ -3577,7 +3575,7 @@ const WHATS_NEW_ITEMS = [
   {
     icon: '❤️',
     title: 'Apple Health',
-    sub: 'Log your sessions as Mindful Minutes automatically — alongside your workouts and sleep.',
+    sub: 'Log your sessions as Mindful Minutes automatically - alongside your workouts and sleep.',
     color: '#E54B4B',
   },
   {
@@ -3589,7 +3587,7 @@ const WHATS_NEW_ITEMS = [
   {
     icon: '✨',
     title: 'Your Words',
-    sub: 'Tap any stat tile to see a word cloud of your most-used words — the themes of your reflections.',
+    sub: 'Tap any stat tile to see a word cloud of your most-used words - the themes of your reflections.',
     color: '#8557B2',
   },
 ];
@@ -3597,7 +3595,7 @@ const WHATS_NEW_ITEMS = [
 function maybeShowWhatsNew() {
   if (!currentUser) return;
 
-  // Don't show to brand-new users — they just onboarded, no point showing them "what's new"
+  // Don't show to brand-new users - they just onboarded, no point showing them "what's new"
   const onboardedAt = localStorage.getItem('gj_onboarded_at_' + currentUser.id);
   const now = Date.now();
   if (!onboardedAt) {
@@ -3687,7 +3685,7 @@ function dismissWhatsNew() {
 
 // Logs Mindful Minutes to Apple Health on each completed session.
 // Uses @capgo/capacitor-health via window.Capacitor.Plugins (same pattern as
-// LocalNotifications and SpeechRecognition — works inside Capacitor WebView).
+// LocalNotifications and SpeechRecognition - works inside Capacitor WebView).
 
 function getHealthPlugin() {
   if (!window.Capacitor || !window.Capacitor.isNativePlatform()) return null;
@@ -3710,7 +3708,7 @@ async function requestHealthPermission() {
     if (!avail || !avail.available) return { ok: false, reason: 'unavailable' };
 
     // @capgo/capacitor-health uses lowercase data type names.
-    // We only request write — the UI promise "never reads anything" stays literally true,
+    // We only request write - the UI promise "never reads anything" stays literally true,
     // and dropping read lets us omit NSHealthShareUsageDescription from Info.plist.
     await Health.requestAuthorization({
       write: ['mindfulness'],
@@ -3752,7 +3750,7 @@ async function disconnectHealth() {
 }
 
 // Pre-permission explainer shown once on first launch.
-// This improves acceptance rates — iOS only lets you ask once, so we want the user
+// This improves acceptance rates - iOS only lets you ask once, so we want the user
 // to understand WHY before the native popup appears.
 async function promptHealthOnFirstLaunch() {
   // Skip if already asked, not on iOS, or plugin not installed
@@ -3780,7 +3778,7 @@ async function promptHealthOnFirstLaunch() {
         <svg width="64" height="64" viewBox="0 0 24 24" fill="#FF2D55"><path d="M12 21s-7-5-9-10a5 5 0 0 1 9-3 5 5 0 0 1 9 3c-2 5-9 10-9 10z"/></svg>
       </div>
       <div class="health-prompt-title">Log to Apple Health?</div>
-      <div class="health-prompt-sub">Gratitude can automatically log your completed sessions as <strong>Mindful Minutes</strong> in Apple Health — alongside your workouts, sleep, and meditation data.</div>
+      <div class="health-prompt-sub">Gratitude can automatically log your completed sessions as <strong>Mindful Minutes</strong> in Apple Health - alongside your workouts, sleep, and meditation data.</div>
 
       <div class="health-prompt-benefits">
         <div class="health-prompt-benefit">
@@ -3789,7 +3787,7 @@ async function promptHealthOnFirstLaunch() {
         </div>
         <div class="health-prompt-benefit">
           <span class="health-prompt-check">✓</span>
-          <span>Only writes mindful minutes — never reads anything</span>
+          <span>Only writes mindful minutes - never reads anything</span>
         </div>
         <div class="health-prompt-benefit">
           <span class="health-prompt-check">✓</span>
@@ -3821,7 +3819,7 @@ async function acceptHealthPrompt() {
   if (btn) { btn.disabled = true; btn.textContent = 'Requesting…'; }
 
   const result = await requestHealthPermission();
-  // Mark asked regardless of outcome — iOS won't show native popup twice
+  // Mark asked regardless of outcome - iOS won't show native popup twice
   if (currentUser) localStorage.setItem('gj_health_asked_' + currentUser.id, '1');
 
   const o = document.getElementById('health-prompt-overlay');
@@ -3846,7 +3844,7 @@ let shakeInitialized = false;
 let shakeLastX = 0, shakeLastY = 0, shakeLastZ = 0;
 let shakeLastTime = 0;
 let shakeLastFireTime = 0;
-const SHAKE_THRESHOLD = 18; // m/s² delta — tuned to require deliberate shake
+const SHAKE_THRESHOLD = 18; // m/s² delta - tuned to require deliberate shake
 const SHAKE_COOLDOWN = 2000; // ms between shake triggers
 
 async function initShakeDetection() {
@@ -3858,7 +3856,7 @@ async function initShakeDetection() {
 
   // iOS 13+ requires explicit permission for DeviceMotion
   if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-    // Don't auto-prompt — wait until user has been in app long enough that a permission popup makes sense
+    // Don't auto-prompt - wait until user has been in app long enough that a permission popup makes sense
     // We'll request on first qualifying interaction. For now, just check if already granted.
     // The actual request happens via askShakePermission() called from settings.
     try {
@@ -3933,7 +3931,7 @@ function showShakeFeedback() {
   setTimeout(() => flash.remove(), 400);
 }
 
-// Manual permission request — used if user enables shake from settings
+// Manual permission request - used if user enables shake from settings
 async function askShakePermission() {
   if (!isPremium()) { showPaywall('Shake-to-capture'); return false; }
   if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
@@ -3969,7 +3967,7 @@ function disableShake() {
 const QUICK_PROMPTS = [
   "What just happened that you want to remember?",
   "What's on your mind right now?",
-  "Capture this moment — what stands out?",
+  "Capture this moment - what stands out?",
   "What are you noticing?",
   "What's the thought you don't want to lose?",
   "What just shifted for you?",
@@ -4097,7 +4095,7 @@ async function qcStartVoice() {
       const perm = await SpeechRecognition.requestPermissions();
       if (perm.speechRecognition !== 'granted' && perm.microphone !== 'granted') {
         const s = document.getElementById('qc-mic-status');
-        if (s) s.textContent = 'Mic denied — enable in Settings';
+        if (s) s.textContent = 'Mic denied - enable in Settings';
         return;
       }
 
@@ -4296,7 +4294,7 @@ function saveMoodLog(moodIdx) {
   const trimmed = logs.filter(l => l.date > cutoff).slice(0, 365);
   try {
     localStorage.setItem('gj_mood_logs_' + currentUser.id, JSON.stringify(trimmed));
-  } catch(e) { /* storage full — silently skip */ }
+  } catch(e) { /* storage full - silently skip */ }
   renderQuickMood();
 }
 
@@ -4312,7 +4310,7 @@ function showQuickMoodReaction(idx) {
     "Logged. Honest tracking is part of the practice.",
     "Logged. Okay is a real and valid place to be.",
     "Logged. Glad you're feeling decent today.",
-    "Logged. Beautiful — capture this energy.",
+    "Logged. Beautiful - capture this energy.",
   ];
   const overlay = document.createElement('div');
   overlay.className = 'quick-mood-toast';
@@ -4368,7 +4366,7 @@ function renderQuickMood() {
       <div class="quick-mood-card">
         <div class="quick-mood-eyebrow">Quick check-in</div>
         <div class="quick-mood-title">How are you right now?</div>
-        <div class="quick-mood-sub">Tap an emoji — no full session needed.</div>
+        <div class="quick-mood-sub">Tap an emoji - no full session needed.</div>
         <div class="quick-mood-emojis">
           ${MOODS.map((m, i) => `<button class="quick-mood-btn" onclick="quickLogMood(${i})" title="${m.label}">${m.e}</button>`).join('')}
         </div>
@@ -4385,7 +4383,7 @@ function renderMoodLogChart() {
   // Don't show until we have at least 3 days of data
   if (logs.length < 3) { wrap.innerHTML = ''; return; }
 
-  // Group by day — take LATEST mood per day over the last 14 days
+  // Group by day - take LATEST mood per day over the last 14 days
   const dayBuckets = {};
   const now = new Date();
   const cutoff = new Date(now); cutoff.setDate(cutoff.getDate() - 13); cutoff.setHours(0,0,0,0);
@@ -4455,15 +4453,15 @@ function renderMoodLogChart() {
 
   let insight;
   if (diff >= 0.5) {
-    insight = { icon: '📈', text: `<strong>Trending up</strong> — your mood has been lifting over these ${data.length} days.` };
+    insight = { icon: '📈', text: `<strong>Trending up</strong> - your mood has been lifting over these ${data.length} days.` };
   } else if (diff <= -0.5) {
-    insight = { icon: '🌊', text: `<strong>A dip lately</strong> — you're not failing, you're noticing. That's the work.` };
+    insight = { icon: '🌊', text: `<strong>A dip lately</strong> - you're not failing, you're noticing. That's the work.` };
   } else if (avgMood >= 3) {
-    insight = { icon: '✨', text: `<strong>Steady and good</strong> — you've been in a solid place most days.` };
+    insight = { icon: '✨', text: `<strong>Steady and good</strong> - you've been in a solid place most days.` };
   } else if (avgMood <= 1) {
-    insight = { icon: '💙', text: `<strong>Hard stretch</strong> — be extra gentle with yourself right now.` };
+    insight = { icon: '💙', text: `<strong>Hard stretch</strong> - be extra gentle with yourself right now.` };
   } else {
-    insight = { icon: '🌿', text: `<strong>Even-keeled</strong> — your mood has stayed pretty steady.` };
+    insight = { icon: '🌿', text: `<strong>Even-keeled</strong> - your mood has stayed pretty steady.` };
   }
 
   const startLabel = data[0].day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -4473,7 +4471,7 @@ function renderMoodLogChart() {
     <div class="mood-log-chart-card">
       <div class="mood-log-chart-head">
         <div class="mood-log-chart-title">Mood log</div>
-        <div class="mood-log-chart-range">${startLabel} – ${endLabel}</div>
+        <div class="mood-log-chart-range">${startLabel} - ${endLabel}</div>
       </div>
       <div class="mood-log-chart-emojis">
         <span style="font-size:12px;">${MOODS[4].e}</span>
@@ -4508,7 +4506,7 @@ const DRAFT_EXPIRY_HOURS = 24; // drafts older than this are discarded
 
 function saveDraft() {
   if (!currentUser || !sessionQs.length) return;
-  // Only save if there's actual content — avoid saving empty drafts
+  // Only save if there's actual content - avoid saving empty drafts
   const hasContent = qAnswers.some(a => a && a.trim().length > 5);
   if (!hasContent) return;
 
@@ -4614,7 +4612,7 @@ function setEntryPhoto(id, base64) {
     try {
       localStorage.setItem('gj_photo_' + currentUser.id + '_' + id, base64);
     } catch(e) {
-      alert('Storage full — could not save photo. Try a smaller image.');
+      alert('Storage full - could not save photo. Try a smaller image.');
     }
   }
 }
@@ -4775,7 +4773,7 @@ function renderHistory() {
     el.innerHTML = `<div class="empty-state-rich">
       <div class="empty-rich-icon">📖</div>
       <div class="empty-rich-title">Your story starts here</div>
-      <div class="empty-rich-sub">Every entry you write becomes part of a record only you can see — searchable, sortable, and yours forever.</div>
+      <div class="empty-rich-sub">Every entry you write becomes part of a record only you can see - searchable, sortable, and yours forever.</div>
       <div class="empty-rich-features">
         <div class="empty-rich-feat"><span>🔍</span><span>Search every entry</span></div>
         <div class="empty-rich-feat"><span>📅</span><span>Calendar view</span></div>
@@ -4932,7 +4930,7 @@ async function renderHealthStatus() {
   // Check if plugin is available
   const Health = getHealthPlugin();
   if (!Health) {
-    // Plugin not installed yet — hide section
+    // Plugin not installed yet - hide section
     block.style.display = 'none';
     return;
   }
@@ -4940,7 +4938,7 @@ async function renderHealthStatus() {
   block.style.display = '';
   const authed = await isHealthAuthorized();
   if (authed) {
-    label.innerHTML = '<span style="color:var(--sage);">✓ Connected — logging mindful minutes</span>';
+    label.innerHTML = '<span style="color:var(--sage);">✓ Connected - logging mindful minutes</span>';
     btn.textContent = 'Disconnect';
   } else {
     label.innerHTML = '<span style="color:var(--ink-60);">Not connected</span>';
@@ -5216,7 +5214,7 @@ function calculateYearReview(year) {
   });
   const topWords = Object.entries(wordCount).sort((a,b) => b[1] - a[1]).slice(0, 8).map(([w]) => w);
 
-  // Best entry — longest meaningful answer
+  // Best entry - longest meaningful answer
   let highlightEntry = null;
   let highlightAnswer = '';
   yearEntries.forEach(e => {
@@ -5343,7 +5341,7 @@ function showYearReviewSlide() {
         <div class="yr-stat-eyebrow">Your best streak</div>
         <div class="yr-stat-big">${r.bestStreak}</div>
         <div class="yr-stat-label">${r.bestStreak === 1 ? 'day' : 'days in a row'}</div>
-        <div class="yr-stat-context">${r.bestStreak >= 30 ? 'a true devoted practice' : r.bestStreak >= 7 ? 'most people never make it this far' : 'every day counts — keep building'}</div>
+        <div class="yr-stat-context">${r.bestStreak >= 30 ? 'a true devoted practice' : r.bestStreak >= 7 ? 'most people never make it this far' : 'every day counts - keep building'}</div>
       `
     },
     // Slide 5: Top words
@@ -5418,7 +5416,7 @@ function openGoalChanger() {
   overlay.innerHTML = `
     <div class="modal-card" style="max-width:380px;">
       <div class="modal-title">Change your goal</div>
-      <div class="modal-sub">Your goal personalizes the entire app — questions, affirmations, learn content, and daily messages.</div>
+      <div class="modal-sub">Your goal personalizes the entire app - questions, affirmations, learn content, and daily messages.</div>
       <div class="goal-changer-list">
         ${goals.map(g => `
           <button class="goal-change-btn ${current === g.id ? 'active' : ''}" onclick="applyNewGoal('${g.id}')">
@@ -5567,177 +5565,177 @@ function exportEntries() {
 const LEARN_CONTENT = [
   { id: 'l1', cat: 'Breathing', icon: '🫁', bg: '#EDF5F1', color: '#2D7A5F', title: '4-7-8 Breathing', time: '5 min',
     desc: 'Developed by Dr. Andrew Weil, this technique activates your parasympathetic nervous system and creates calm within minutes.',
-    steps: ['Sit comfortably with your back straight. Rest the tip of your tongue against the roof of your mouth, behind your front teeth.','Exhale completely through your mouth, making a whoosh sound.','Close your mouth and inhale quietly through your nose for exactly 4 counts.','Hold your breath for 7 counts.','Exhale completely through your mouth with a whoosh sound for 8 counts.','This completes one cycle. Repeat 3 more times for a total of 4 cycles.','Do this twice a day — once in the morning and once before bed.'],
+    steps: ['Sit comfortably with your back straight. Rest the tip of your tongue against the roof of your mouth, behind your front teeth.','Exhale completely through your mouth, making a whoosh sound.','Close your mouth and inhale quietly through your nose for exactly 4 counts.','Hold your breath for 7 counts.','Exhale completely through your mouth with a whoosh sound for 8 counts.','This completes one cycle. Repeat 3 more times for a total of 4 cycles.','Do this twice a day - once in the morning and once before bed.'],
     tip: '<strong>Why it works:</strong> The extended exhale activates your vagus nerve, triggering a full-body relaxation response. The 8-count exhale forces CO₂ out and slows your heart rate.' },
 
   { id: 'l2', cat: 'Breathing', icon: '📦', bg: '#EDF5F1', color: '#2D7A5F', title: 'Box Breathing', time: '5 min',
     desc: 'Used by Navy SEALs to stay calm under extreme pressure. Equal counts in all four directions balance your nervous system.',
-    steps: ['Sit upright. Relax your shoulders away from your ears.','Exhale all the air out of your lungs to start fresh.','Inhale slowly through your nose for 4 counts, feeling your lungs fill from the bottom up.','Hold your breath for 4 counts. Stay relaxed — do not clench.','Exhale slowly through your mouth for 4 counts, emptying completely.','Hold empty for 4 counts before beginning the next inhale.','Repeat for 4–6 cycles, or about 5 minutes.'],
+    steps: ['Sit upright. Relax your shoulders away from your ears.','Exhale all the air out of your lungs to start fresh.','Inhale slowly through your nose for 4 counts, feeling your lungs fill from the bottom up.','Hold your breath for 4 counts. Stay relaxed - do not clench.','Exhale slowly through your mouth for 4 counts, emptying completely.','Hold empty for 4 counts before beginning the next inhale.','Repeat for 4-6 cycles, or about 5 minutes.'],
     tip: '<strong>Use it before:</strong> a difficult conversation, a presentation, a moment of overwhelm, or to transition between work and home.' },
 
   { id: 'l3', cat: 'Breathing', icon: '🌊', bg: '#EDF5F1', color: '#2D7A5F', title: 'Physiological Sigh', time: '1 min',
-    desc: "Stanford's fastest stress-reduction technique — works in just one or two breaths.",
-    steps: ['Inhale through your nose until your lungs are about 80% full.','Without exhaling, take a second quick sniff through your nose to top up your lungs completely.','Now release a long, slow exhale through your mouth — let it go completely until your lungs feel empty.','That is one cycle. Do 1–3 rounds.','You will notice your heart rate drop almost immediately after the exhale.'],
-    tip: "<strong>Why it works:</strong> The double inhale pops collapsed air sacs and the long exhale dumps CO₂ — your body's fastest stress-off switch." },
+    desc: "Stanford's fastest stress-reduction technique - works in just one or two breaths.",
+    steps: ['Inhale through your nose until your lungs are about 80% full.','Without exhaling, take a second quick sniff through your nose to top up your lungs completely.','Now release a long, slow exhale through your mouth - let it go completely until your lungs feel empty.','That is one cycle. Do 1-3 rounds.','You will notice your heart rate drop almost immediately after the exhale.'],
+    tip: "<strong>Why it works:</strong> The double inhale pops collapsed air sacs and the long exhale dumps CO₂ - your body's fastest stress-off switch." },
 
   { id: 'l4', cat: 'Mindfulness', icon: '🧘', bg: '#F0EDF7', color: '#5B4A8A', title: '5-4-3-2-1 Grounding', time: '3 min',
     desc: 'Interrupt anxiety by pulling attention fully into the present moment through your five senses.',
-    steps: ['Pause wherever you are. Take one slow breath.','Name 5 things you can SEE right now. Look around carefully — include small details like shadows or textures.','Name 4 things you can physically FEEL. Your feet on the floor, clothes on your skin, temperature of the air.','Name 3 things you can HEAR. Listen for background sounds you normally tune out.','Name 2 things you can SMELL. If nothing obvious, simply notice the absence of smell.','Name 1 thing you can TASTE. What is the current taste in your mouth?','Take one more slow breath. Notice how your body feels now versus when you started.'],
-    tip: "<strong>When to use:</strong> Overwhelm, panic, or feeling disconnected. Works anywhere — no one will know you're doing it." },
+    steps: ['Pause wherever you are. Take one slow breath.','Name 5 things you can SEE right now. Look around carefully - include small details like shadows or textures.','Name 4 things you can physically FEEL. Your feet on the floor, clothes on your skin, temperature of the air.','Name 3 things you can HEAR. Listen for background sounds you normally tune out.','Name 2 things you can SMELL. If nothing obvious, simply notice the absence of smell.','Name 1 thing you can TASTE. What is the current taste in your mouth?','Take one more slow breath. Notice how your body feels now versus when you started.'],
+    tip: "<strong>When to use:</strong> Overwhelm, panic, or feeling disconnected. Works anywhere - no one will know you're doing it." },
 
   { id: 'l5', cat: 'Mindfulness', icon: '🔍', bg: '#F0EDF7', color: '#5B4A8A', title: 'Body Scan Meditation', time: '10 min',
     desc: "Release tension you didn't know you were holding. Reduces cortisol and improves sleep.",
-    steps: ['Lie down or sit comfortably. Close your eyes. Take 3 slow breaths.','Bring attention to the top of your head. Just notice — warmth, tingling, tightness, or nothing.','Slowly move attention down: forehead, eyes, jaw. Let the jaw drop open slightly.','Continue to neck and shoulders. On an exhale, let them fall heavy.','Move to chest and upper back, then stomach. Notice the rise and fall of each breath.','Continue to hips, thighs, knees, calves, feet, and toes.','If you find tension anywhere, breathe into it — imagine the breath flowing directly there.','End by expanding awareness to your whole body at once. Rest for 1 minute before opening your eyes.'],
-    tip: '<strong>For sleep:</strong> Do this lying in bed. The goal is not to do it right — falling asleep during it is a perfectly good outcome.' },
+    steps: ['Lie down or sit comfortably. Close your eyes. Take 3 slow breaths.','Bring attention to the top of your head. Just notice - warmth, tingling, tightness, or nothing.','Slowly move attention down: forehead, eyes, jaw. Let the jaw drop open slightly.','Continue to neck and shoulders. On an exhale, let them fall heavy.','Move to chest and upper back, then stomach. Notice the rise and fall of each breath.','Continue to hips, thighs, knees, calves, feet, and toes.','If you find tension anywhere, breathe into it - imagine the breath flowing directly there.','End by expanding awareness to your whole body at once. Rest for 1 minute before opening your eyes.'],
+    tip: '<strong>For sleep:</strong> Do this lying in bed. The goal is not to do it right - falling asleep during it is a perfectly good outcome.' },
 
   { id: 'l6', cat: 'Mindfulness', icon: '☁️', bg: '#F0EDF7', color: '#5B4A8A', title: 'Thought Defusion', time: '5 min',
     desc: 'An ACT therapy technique that creates space between you and your thoughts so they lose power over you.',
-    steps: ['When a difficult thought appears, notice it. Do not try to push it away or argue with it.','Instead of thinking "I am a failure", try: "I am having the thought that I am a failure."','Take it further: "I notice I am having the thought that I am a failure."','Visualise the thought as a leaf floating down a stream. You are on the bank — watching, not swept along.','Alternatively, say the thought out loud in a silly cartoon voice. The content stays the same but the power dissolves.','Return to the present moment — what can you see, hear, feel right now?','Practice with one recurring negative thought for 5 minutes daily.'],
-    tip: '<strong>Key insight:</strong> You are the observer of your thoughts — not the thoughts themselves. A thought is a mental event, not a fact.' },
+    steps: ['When a difficult thought appears, notice it. Do not try to push it away or argue with it.','Instead of thinking "I am a failure", try: "I am having the thought that I am a failure."','Take it further: "I notice I am having the thought that I am a failure."','Visualise the thought as a leaf floating down a stream. You are on the bank - watching, not swept along.','Alternatively, say the thought out loud in a silly cartoon voice. The content stays the same but the power dissolves.','Return to the present moment - what can you see, hear, feel right now?','Practice with one recurring negative thought for 5 minutes daily.'],
+    tip: '<strong>Key insight:</strong> You are the observer of your thoughts - not the thoughts themselves. A thought is a mental event, not a fact.' },
 
   { id: 'l7', cat: 'Sleep', icon: '🌙', bg: '#FDF3E3', color: '#9A6520', title: 'Wind-Down Ritual', time: '30 min',
     desc: 'The hour before bed is the most powerful lever for sleep quality.',
-    steps: ['Set an alarm for 60 minutes before your intended sleep time. When it goes off, begin winding down.','Dim all lights in your home. Your brain reads bright light as daytime and suppresses melatonin.','Put your phone in another room or enable Do Not Disturb. Respond to nothing after this point.','Do one calming activity: a warm shower, gentle stretching, reading a physical book, or light journaling.','Keep your bedroom temperature cool — 65–68F (18–20C) is optimal for sleep.','If your mind races, write down everything on your mind on paper. This clears mental loops.','Get into bed only when you feel sleepy, not just tired. The bed should be for sleep only.'],
+    steps: ['Set an alarm for 60 minutes before your intended sleep time. When it goes off, begin winding down.','Dim all lights in your home. Your brain reads bright light as daytime and suppresses melatonin.','Put your phone in another room or enable Do Not Disturb. Respond to nothing after this point.','Do one calming activity: a warm shower, gentle stretching, reading a physical book, or light journaling.','Keep your bedroom temperature cool - 65-68F (18-20C) is optimal for sleep.','If your mind races, write down everything on your mind on paper. This clears mental loops.','Get into bed only when you feel sleepy, not just tired. The bed should be for sleep only.'],
     tip: '<strong>Non-negotiable:</strong> Screens off 30 minutes before bed is more impactful than any supplement. Blue light delays melatonin onset by up to 3 hours.' },
 
   { id: 'l8', cat: 'Sleep', icon: '🧠', bg: '#FDF3E3', color: '#9A6520', title: 'Cognitive Shuffle', time: '10 min',
     desc: 'A sleep-scientist technique that transitions your brain from analytical thinking to pre-sleep.',
-    steps: ['Lie in bed with your eyes closed.','Think of a random, emotionally neutral word — something like "bedside" or "hammock."','Spell out the word letter by letter. For each letter, visualise a random object or scene starting with that letter.','For "B" you might picture a banana. Hold the image a few seconds, then let it drift.','Move to the next letter. The images should be random and disconnected — that is the point.','Do not try to make a story. The more random and non-sequential, the better.','If you catch yourself thinking about your day, gently return to the next letter.'],
+    steps: ['Lie in bed with your eyes closed.','Think of a random, emotionally neutral word - something like "bedside" or "hammock."','Spell out the word letter by letter. For each letter, visualise a random object or scene starting with that letter.','For "B" you might picture a banana. Hold the image a few seconds, then let it drift.','Move to the next letter. The images should be random and disconnected - that is the point.','Do not try to make a story. The more random and non-sequential, the better.','If you catch yourself thinking about your day, gently return to the next letter.'],
     tip: "<strong>Why it works:</strong> Analytical thinking and dream-imagery cannot coexist. Random visual images mimic the hypnagogic state your brain enters naturally before sleep." },
 
   { id: 'l9', cat: 'Movement', icon: '🤸', bg: '#FDF0EF', color: '#8A3030', title: 'Progressive Muscle Relaxation', time: '10 min',
     desc: 'Clinically proven for reducing anxiety. Tense then release muscle groups to teach your body true relaxation.',
     steps: ['Lie down or sit comfortably. Close your eyes and take 3 slow breaths.','Start with your feet. Curl your toes and tense your foot muscles hard for 5 seconds.','Release completely. Notice the warmth and heaviness of relaxation flooding in.','Move to your calves. Tense for 5 seconds, then release. Pause 10 seconds between each group.','Continue upward: thighs, stomach, chest, hands (make fists), arms, shoulders (shrug to ears), face (scrunch everything).','After each release, spend a moment noticing the sensation of relaxation before moving on.','End with your whole body. Take 3 deep breaths and rest for 2 minutes before getting up.'],
-    tip: '<strong>For anxiety:</strong> The physical tension-release teaches your nervous system the difference between tense and relaxed — a skill it needs active practice with.' },
+    tip: '<strong>For anxiety:</strong> The physical tension-release teaches your nervous system the difference between tense and relaxed - a skill it needs active practice with.' },
 
   { id: 'l10', cat: 'Movement', icon: '🚶', bg: '#FDF0EF', color: '#8A3030', title: '10-Minute Walk Reset', time: '10 min',
     desc: 'A single 10-minute walk improves mood for up to 2 hours.',
-    steps: ['Leave your phone behind or put it on silent in your pocket. This is not a podcast walk.','Step outside — natural light is part of what makes this work.','Walk at a comfortable pace. Not a workout pace — a thinking pace.','For the first 3 minutes, just notice your body: breathing, stride, temperature.','For the next 4 minutes, let your mind wander freely. Do not direct your thoughts.','For the final 3 minutes, notice your surroundings — 5 things you would not normally observe.','Return. Notice how your mental state compares to before you left.'],
-    tip: '<strong>The science:</strong> Walking generates bilateral stimulation (left-right movement) — the same mechanism used in EMDR trauma therapy. It is why you think more clearly while moving.' },
+    steps: ['Leave your phone behind or put it on silent in your pocket. This is not a podcast walk.','Step outside - natural light is part of what makes this work.','Walk at a comfortable pace. Not a workout pace - a thinking pace.','For the first 3 minutes, just notice your body: breathing, stride, temperature.','For the next 4 minutes, let your mind wander freely. Do not direct your thoughts.','For the final 3 minutes, notice your surroundings - 5 things you would not normally observe.','Return. Notice how your mental state compares to before you left.'],
+    tip: '<strong>The science:</strong> Walking generates bilateral stimulation (left-right movement) - the same mechanism used in EMDR trauma therapy. It is why you think more clearly while moving.' },
 
   { id: 'l11', cat: 'Journaling', icon: '✍️', bg: '#E8F4F8', color: '#1E6A8A', title: 'Morning Pages', time: '20 min',
     desc: 'Three pages of longhand stream-of-consciousness writing every morning. Clears mental fog and reduces anxiety.',
-    steps: ['Keep a dedicated notebook and pen beside your bed. Do this before looking at your phone.','The moment you wake up, open the notebook and start writing. Do not make coffee first.','Write by hand — not typed. The slower pace of handwriting matches the emerging pace of thought.','Write whatever comes. "I do not know what to write. I am tired." Just keep moving the pen.','Never re-read while writing. Do not edit. Do not cross things out.','Write until you have filled 3 pages — about 20 minutes.','Close the notebook. Do not review it for at least a week. The act of writing, not the content, is the medicine.'],
+    steps: ['Keep a dedicated notebook and pen beside your bed. Do this before looking at your phone.','The moment you wake up, open the notebook and start writing. Do not make coffee first.','Write by hand - not typed. The slower pace of handwriting matches the emerging pace of thought.','Write whatever comes. "I do not know what to write. I am tired." Just keep moving the pen.','Never re-read while writing. Do not edit. Do not cross things out.','Write until you have filled 3 pages - about 20 minutes.','Close the notebook. Do not review it for at least a week. The act of writing, not the content, is the medicine.'],
     tip: '<strong>On bad days:</strong> The days you least want to do it are usually the days it helps most. "I do not want to write" is itself the first sentence.' },
 
   { id: 'l12', cat: 'Journaling', icon: '🙏', bg: '#E8F4F8', color: '#1E6A8A', title: 'Gratitude Specificity', time: '5 min',
     desc: "Generic gratitude has minimal impact. Hyper-specific gratitude lights up the brain's reward centers differently.",
-    steps: ['Open your journal or the Gratitude app. Set a timer for 5 minutes.','Write one thing you are grateful for. Now stop — do not just write it and move on.','Ask: why am I grateful for this specifically today? What would be different without it?','Instead of "I am grateful for my health," write what specifically your health allowed you to do today.','Go deeper: who made this possible? What chain of events led to this thing existing in your life?','Try to feel the gratitude in your body — where do you notice warmth or fullness?','One hyper-specific entry rewires more than ten generic ones.'],
-    tip: "<strong>The research:</strong> Seligman's studies show specificity and novelty matter most. Your brain habituates to the same gratitude items — rotate and dig deeper each time." },
+    steps: ['Open your journal or the Gratitude app. Set a timer for 5 minutes.','Write one thing you are grateful for. Now stop - do not just write it and move on.','Ask: why am I grateful for this specifically today? What would be different without it?','Instead of "I am grateful for my health," write what specifically your health allowed you to do today.','Go deeper: who made this possible? What chain of events led to this thing existing in your life?','Try to feel the gratitude in your body - where do you notice warmth or fullness?','One hyper-specific entry rewires more than ten generic ones.'],
+    tip: "<strong>The research:</strong> Seligman's studies show specificity and novelty matter most. Your brain habituates to the same gratitude items - rotate and dig deeper each time." },
 
   { id: 'l13', cat: 'Journaling', icon: '📝', bg: '#E8F4F8', color: '#1E6A8A', title: 'Expressive Writing', time: '20 min',
     desc: "Psychologist James Pennebaker's research: writing about difficult emotions produces lasting improvements in mental and physical health.",
-    steps: ['Choose something difficult — a loss, a conflict, a fear, a regret. Something you have not fully processed.','Set a timer for 20 minutes. Find a private, quiet space.','Write continuously about your deepest thoughts and feelings. Do not worry about grammar or sentences.','Explore why it affected you. What does it mean to you? How does it connect to who you are?','If you cry or feel upset, that is okay. That is the process working.','When the timer ends, stop. You do not need to re-read it. You can throw it away if you want.','Repeat on 3–4 consecutive days, or whenever something feels unresolved.'],
+    steps: ['Choose something difficult - a loss, a conflict, a fear, a regret. Something you have not fully processed.','Set a timer for 20 minutes. Find a private, quiet space.','Write continuously about your deepest thoughts and feelings. Do not worry about grammar or sentences.','Explore why it affected you. What does it mean to you? How does it connect to who you are?','If you cry or feel upset, that is okay. That is the process working.','When the timer ends, stop. You do not need to re-read it. You can throw it away if you want.','Repeat on 3-4 consecutive days, or whenever something feels unresolved.'],
     tip: "<strong>Pennebaker's finding:</strong> Participants had fewer doctor visits, better immune function, and lower anxiety for months afterward. The improvement comes from building a coherent narrative around difficult events." },
 
   { id: 'l14', cat: 'Mindfulness', icon: '🌿', bg: '#F0EDF7', color: '#5B4A8A', title: 'Mindful Walking', time: '10 min',
     desc: "Turn an ordinary walk into stress relief. Reduces rumination and quiets the brain's default mode network.",
-    steps: ['Find a route — even 10 steps back and forth in a small space works. Outside is better.','Begin walking slightly slower than normal.','Focus entirely on the physical sensation of walking: heel contact, weight shift, push off.','When your mind wanders (it will), gently label it — "thinking" — then return to the sensation of your feet.','Expand awareness to include sounds around you, without analysing them. Just hearing.','Include peripheral vision — widen your gaze rather than focusing on a single point.','End by standing still for 30 seconds. Notice the stillness after movement.'],
+    steps: ['Find a route - even 10 steps back and forth in a small space works. Outside is better.','Begin walking slightly slower than normal.','Focus entirely on the physical sensation of walking: heel contact, weight shift, push off.','When your mind wanders (it will), gently label it - "thinking" - then return to the sensation of your feet.','Expand awareness to include sounds around you, without analysing them. Just hearing.','Include peripheral vision - widen your gaze rather than focusing on a single point.','End by standing still for 30 seconds. Notice the stillness after movement.'],
     tip: '<strong>Unlike regular walking:</strong> The goal is not to go somewhere or think things through. It is to be fully present in the body. Surprisingly difficult at first, and gets easier fast.' },
 
   { id: 'l15', cat: 'Sleep', icon: '🛁', bg: '#FDF3E3', color: '#9A6520', title: 'The Warm Bath Trick', time: '20 min',
-    desc: 'A warm bath 90 minutes before bed paradoxically cools your core temperature — the key trigger for deep sleep.',
-    steps: ['Time this for exactly 90 minutes before your intended sleep time.','Run a bath at 40–42C (104–108F) — warm but not uncomfortably hot.','Soak for 10–20 minutes. No phone. Dim the lights.','The warm water draws blood to your skin surface. When you get out, heat dissipates rapidly.','This rapid drop in core temperature mimics the natural drop your body uses to initiate sleep.','Get out and let yourself air-dry or towel off gently. Do not rush back to activity.','Keep the bedroom cool and get into bed within 60–90 minutes.'],
-    tip: "<strong>No bath?</strong> A warm foot soak works too — feet are the body's primary heat dissipation points and produce a similar core temperature drop." },
+    desc: 'A warm bath 90 minutes before bed paradoxically cools your core temperature - the key trigger for deep sleep.',
+    steps: ['Time this for exactly 90 minutes before your intended sleep time.','Run a bath at 40-42C (104-108F) - warm but not uncomfortably hot.','Soak for 10-20 minutes. No phone. Dim the lights.','The warm water draws blood to your skin surface. When you get out, heat dissipates rapidly.','This rapid drop in core temperature mimics the natural drop your body uses to initiate sleep.','Get out and let yourself air-dry or towel off gently. Do not rush back to activity.','Keep the bedroom cool and get into bed within 60-90 minutes.'],
+    tip: "<strong>No bath?</strong> A warm foot soak works too - feet are the body's primary heat dissipation points and produce a similar core temperature drop." },
 
   { id: 'l16', cat: 'Breathing', icon: '🌬️', bg: '#EDF5F1', color: '#2D7A5F', title: 'Alternate Nostril Breathing', time: '7 min',
     desc: 'A foundational yoga practice shown to balance brain hemispheres and lower blood pressure.',
-    steps: ['Sit with your spine straight. Rest your left hand on your left knee.','Raise your right hand. Place your index and middle fingers between your eyebrows.','Close your right nostril with your thumb. Inhale through the left nostril for 4 counts.','Close both nostrils. Hold for 2 counts.','Release the right nostril. Exhale through the right for 4 counts.','Inhale through the right nostril for 4 counts. Close both, hold 2 counts. Release left, exhale for 4.','This is one complete cycle. Continue for 5–7 minutes, always switching after the exhale.'],
+    steps: ['Sit with your spine straight. Rest your left hand on your left knee.','Raise your right hand. Place your index and middle fingers between your eyebrows.','Close your right nostril with your thumb. Inhale through the left nostril for 4 counts.','Close both nostrils. Hold for 2 counts.','Release the right nostril. Exhale through the right for 4 counts.','Inhale through the right nostril for 4 counts. Close both, hold 2 counts. Release left, exhale for 4.','This is one complete cycle. Continue for 5-7 minutes, always switching after the exhale.'],
     tip: '<strong>Research finding:</strong> Alternate nostril breathing reduced systolic blood pressure by an average of 10 points in a 6-week study, and improves focus by balancing brain hemisphere activity.' },
 
   { id: 'l17', cat: 'Movement', icon: '🙆', bg: '#FDF0EF', color: '#8A3030', title: 'Desk Stretches', time: '5 min',
     desc: 'Stress lives in the body. Release tension that accumulates during stressful days.',
     steps: ['Neck: slowly drop your right ear to your right shoulder. Hold 20 seconds. Switch sides. Then gently roll chin to chest.','Chest opener: interlace fingers behind your back, squeeze shoulder blades, and lift arms slightly. Hold 20 seconds.','Seated spinal twist: hold the back of your chair with both hands and rotate your torso. Hold 20 seconds each side.','Hip flexor: sit on the edge of your chair, extend one leg behind you with the top of your foot on the floor. Hold 30 seconds each side.','Wrist circles: extend both arms, make fists, and rotate 10 times each direction.','Eye reset: look away from your screen and focus on the furthest point you can see for 20 seconds.','End with 3 deep breaths with your eyes closed.'],
-    tip: '<strong>Every 90 minutes:</strong> Set a recurring timer. Sitting freezes the psoas muscle — your primary stress-response muscle — which maintains physical tension even when your mind is calm.' },
+    tip: '<strong>Every 90 minutes:</strong> Set a recurring timer. Sitting freezes the psoas muscle - your primary stress-response muscle - which maintains physical tension even when your mind is calm.' },
 
   { id: 'l18', cat: 'Mindfulness', icon: '🎵', bg: '#F0EDF7', color: '#5B4A8A', title: 'Sound Bath Listening', time: '15 min',
     desc: 'Deliberately listening to calming sound shifts brainwaves from beta (stress) toward alpha and theta (calm, restful).',
-    steps: ['Find a comfortable position — lying down is ideal. Use headphones for the best effect.','Choose a sound: binaural beats (delta or theta range), singing bowls, brown noise, or rainfall. YouTube and Spotify have free options.','Set a timer for 15 minutes so you do not have to watch the clock.','Close your eyes and focus entirely on the sound. Not analysing it — just listening.','When thoughts arise, use the sound as an anchor. Return to it as you would return to the breath in meditation.','Notice texture and layers in the sound you would not normally hear.','When the timer ends, sit up slowly and rest for 30 seconds before resuming activity.'],
-    tip: '<strong>Binaural beats:</strong> Require headphones to work — each ear receives a slightly different frequency and your brain generates a third tone from the difference, directly entraining brainwave frequency.' },
+    steps: ['Find a comfortable position - lying down is ideal. Use headphones for the best effect.','Choose a sound: binaural beats (delta or theta range), singing bowls, brown noise, or rainfall. YouTube and Spotify have free options.','Set a timer for 15 minutes so you do not have to watch the clock.','Close your eyes and focus entirely on the sound. Not analysing it - just listening.','When thoughts arise, use the sound as an anchor. Return to it as you would return to the breath in meditation.','Notice texture and layers in the sound you would not normally hear.','When the timer ends, sit up slowly and rest for 30 seconds before resuming activity.'],
+    tip: '<strong>Binaural beats:</strong> Require headphones to work - each ear receives a slightly different frequency and your brain generates a third tone from the difference, directly entraining brainwave frequency.' },
 
   { id: 'l19', cat: 'Journaling', icon: '🔮', bg: '#E8F4F8', color: '#1E6A8A', title: 'Future Self Letter', time: '15 min',
     desc: 'Write a letter from your future self looking back at this moment. A powerful perspective tool used in therapy.',
-    steps: ['Choose a time horizon: 1 year, 5 years, or 10 years from now.','Imagine your future self — wiser, with the benefit of hindsight. What have they figured out that you have not?','Write a letter that starts: "Dear [your name], I am writing to you from [year]..."','What does your future self want you to know about this period? What were you worrying about that turned out fine?','What were the things that actually mattered? What did you get right?','What would they tell you to stop doing? To start? To stop worrying about?','End with something encouraging. Then read the letter slowly from the beginning.'],
+    steps: ['Choose a time horizon: 1 year, 5 years, or 10 years from now.','Imagine your future self - wiser, with the benefit of hindsight. What have they figured out that you have not?','Write a letter that starts: "Dear [your name], I am writing to you from [year]..."','What does your future self want you to know about this period? What were you worrying about that turned out fine?','What were the things that actually mattered? What did you get right?','What would they tell you to stop doing? To start? To stop worrying about?','End with something encouraging. Then read the letter slowly from the beginning.'],
     tip: "<strong>Research backing:</strong> Hal Hershfield's studies show people who feel connected to their future self make better long-term decisions and report higher life satisfaction. This exercise builds that connection." },
 
   { id: 'l20', cat: 'Movement', icon: '💪', bg: '#FDF0EF', color: '#8A3030', title: 'Shaking Practice', time: '5 min',
     desc: 'Animals shake after stress to discharge adrenaline and cortisol. Humans can reclaim this instinct.',
-    steps: ['Stand with feet shoulder-width apart. Bend your knees slightly.','Begin to gently bounce, letting your whole body vibrate. Start small — just your legs.','Allow the vibration to travel up through your hips, belly, chest, shoulders.','Let your arms hang loose and shake. Let your jaw drop open slightly.','After 2 minutes, increase the shaking for 30 seconds — big, free movement.','Then gradually slow down, returning to stillness over 30 seconds.','Stand completely still for 1 minute. Notice the tingling and warmth throughout your body.'],
+    steps: ['Stand with feet shoulder-width apart. Bend your knees slightly.','Begin to gently bounce, letting your whole body vibrate. Start small - just your legs.','Allow the vibration to travel up through your hips, belly, chest, shoulders.','Let your arms hang loose and shake. Let your jaw drop open slightly.','After 2 minutes, increase the shaking for 30 seconds - big, free movement.','Then gradually slow down, returning to stillness over 30 seconds.','Stand completely still for 1 minute. Notice the tingling and warmth throughout your body.'],
     tip: "<strong>This works:</strong> Dr. Peter Levine's somatic research shows that animals shake to discharge the freeze response after stress. Humans override this instinct socially, which keeps stress locked in the body." },
 
   { id: 'l21', cat: 'Mindfulness', icon: '🎯', bg: '#F0EDF7', color: '#5B4A8A', title: 'Single-Tasking', time: '25 min',
-    desc: 'Multitasking is a myth — it reduces performance by 40%. Single-tasking is a trainable skill that rebuilds focus.',
-    steps: ['Choose one task. Write it on a piece of paper and place it where you can see it.','Close every tab, app, and window not related to that task. Put your phone face-down.','Set a timer for 25 minutes. This is your only job until the timer goes off.','When your mind wanders — and it will — gently return to the task without judgment.','If a thought or to-do arrives, write it on a separate list and return to the task.','When the timer ends, take a 5-minute break before starting again.','Track how many 25-minute blocks you complete in a day. This number will grow.'],
+    desc: 'Multitasking is a myth - it reduces performance by 40%. Single-tasking is a trainable skill that rebuilds focus.',
+    steps: ['Choose one task. Write it on a piece of paper and place it where you can see it.','Close every tab, app, and window not related to that task. Put your phone face-down.','Set a timer for 25 minutes. This is your only job until the timer goes off.','When your mind wanders - and it will - gently return to the task without judgment.','If a thought or to-do arrives, write it on a separate list and return to the task.','When the timer ends, take a 5-minute break before starting again.','Track how many 25-minute blocks you complete in a day. This number will grow.'],
     tip: '<strong>The Pomodoro Technique:</strong> This method was developed by Francesco Cirillo in the late 1980s. The name comes from a tomato-shaped kitchen timer. The technique works because it makes time visible and finite.' },
 
   { id: 'l22', cat: 'Journaling', icon: '📝', bg: '#E8F4F8', color: '#1E6A8A', title: 'Unsent Letter', time: '15 min',
     desc: 'Write a letter you will never send. One of the most powerful emotional processing tools in therapy.',
-    steps: ['Choose a person, situation, or even a version of yourself you need to address.','Begin with "Dear ___." Give yourself full permission to say everything you have held back.','Write without editing, without being fair, without worrying about their perspective.','Say what you needed them to understand. What you needed them to do. What their actions cost you.','If it turns to forgiveness, let it. If it stays in anger, that is also fine. Follow where it leads.','When you feel complete — not when you run out of words, but when you feel the release — stop.','You do not need to keep it. You can burn it, shred it, or delete it. The act of writing was the point.'],
+    steps: ['Choose a person, situation, or even a version of yourself you need to address.','Begin with "Dear ___." Give yourself full permission to say everything you have held back.','Write without editing, without being fair, without worrying about their perspective.','Say what you needed them to understand. What you needed them to do. What their actions cost you.','If it turns to forgiveness, let it. If it stays in anger, that is also fine. Follow where it leads.','When you feel complete - not when you run out of words, but when you feel the release - stop.','You do not need to keep it. You can burn it, shred it, or delete it. The act of writing was the point.'],
     tip: '<strong>Used in therapy for:</strong> grief, anger, unresolved relationships, past trauma, and difficult conversations you cannot have in real life. The research on expressive writing is extensive and consistent.' },
 
   { id: 'l23', cat: 'Sleep', icon: '🌡️', bg: '#FDF3E3', color: '#9A6520', title: 'Temperature Regulation for Sleep', time: '30 min',
     desc: 'Your core body temperature must drop 1-3 degrees to initiate sleep. Most people fight this process without knowing.',
-    steps: ['Set your bedroom temperature between 65-68°F (18-20°C). This is colder than most people keep their rooms.','Take a warm shower or bath 1-2 hours before bed. This sounds counterintuitive but works by pulling heat to your skin surface, then rapidly cooling your core when you step out.','Keep your feet warm — cold feet constrict blood vessels and prevent the heat-dumping your body needs. Wear socks if needed.','Use layered bedding you can kick off rather than a single heavy blanket.','Avoid exercise within 2 hours of bed — it raises core temperature significantly.','If you wake up hot in the night, expose one foot outside the covers. Your foot is a radiator.'],
+    steps: ['Set your bedroom temperature between 65-68°F (18-20°C). This is colder than most people keep their rooms.','Take a warm shower or bath 1-2 hours before bed. This sounds counterintuitive but works by pulling heat to your skin surface, then rapidly cooling your core when you step out.','Keep your feet warm - cold feet constrict blood vessels and prevent the heat-dumping your body needs. Wear socks if needed.','Use layered bedding you can kick off rather than a single heavy blanket.','Avoid exercise within 2 hours of bed - it raises core temperature significantly.','If you wake up hot in the night, expose one foot outside the covers. Your foot is a radiator.'],
     tip: "<strong>Why this works:</strong> The body clock (circadian rhythm) and sleep onset are directly linked to core temperature drop. Matthew Walker's research shows temperature is one of the most underrated sleep levers." },
 
   { id: 'l24', cat: 'Breathing', icon: '🌬️', bg: '#EDF5F1', color: '#2D7A5F', title: 'Alternate Nostril Breathing', time: '5 min',
     desc: 'A yogic pranayama technique shown to balance the nervous system and reduce blood pressure within minutes.',
-    steps: ['Sit comfortably with a straight spine. Rest your left hand on your left knee.','Bring your right hand to your face. Place your right thumb on your right nostril and your ring finger on your left nostril.','Close your right nostril with your thumb. Inhale slowly through your left nostril for 4 counts.','Close both nostrils. Hold for 2 counts.','Release your thumb. Exhale through your right nostril for 4 counts.','Inhale through the right nostril for 4 counts.','Close both. Hold 2 counts. Then exhale through the left nostril.','This completes one cycle. Repeat 5–10 cycles.'],
+    steps: ['Sit comfortably with a straight spine. Rest your left hand on your left knee.','Bring your right hand to your face. Place your right thumb on your right nostril and your ring finger on your left nostril.','Close your right nostril with your thumb. Inhale slowly through your left nostril for 4 counts.','Close both nostrils. Hold for 2 counts.','Release your thumb. Exhale through your right nostril for 4 counts.','Inhale through the right nostril for 4 counts.','Close both. Hold 2 counts. Then exhale through the left nostril.','This completes one cycle. Repeat 5-10 cycles.'],
     tip: '<strong>The research:</strong> A 2013 study found alternate nostril breathing significantly reduced heart rate and blood pressure. Left nostril breathing activates the right hemisphere; right nostril activates the left.' },
 
   { id: 'l25', cat: 'Mindfulness', icon: '🌊', bg: '#F0EDF7', color: '#5B4A8A', title: 'RAIN Technique', time: '10 min',
     desc: 'A mindfulness practice from Tara Brach for working with difficult emotions. Recognize, Allow, Investigate, Nurture.',
-    steps: ['R — RECOGNIZE: Pause and name what you are feeling. "There is fear here." "There is shame here." Naming it activates the prefrontal cortex and reduces the amygdala response.','A — ALLOW: Let the feeling be there without trying to fix, avoid, or suppress it. Say inwardly "yes" to its presence, even if it is uncomfortable.','I — INVESTIGATE: With gentle curiosity, ask: Where do I feel this in my body? What does it believe? What does it need?','N — NURTURE: Offer yourself what the feeling needs. A hand on your heart. Words like "this is hard" or "I am here." The compassion you would offer a dear friend.','After RAIN, rest in the open awareness that remains. Notice who is noticing.'],
+    steps: ['R - RECOGNIZE: Pause and name what you are feeling. "There is fear here." "There is shame here." Naming it activates the prefrontal cortex and reduces the amygdala response.','A - ALLOW: Let the feeling be there without trying to fix, avoid, or suppress it. Say inwardly "yes" to its presence, even if it is uncomfortable.','I - INVESTIGATE: With gentle curiosity, ask: Where do I feel this in my body? What does it believe? What does it need?','N - NURTURE: Offer yourself what the feeling needs. A hand on your heart. Words like "this is hard" or "I am here." The compassion you would offer a dear friend.','After RAIN, rest in the open awareness that remains. Notice who is noticing.'],
     tip: '<strong>Created by:</strong> Tara Brach, mindfulness teacher and clinical psychologist. RAIN is especially powerful for shame, fear, and self-criticism. It transforms the relationship to difficulty rather than eliminating it.' },
 
   { id: 'l26', cat: 'Journaling', icon: '🔮', bg: '#E8F4F8', color: '#1E6A8A', title: 'Future Self Letter', time: '20 min',
     desc: 'Write a letter from your future self to your present self. Activates identity-level change.',
-    steps: ['Choose a specific future date — one year, five years, or ten years from today.','Write as if you are that future version of yourself, writing back to who you are right now.','Describe what your life looks like. What you are proud of. What you figured out.','Tell your present self what you needed to hear, what fears were unfounded, what was worth the effort.','Be specific — vague letters have less impact. Name real things, real decisions, real feelings.','Tell your present self what to stop doing. What to start. What to hold onto.','Seal it digitally or physically. Set a calendar reminder to open it on that future date.'],
+    steps: ['Choose a specific future date - one year, five years, or ten years from today.','Write as if you are that future version of yourself, writing back to who you are right now.','Describe what your life looks like. What you are proud of. What you figured out.','Tell your present self what you needed to hear, what fears were unfounded, what was worth the effort.','Be specific - vague letters have less impact. Name real things, real decisions, real feelings.','Tell your present self what to stop doing. What to start. What to hold onto.','Seal it digitally or physically. Set a calendar reminder to open it on that future date.'],
     tip: "<strong>The psychology:</strong> Research by Hal Hershfield shows that people who feel connected to their future selves make better long-term decisions. This letter builds that connection." },
 
   { id: 'l27', cat: 'Sleep', icon: '📵', bg: '#FDF3E3', color: '#9A6520', title: 'Digital Sunset', time: '60 min',
     desc: 'A structured screen-free hour before bed that dramatically improves sleep onset and quality.',
-    steps: ['Choose a "sunset time" — one hour before you want to be asleep. Set a recurring alarm for it.','When the alarm goes off, silence all notifications and put devices in another room.','Replace the phone with one of: physical book, journal, conversation, gentle stretching, or a warm drink.','If you must use a device, switch to night mode, minimum brightness, and blue light glasses.','Keep a notepad beside your bed. If your mind generates to-dos or worries, write them down and let them go.','Notice how your mind feels different when you start this practice consistently after 3–5 days.','Protect this hour. It compounds — the better you sleep, the better your next day, which makes the next night easier.'],
+    steps: ['Choose a "sunset time" - one hour before you want to be asleep. Set a recurring alarm for it.','When the alarm goes off, silence all notifications and put devices in another room.','Replace the phone with one of: physical book, journal, conversation, gentle stretching, or a warm drink.','If you must use a device, switch to night mode, minimum brightness, and blue light glasses.','Keep a notepad beside your bed. If your mind generates to-dos or worries, write them down and let them go.','Notice how your mind feels different when you start this practice consistently after 3-5 days.','Protect this hour. It compounds - the better you sleep, the better your next day, which makes the next night easier.'],
     tip: '<strong>The data:</strong> People who use phones in the 30 minutes before bed take an average of 14 minutes longer to fall asleep and get 20 minutes less sleep per night. Over a year, that is 122 lost hours.' },
 
   { id: 'l28', cat: 'Movement', icon: '🧗', bg: '#FDF0EF', color: '#8A3030', title: 'Cold Exposure', time: '3 min',
     desc: 'Deliberate cold exposure builds stress resilience, boosts mood, and trains mental toughness.',
-    steps: ['Start with the last 30 seconds of your shower on cold. Not cool — cold.','Breathe slowly and deliberately through the discomfort. The urge to jump out is the point.','Focus on your breath rather than the cold sensation. Long exhale through pursed lips.','Gradually extend to 1 minute, then 2, then 3 over several weeks.','The goal is not to feel nothing — it is to remain calm while feeling discomfort.','Notice the mood elevation afterward. Most people feel an alertness and lightness that lasts hours.','Do not do this first thing if you are new — shower warm first, then switch to cold at the end.'],
+    steps: ['Start with the last 30 seconds of your shower on cold. Not cool - cold.','Breathe slowly and deliberately through the discomfort. The urge to jump out is the point.','Focus on your breath rather than the cold sensation. Long exhale through pursed lips.','Gradually extend to 1 minute, then 2, then 3 over several weeks.','The goal is not to feel nothing - it is to remain calm while feeling discomfort.','Notice the mood elevation afterward. Most people feel an alertness and lightness that lasts hours.','Do not do this first thing if you are new - shower warm first, then switch to cold at the end.'],
     tip: "<strong>The science:</strong> Cold exposure releases norepinephrine by up to 300% and dopamine by up to 250%. Andrew Huberman's research shows even 11 minutes per week of deliberate cold builds lasting stress resilience." },
 
   { id: 'l29', cat: 'Mindfulness', icon: '💭', bg: '#F0EDF7', color: '#5B4A8A', title: 'Loving-Kindness Meditation', time: '10 min',
-    desc: 'Metta meditation — scientifically shown to increase positive emotions and reduce self-criticism.',
-    steps: ['Sit comfortably. Close your eyes. Take 3 slow breaths.','Begin with yourself. Silently repeat: "May I be happy. May I be healthy. May I be safe. May I live with ease."','Feel the meaning of the words — do not rush. Let each phrase settle.','Now bring to mind someone you love easily — a close friend, a pet. Repeat: "May you be happy. May you be healthy. May you be safe. May you live with ease."','Expand to a neutral person — someone you see but do not know well. Offer them the same wishes.','If you feel ready, extend to someone difficult. This is hard at first. Start with mild difficulty.','Finally, expand to all beings everywhere. "May all beings be happy. May all beings be safe."','Rest in the warmth for a moment before opening your eyes.'],
+    desc: 'Metta meditation - scientifically shown to increase positive emotions and reduce self-criticism.',
+    steps: ['Sit comfortably. Close your eyes. Take 3 slow breaths.','Begin with yourself. Silently repeat: "May I be happy. May I be healthy. May I be safe. May I live with ease."','Feel the meaning of the words - do not rush. Let each phrase settle.','Now bring to mind someone you love easily - a close friend, a pet. Repeat: "May you be happy. May you be healthy. May you be safe. May you live with ease."','Expand to a neutral person - someone you see but do not know well. Offer them the same wishes.','If you feel ready, extend to someone difficult. This is hard at first. Start with mild difficulty.','Finally, expand to all beings everywhere. "May all beings be happy. May all beings be safe."','Rest in the warmth for a moment before opening your eyes.'],
     tip: '<strong>The research:</strong> Barbara Fredrickson found that even 7 weeks of loving-kindness meditation increased daily positive emotions and built lasting personal resources including mindfulness, purpose, and reduced illness.' },
 
   { id: 'l30', cat: 'Journaling', icon: '⚡', bg: '#E8F4F8', color: '#1E6A8A', title: 'Values Clarification', time: '20 min',
     desc: 'Knowing your values removes decision fatigue and creates a compass for every major life choice.',
-    steps: ['Write down 20 things that matter deeply to you — people, activities, qualities, experiences. Do not filter.','Review your list. Circle the 10 that feel most essential — things you could not imagine a meaningful life without.','From those 10, choose your top 5. This will feel uncomfortable. That discomfort is the point.','For each of your top 5, write one sentence explaining why it matters so much.','Now evaluate: Where in your current life are you living in alignment with these values? Where are you not?','Identify one specific change you could make this week to close one gap between values and actions.','Return to this exercise every 6 months. Values evolve — and so should the life you build around them.'],
-    tip: '<strong>Why this matters:</strong> Most anxiety and dissatisfaction comes from living out of alignment with values — often values absorbed from others rather than chosen deliberately. This exercise starts the reclamation.' },
+    steps: ['Write down 20 things that matter deeply to you - people, activities, qualities, experiences. Do not filter.','Review your list. Circle the 10 that feel most essential - things you could not imagine a meaningful life without.','From those 10, choose your top 5. This will feel uncomfortable. That discomfort is the point.','For each of your top 5, write one sentence explaining why it matters so much.','Now evaluate: Where in your current life are you living in alignment with these values? Where are you not?','Identify one specific change you could make this week to close one gap between values and actions.','Return to this exercise every 6 months. Values evolve - and so should the life you build around them.'],
+    tip: '<strong>Why this matters:</strong> Most anxiety and dissatisfaction comes from living out of alignment with values - often values absorbed from others rather than chosen deliberately. This exercise starts the reclamation.' },
 
   { id: 'l31', cat: 'Breathing', icon: '🏔️', bg: '#EDF5F1', color: '#2D7A5F', title: 'Buteyko Breathing', time: '10 min',
     desc: 'A breathing method developed by Russian doctor Konstantin Buteyko to reduce over-breathing and anxiety.',
-    steps: ['Sit upright and breathe normally through your nose for 2 minutes. Notice your natural rhythm.','Take a gentle breath in through your nose, then a relaxed breath out.','After the exhale, pinch your nose closed with your fingers.','Hold until you feel the first definite urge to breathe — not panic, just the first real signal.','Release and breathe normally through your nose. Try to keep breathing calm — do not gasp.','Rest for 2–3 minutes of gentle nose breathing.','Repeat 5 times. Over weeks, your control pause will lengthen — a sign of improved CO₂ tolerance.'],
-    tip: "<strong>The principle:</strong> Modern humans over-breathe chronically, expelling too much CO₂. CO₂ is not just waste — it's what signals your blood to release oxygen. Buteyko normalizes this, reducing anxiety and improving sleep." },
+    steps: ['Sit upright and breathe normally through your nose for 2 minutes. Notice your natural rhythm.','Take a gentle breath in through your nose, then a relaxed breath out.','After the exhale, pinch your nose closed with your fingers.','Hold until you feel the first definite urge to breathe - not panic, just the first real signal.','Release and breathe normally through your nose. Try to keep breathing calm - do not gasp.','Rest for 2-3 minutes of gentle nose breathing.','Repeat 5 times. Over weeks, your control pause will lengthen - a sign of improved CO₂ tolerance.'],
+    tip: "<strong>The principle:</strong> Modern humans over-breathe chronically, expelling too much CO₂. CO₂ is not just waste - it's what signals your blood to release oxygen. Buteyko normalizes this, reducing anxiety and improving sleep." },
 
   { id: 'l32', cat: 'Sleep', icon: '☀️', bg: '#FDF3E3', color: '#9A6520', title: 'Morning Light Anchoring', time: '10 min',
     desc: 'Getting sunlight in your eyes within 30 minutes of waking resets your circadian clock for the entire day.',
-    steps: ['Within 30 minutes of waking, go outside. Even on a cloudy day, outdoor light is 10–50x brighter than indoor light.','Stand or sit facing the direction of the sun — you do not need to look directly at it.','Stay for 5–10 minutes. On very bright days, 2–3 minutes may be enough.','Do not wear sunglasses during this time. The light needs to reach your retina.','If it is dark when you wake up, use a 10,000 lux light therapy lamp for 10 minutes.','Combine this with something pleasant — coffee, a short walk, stretching.','Do it consistently for 7 days and notice the change in energy, mood, and how easily you fall asleep at night.'],
-    tip: "<strong>Why it works:</strong> Andrew Huberman's research shows that morning light sets a cortisol pulse at the right time, which directly determines when melatonin releases 12-14 hours later — controlling your sleep timing." },
+    steps: ['Within 30 minutes of waking, go outside. Even on a cloudy day, outdoor light is 10-50x brighter than indoor light.','Stand or sit facing the direction of the sun - you do not need to look directly at it.','Stay for 5-10 minutes. On very bright days, 2-3 minutes may be enough.','Do not wear sunglasses during this time. The light needs to reach your retina.','If it is dark when you wake up, use a 10,000 lux light therapy lamp for 10 minutes.','Combine this with something pleasant - coffee, a short walk, stretching.','Do it consistently for 7 days and notice the change in energy, mood, and how easily you fall asleep at night.'],
+    tip: "<strong>Why it works:</strong> Andrew Huberman's research shows that morning light sets a cortisol pulse at the right time, which directly determines when melatonin releases 12-14 hours later - controlling your sleep timing." },
 
   { id: 'l33', cat: 'Mindfulness', icon: '🪞', bg: '#F0EDF7', color: '#5B4A8A', title: 'Self-Compassion Break', time: '5 min',
     desc: "Kristin Neff's three-step practice for meeting your own pain with the care you'd offer a friend.",
-    steps: ['When you notice you are struggling — stressed, failing, overwhelmed — pause.','Step 1 — MINDFULNESS: Acknowledge the pain without exaggerating or suppressing it. "This is a moment of suffering." "This is hard right now."','Step 2 — COMMON HUMANITY: Remind yourself you are not alone. "Suffering is part of being human." "Other people feel this way too." "I am not uniquely broken."','Step 3 — KINDNESS: Place one or both hands over your heart. Offer yourself words a caring friend would say: "May I be kind to myself in this moment." "May I give myself the compassion I need."','Stay with the warmth of your hands on your chest for 30 seconds.','This takes 2–3 minutes. It interrupts the self-criticism loop that makes difficulty worse.'],
-    tip: "<strong>Kristin Neff's research</strong> shows self-compassion is more effective than self-esteem for resilience, motivation, and wellbeing — and unlike self-esteem, it does not require you to feel special or above average." },
+    steps: ['When you notice you are struggling - stressed, failing, overwhelmed - pause.','Step 1 - MINDFULNESS: Acknowledge the pain without exaggerating or suppressing it. "This is a moment of suffering." "This is hard right now."','Step 2 - COMMON HUMANITY: Remind yourself you are not alone. "Suffering is part of being human." "Other people feel this way too." "I am not uniquely broken."','Step 3 - KINDNESS: Place one or both hands over your heart. Offer yourself words a caring friend would say: "May I be kind to myself in this moment." "May I give myself the compassion I need."','Stay with the warmth of your hands on your chest for 30 seconds.','This takes 2-3 minutes. It interrupts the self-criticism loop that makes difficulty worse.'],
+    tip: "<strong>Kristin Neff's research</strong> shows self-compassion is more effective than self-esteem for resilience, motivation, and wellbeing - and unlike self-esteem, it does not require you to feel special or above average." },
 
   { id: 'l34', cat: 'Movement', icon: '🧘', bg: '#FDF0EF', color: '#8A3030', title: 'Yoga Nidra', time: '20 min',
-    desc: 'Non-sleep deep rest — one hour of Yoga Nidra is said to equal 4 hours of sleep for neural recovery.',
-    steps: ['Lie flat on your back with arms slightly away from your body, palms up.','Close your eyes. Set an intention — one sentence describing what you want to cultivate.','Rotate awareness through body parts rapidly: right thumb, index finger, middle finger, ring finger, little finger, palm, back of hand, wrist, forearm, elbow...','Continue through the entire body at a steady pace, spending 2–3 seconds on each point.','Do not try to relax — just move attention. Relaxation follows automatically.','After the body scan, move through pairs of opposites: heaviness/lightness, warmth/cold, pain/pleasure.','Return to your intention. Rest in open awareness for 5 minutes before slowly returning.'],
+    desc: 'Non-sleep deep rest - one hour of Yoga Nidra is said to equal 4 hours of sleep for neural recovery.',
+    steps: ['Lie flat on your back with arms slightly away from your body, palms up.','Close your eyes. Set an intention - one sentence describing what you want to cultivate.','Rotate awareness through body parts rapidly: right thumb, index finger, middle finger, ring finger, little finger, palm, back of hand, wrist, forearm, elbow...','Continue through the entire body at a steady pace, spending 2-3 seconds on each point.','Do not try to relax - just move attention. Relaxation follows automatically.','After the body scan, move through pairs of opposites: heaviness/lightness, warmth/cold, pain/pleasure.','Return to your intention. Rest in open awareness for 5 minutes before slowly returning.'],
     tip: '<strong>Used by:</strong> the US military, professional athletes, and hospitals for recovery. Research shows it activates the same restorative brain states as sleep while maintaining a thread of consciousness.' },
 
   { id: 'l35', cat: 'Journaling', icon: '🗺️', bg: '#E8F4F8', color: '#1E6A8A', title: 'Weekly Review', time: '20 min',
     desc: 'A structured end-of-week reflection practice used by high performers across every field.',
-    steps: ['Choose a consistent time — Sunday evening works well for most people. Block 20 minutes.','Review your calendar and task list from the past week. What actually happened versus what you planned?','Ask: What went well this week? Be specific and give yourself genuine credit.','Ask: What did not go as planned? What was the cause — circumstances, choices, or systems?','Ask: What did I learn this week — about my work, myself, or others?','Ask: What do I want to carry into next week? One intention, one commitment, one thing to let go of.','Write briefly on each. You are not journaling a novel — you are closing one chapter and opening another.'],
+    steps: ['Choose a consistent time - Sunday evening works well for most people. Block 20 minutes.','Review your calendar and task list from the past week. What actually happened versus what you planned?','Ask: What went well this week? Be specific and give yourself genuine credit.','Ask: What did not go as planned? What was the cause - circumstances, choices, or systems?','Ask: What did I learn this week - about my work, myself, or others?','Ask: What do I want to carry into next week? One intention, one commitment, one thing to let go of.','Write briefly on each. You are not journaling a novel - you are closing one chapter and opening another.'],
     tip: '<strong>Used by:</strong> David Allen (Getting Things Done), Tim Ferriss, and most high-output people interviewed about their systems. The weekly review is the single habit most correlated with consistent productivity and peace of mind.' },
 ];
 
@@ -5782,7 +5780,7 @@ const QUOTES_OF_DAY = [
 const DAILY_TIPS = [
   { text: 'Before checking your phone this morning, take three slow breaths. You get to choose how your day begins.', cat: 'Mindfulness' },
   { text: 'Tension lives in the body before the mind notices it. Pause and drop your shoulders right now.', cat: 'Movement' },
-  { text: 'Name one thing that went well today — no matter how small. Train your brain to notice the good.', cat: 'Journaling' },
+  { text: 'Name one thing that went well today - no matter how small. Train your brain to notice the good.', cat: 'Journaling' },
   { text: 'The exhale is your emergency brake. Make yours twice as long as your inhale.', cat: 'Breathing' },
   { text: 'A 10-minute walk without your phone is worth more than an hour of anxious scrolling.', cat: 'Movement' },
   { text: 'You do not need to solve everything today. What is one small thing you can do right now?', cat: 'Mindfulness' },
@@ -5815,7 +5813,7 @@ function getForYouTechniques() {
     candidates.push(...undone.filter(c => c.cat === cat));
   });
 
-  // Time-of-day ranking — boost relevant techniques
+  // Time-of-day ranking - boost relevant techniques
   // Morning: energy/movement/breathing first
   // Evening: sleep/mindfulness first
   const isEvening = h >= 18 || h < 5;
@@ -5909,7 +5907,7 @@ function scrollToTechnique(id) {
 }
 
 function renderLearn() {
-  // Quote of the day — cycles by day of year so it changes daily
+  // Quote of the day - cycles by day of year so it changes daily
   const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
   const quote = QUOTES_OF_DAY[dayOfYear % QUOTES_OF_DAY.length];
   const qw = document.getElementById('learn-quote-wrap');
@@ -5926,7 +5924,7 @@ function renderLearn() {
   const tw = document.getElementById('learn-tip-wrap');
   if (tw) tw.innerHTML = '<div class="learn-tip"><div class="tip-eyebrow">💡 Tip of the day</div><div class="tip-body">"' + esc(tip.text) + '"</div><div class="tip-category"><span class="tip-dot"></span>' + esc(tip.cat) + '</div></div>';
 
-  // For You — personalized recommendations
+  // For You - personalized recommendations
   renderForYou();
 
   const total = LEARN_CONTENT.length, done = learnDone.length, pct = Math.round((done / total) * 100);
@@ -5965,7 +5963,7 @@ function toggleDone(id) { if (learnDone.includes(id)) learnDone = learnDone.filt
 // ══════════════════════════════════════════════════
 // QUESTIONS
 // ══════════════════════════════════════════════════
-// Rotating opening questions — 3 picked randomly each session from this pool
+// Rotating opening questions - 3 picked randomly each session from this pool
 const OPENING_QS = [
   "What is one thing you're genuinely grateful for today?",
   "Who made a positive difference in your life recently, and why?",
@@ -5994,7 +5992,7 @@ const POOL = [
   "What's one thing you're genuinely proud of this week?",
 ];
 
-// Goal-specific question pools — 30 questions each
+// Goal-specific question pools - 30 questions each
 const GOAL_POOLS = {
   stress: [
     "What's one thing that felt heavy today that you can set down right now?",
@@ -6019,9 +6017,9 @@ const GOAL_POOLS = {
     "What's one expectation of yourself you could ease up on right now?",
     "What part of today actually went okay, even if the rest didn't?",
     "What would a calmer version of you handle differently tomorrow?",
-    "What's draining your energy most right now — and is it something you can change?",
+    "What's draining your energy most right now - and is it something you can change?",
     "What's one boundary you could set this week that would reduce your stress?",
-    "What does rest actually look like for you — not just sleep, but genuine restoration?",
+    "What does rest actually look like for you - not just sleep, but genuine restoration?",
     "What's one thought pattern you keep coming back to that isn't helping you?",
     "If your stress were trying to tell you something, what would it say?",
     "What's one thing you accomplished today despite how you were feeling?",
@@ -6038,13 +6036,13 @@ const GOAL_POOLS = {
     "What did you take for granted this week that you actually appreciate?",
     "Describe a texture, smell, or sound that brought you quiet joy recently.",
     "What's one piece of technology that makes your life dramatically easier?",
-    "What's a skill you have that took years to develop — and what does it enable you to do?",
+    "What's a skill you have that took years to develop - and what does it enable you to do?",
     "Who believed in you before you believed in yourself?",
     "What's one conversation from this week that left you feeling better afterward?",
     "What's something beautiful about where you live that you forget to notice?",
     "What food or meal are you genuinely grateful exists in the world?",
     "What's one mistake you made that taught you something you needed to learn?",
-    "What does your morning look like — and what part of it are you grateful for?",
+    "What does your morning look like - and what part of it are you grateful for?",
     "What's one piece of art, music, or writing that has genuinely moved you?",
     "What's something your childhood self would be amazed by about your life right now?",
     "Who in your life consistently shows up for you, even quietly?",
@@ -6057,7 +6055,7 @@ const GOAL_POOLS = {
     "What's one opportunity you had that changed the direction of your life?",
     "What's something a stranger did recently that surprised you with its kindness?",
     "What's one book, podcast, or idea that shifted how you see the world?",
-    "What's something simple about today — the weather, a moment, a taste — worth appreciating?",
+    "What's something simple about today - the weather, a moment, a taste - worth appreciating?",
     "What's one relationship in your life that has grown stronger through difficulty?",
   ],
   clarity: [
@@ -6071,9 +6069,9 @@ const GOAL_POOLS = {
     "What would the wiser future version of you tell you about this moment?",
     "What's a belief you hold about yourself that might not actually be true?",
     "What would you do differently if you knew you couldn't fail?",
-    "What's the gap between who you are and who you want to be — and what creates it?",
+    "What's the gap between who you are and who you want to be - and what creates it?",
     "What are you pretending not to know?",
-    "What does success actually look like to you — not anyone else's version, yours?",
+    "What does success actually look like to you - not anyone else's version, yours?",
     "What's one area of your life where you're settling when you shouldn't be?",
     "What's the most important thing you could focus on this week?",
     "What's one relationship in your life that needs more honesty?",
@@ -6082,12 +6080,12 @@ const GOAL_POOLS = {
     "What's the difference between what you want and what you think you should want?",
     "What would you do with your time if money wasn't a factor?",
     "What's one thing you've been overcomplicating that has a simple answer?",
-    "What values do you say you have — and where are you actually living them?",
+    "What values do you say you have - and where are you actually living them?",
     "What's one habit that's inconsistent with the person you want to become?",
     "Where in your life are you being reactive instead of intentional?",
     "What's one thing you need to forgive yourself for in order to move forward?",
     "What conversation are you dreading that you know needs to happen?",
-    "What's one commitment you've made to yourself that you keep breaking — and why?",
+    "What's one commitment you've made to yourself that you keep breaking - and why?",
     "What would it mean to fully trust yourself? What's stopping you?",
     "What does your gut tell you about something you've been overthinking?",
     "What's one thing you'd regret not doing if you looked back in 10 years?",
@@ -6103,26 +6101,26 @@ const GOAL_POOLS = {
     "What are you becoming that you couldn't have imagined becoming before?",
     "What's one fear you've faced recently, even partially?",
     "What's the most important lesson life has taught you so far?",
-    "What version of yourself do you want to be in 12 months — specifically?",
+    "What version of yourself do you want to be in 12 months - specifically?",
     "Where are you growing in a way you haven't given yourself credit for?",
     "What's one thing you've changed your mind about in the last year?",
-    "What does discipline look like in your life right now — where is it showing up?",
-    "Who do you want to be in your relationships — and how close are you to that?",
+    "What does discipline look like in your life right now - where is it showing up?",
+    "Who do you want to be in your relationships - and how close are you to that?",
     "What's one thing you used to be afraid of that no longer scares you?",
-    "What's the hardest feedback you've received recently — and was it right?",
+    "What's the hardest feedback you've received recently - and was it right?",
     "What's one area where you've been too hard on yourself?",
     "What's one area where you've let yourself off the hook too easily?",
     "What's something you've been avoiding that would actually help you grow?",
     "What does the gap between your current self and your best self look like?",
-    "What's one relationship where you could show up better — and how?",
+    "What's one relationship where you could show up better - and how?",
     "What have you outgrown that you're still holding onto?",
     "What's one new thing you tried recently, and what did it teach you?",
     "What's one moment this week where you chose growth over comfort?",
     "What's a story you tell yourself about who you are that might be limiting you?",
     "What would it look like to operate from your values every single day?",
     "What's one thing someone in your life models that you want to develop in yourself?",
-    "What's the biggest obstacle to your growth right now — internal or external?",
-    "If you could give your younger self one piece of advice, what would it be — and do you live by it?",
+    "What's the biggest obstacle to your growth right now - internal or external?",
+    "If you could give your younger self one piece of advice, what would it be - and do you live by it?",
   ],
 };
 
@@ -6161,7 +6159,7 @@ function getRecommendedBreath() {
 }
 
 function renderBreathOpts() {
-  // Restore last-used choice on each render — improves repeat-user UX
+  // Restore last-used choice on each render - improves repeat-user UX
   const lastUsed = localStorage.getItem('gj_last_breath');
   const recommended = getRecommendedBreath();
   if (!chosenEx) {
@@ -6175,7 +6173,7 @@ function renderBreathOpts() {
     const h = new Date().getHours();
     if (h < 12) introSub.textContent = 'Morning breath sets your nervous system up for a reflective day. One minute is all it takes.';
     else if (h < 17) introSub.textContent = 'A short breathing exercise resets the afternoon and prepares your mind for honest reflection.';
-    else if (h < 21) introSub.textContent = 'Evening breath helps you transition from doing into being — the best state for journaling.';
+    else if (h < 21) introSub.textContent = 'Evening breath helps you transition from doing into being - the best state for journaling.';
     else introSub.textContent = 'Night breath signals your body it\'s safe to slow down. Your answers will come more easily.';
   }
 
@@ -6275,7 +6273,7 @@ async function startRec() {
     const perm = await SpeechRecognition.requestPermissions();
     if (perm.speechRecognition !== 'granted' && perm.microphone !== 'granted') {
       const s = document.getElementById('mic-status');
-      if (s) s.textContent = 'Microphone access denied — enable in Settings';
+      if (s) s.textContent = 'Microphone access denied - enable in Settings';
       return;
     }
 
@@ -6390,7 +6388,7 @@ async function finishSession() {
   const entry = { date: entryDate, questions: [...sessionQs], answers: [...qAnswers], moodBefore, moodAfter };
   const ok = await saveEntry(entry);
   if (!ok) {
-    // Save failed — show error on journal page rather than fake celebration
+    // Save failed - show error on journal page rather than fake celebration
     const inner = document.getElementById('journal-inner');
     if (inner) inner.innerHTML = `<div style="text-align:center;padding:3rem 1rem;">
       <div style="font-size:32px;margin-bottom:1rem;">⚠️</div>
@@ -6401,7 +6399,7 @@ async function finishSession() {
     </div>`;
     return;
   }
-  // Success — clear the draft
+  // Success - clear the draft
   clearDraft();
   // Mark revive as done so card disappears
   if (reviveDate) {
@@ -6432,7 +6430,7 @@ async function finishSession() {
 }
 
 function renderSummaryPage(entry) {
-  // Normalize field names — pre-save object uses camelCase, Supabase returns snake_case
+  // Normalize field names - pre-save object uses camelCase, Supabase returns snake_case
   const moodBefore = entry.moodBefore ?? entry.mood_before ?? null;
   const moodAfter  = entry.moodAfter  ?? entry.mood_after  ?? null;
 
@@ -6448,12 +6446,12 @@ function renderSummaryPage(entry) {
   // Personalised message based on streak + mood
   const lift = moodBefore != null && moodAfter != null ? moodAfter - moodBefore : null;
   const messages = [
-    { cond: lift >= 2,  msg: "Look at that — you came in one way and you're leaving another. That shift you just felt? That's what this practice creates." },
+    { cond: lift >= 2,  msg: "Look at that - you came in one way and you're leaving another. That shift you just felt? That's what this practice creates." },
     { cond: lift === 1, msg: "You showed up, you reflected, and you feel a little better for it. That's the whole point. One entry at a time." },
-    { cond: s >= 30,    msg: "Thirty days or more. You have built something real — a practice that belongs to you. The science says your brain is already different for it." },
+    { cond: s >= 30,    msg: "Thirty days or more. You have built something real - a practice that belongs to you. The science says your brain is already different for it." },
     { cond: s >= 7,     msg: "A week or more of consistency. Most people never make it this far. You're in the small group that actually shows up." },
     { cond: totalEntries === 1, msg: "Your first entry. The hardest one is always the first. You did something today that your future self will thank you for." },
-    { cond: true,       msg: "Every time you pause to reflect, you're rewiring your brain toward gratitude. It doesn't feel dramatic — but it is." },
+    { cond: true,       msg: "Every time you pause to reflect, you're rewiring your brain toward gratitude. It doesn't feel dramatic - but it is." },
   ];
   const message = messages.find(m => m.cond).msg;
 
@@ -6468,7 +6466,7 @@ function renderSummaryPage(entry) {
     </div>`;
   }
 
-  // Wisdom drop — pick a contextual quote
+  // Wisdom drop - pick a contextual quote
   const wisdomQuote = QUOTES_OF_DAY[Math.floor(Math.random() * QUOTES_OF_DAY.length)];
 
   // Tomorrow's preview question (rotating)
@@ -6526,7 +6524,7 @@ function renderSummaryPage(entry) {
       <div class="cel-wisdom">
         <div class="cel-wisdom-eyebrow">A thought to carry with you</div>
         <div class="cel-wisdom-quote">"${esc(wisdomQuote.text)}"</div>
-        <div class="cel-wisdom-author">— ${esc(wisdomQuote.author)}</div>
+        <div class="cel-wisdom-author">- ${esc(wisdomQuote.author)}</div>
       </div>
 
       <div class="cel-tomorrow">
@@ -6680,7 +6678,7 @@ async function doDeleteAccount() {
     }
     keysToRemove.forEach(k => localStorage.removeItem(k));
 
-    // 3. Sign out — full auth user deletion requires a server-side admin call.
+    // 3. Sign out - full auth user deletion requires a server-side admin call.
     // If you add a Netlify function with the service_role key, call it here first.
     await sb.auth.signOut();
 
@@ -6703,7 +6701,7 @@ document.getElementById('del-account-modal').addEventListener('click', function(
 // QUOTE CARD
 // ══════════════════════════════════════════════════
 
-// Helper — builds share button HTML without nested template literals (Safari compat)
+// Helper - builds share button HTML without nested template literals (Safari compat)
 function makeShareBtn(ans, dateRaw) {
   const dateStr = new Date(dateRaw).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
   const safeAns = JSON.stringify(ans);
@@ -6716,7 +6714,7 @@ let _quoteFontReady = false;
 async function _loadQuoteFonts() {
   if (_quoteFontReady) return;
 
-  // On native iOS (Capacitor WebView), skip remote font loading — Lora isn't packaged
+  // On native iOS (Capacitor WebView), skip remote font loading - Lora isn't packaged
   // with the app so the fetch will fail or stall. Canvas falls back to system serif,
   // which is still a good-looking Georgia-like font on iOS.
   if (window.Capacitor && window.Capacitor.isNativePlatform()) {
@@ -6840,7 +6838,7 @@ async function renderQuoteCard(text, date) {
       }
       ctx.putImageData(grainData, 0, 0);
     } catch(grainErr) {
-      // Grain is purely decorative — skip if the WebView chokes on large ImageData
+      // Grain is purely decorative - skip if the WebView chokes on large ImageData
     }
 
   // ── Card shadow + body ──
@@ -6912,7 +6910,7 @@ async function renderQuoteCard(text, date) {
   const QUOTE_MAX_W = CW - 144;
   const QUOTE_TOP = MARGIN + 220;
 
-  // Measure and choose font size — shrink if answer is very long
+  // Measure and choose font size - shrink if answer is very long
   let fontSize = 52;
   ctx.font = `italic ${fontSize}px Lora, serif`;
   let lines = _wrapText(ctx, text, QUOTE_MAX_W);
@@ -6951,7 +6949,7 @@ async function renderQuoteCard(text, date) {
   ctx.font = '400 28px Lora, serif';
   ctx.fillStyle = ink60;
   ctx.textAlign = 'left';
-  ctx.fillText('— ' + date, QUOTE_X, underlineY + 52);
+  ctx.fillText('- ' + date, QUOTE_X, underlineY + 52);
 
   // ── Footer divider ──
   ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(28,26,23,0.08)';
@@ -7022,7 +7020,7 @@ async function shareOrDownloadQuoteCard() {
         text: 'A reflection from my daily gratitude journal.'
       });
     } else {
-      // Desktop fallback — trigger download
+      // Desktop fallback - trigger download
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
