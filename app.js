@@ -88,6 +88,7 @@ function showPaywall(featureName) {
     ? `Subscribe to unlock ${featureName} and the rest of Gratitude Premium.`
     : 'Insights, Year in Review, Apple Health, photo memories, and more.';
   overlay.innerHTML = `
+    <button aria-label="Close" onclick="hidePaywall()" style="position:absolute;top:calc(env(safe-area-inset-top) + 12px);right:16px;background:rgba(0,0,0,0.06);border:0;color:var(--ink);width:36px;height:36px;border-radius:50%;font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;">✕</button>
     <div class="paywall-inner">
       <div class="paywall-icon">🌱</div>
       <div class="paywall-title">${title}</div>
