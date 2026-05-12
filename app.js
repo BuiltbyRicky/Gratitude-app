@@ -1264,6 +1264,7 @@ function renderStreakRevive() {
 }
 
 function beginReviveSession() {
+  if (!isPremium()) { showPaywall('Streak revive'); return; }
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   yesterday.setHours(0, 0, 0, 0);
@@ -1277,6 +1278,7 @@ function beginReviveSession() {
 }
 
 function useFreeze() {
+  if (!isPremium()) { showPaywall('Streak freeze'); return; }
   const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1); yesterday.setHours(0,0,0,0);
   const data = getFreezeData();
   data.weekKey = getISOWeek(new Date());
@@ -1285,8 +1287,8 @@ function useFreeze() {
   renderFreezeCard();
   // Re-render home stats since streak may have changed
   const s = streak();
-  document.getElementById('nav-streak').textContent = isPremium() ? s : '🔒';
-  document.getElementById('st-streak').textContent = isPremium() ? s : '🔒';
+  document.getElementById('nav-streak').textContent = s;
+  document.getElementById('st-streak').textContent = s;
   renderBadges(s);
 }
 
@@ -1482,7 +1484,6 @@ function checkMilestone(total) {
 }
 
 function checkStreakMilestone(streakDays) {
-  if (!isPremium()) return; // Streak is a Premium feature; don't fire celebration popups for free users
   const milestone = STREAK_MILESTONES.find(m => m.days === streakDays);
   if (!milestone) return;
   const seenKey = 'gj_streak_milestone_seen_' + streakDays;
@@ -2152,8 +2153,8 @@ function renderHome() {
   const affirmation = HOME_AFFIRMATIONS[dayOfYear % HOME_AFFIRMATIONS.length];
   document.getElementById('hero-eyebrow').textContent = affirmation;
 
-  document.getElementById('nav-streak').textContent = isPremium() ? s : '🔒';
-  document.getElementById('st-streak').textContent = isPremium() ? s : '🔒';
+  document.getElementById('nav-streak').textContent = s;
+  document.getElementById('st-streak').textContent = s;
   document.getElementById('st-total').textContent = getEntries().length;
   document.getElementById('st-week').textContent = weekCount();
 
@@ -2179,7 +2180,7 @@ function renderHome() {
   }
   const progressMsg = getStreakProgressMessage(s, journaledToday);
   streakProgressEl.textContent = progressMsg || '';
-  streakProgressEl.style.display = (progressMsg && isPremium()) ? 'block' : 'none';
+  streakProgressEl.style.display = progressMsg ? 'block' : 'none';
 
   renderWeeklyReflection();
   renderReminderCard();
