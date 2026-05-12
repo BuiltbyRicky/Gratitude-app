@@ -5,22 +5,50 @@ const SUPABASE_URL = 'https://epfewpuxztzbpzwmvzkx.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVwZmV3cHV4enR6YnB6d212emt4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMTU5NzIsImV4cCI6MjA5MDU5MTk3Mn0.tjSyCd3lHEUcSCIbY1VGihO2KUYQ5xg_Dh6bJJAadUA';
 
 // ══════════════════════════════════════════════════
-// STRIPE PAYMENTS
+// IN-APP PURCHASES (RevenueCat)
 // ══════════════════════════════════════════════════
-const STRIPE_PK = 'pk_test_51TLDuxPB9SOX4mlDjWu7QZ1OVY6ZeZcufyi6EjCCWZuLL5FtJOq6J5gOwpWDIKBJmsDc5wTxgP7On1f4UCR6Y5gx00udF7DiAw';
-const STRIPE_MONTHLY_PRICE = 'price_1TLE6sPB9SOX4mlD49RPklZH';
-const STRIPE_YEARLY_PRICE  = 'price_1TLE9VPB9SOX4mlDOs6DghBq';
-const TRIAL_DAYS = 3;
+// Replace with your iOS API key from app.revenuecat.com → Project settings → API keys.
+// Until set, IAP code no-ops and paywall buttons show a "not configured yet" alert.
+const REVENUECAT_API_KEY = 'YOUR_REVENUECAT_API_KEY';
+const PREMIUM_ENTITLEMENT_ID = 'premium';
+const TRIAL_DAYS = 3; // UI copy only — Apple manages the actual intro offer server-side.
 
-// Check if user is in their free trial or has active subscription
-function isPremium() {
-  const trialStart = localStorage.getItem('gj_trial_start_' + (currentUser?.id || ''));
-  if (trialStart) {
-    const elapsed = Date.now() - parseInt(trialStart);
-    const trialMs = TRIAL_DAYS * 24 * 60 * 60 * 1000;
-    if (elapsed < trialMs) return true; // still in trial
+let _rcConfigured = false;
+let _rcOfferings = null;
+let _premiumActive = false;
+
+// Configure RevenueCat and refresh the entitlement cache. Idempotent.
+// Called from launchApp() on sign-in. The customerInfoUpdateListener keeps
+// _premiumActive in sync for the rest of the session.
+async function initPurchases() {
+  if (REVENUECAT_API_KEY === 'YOUR_REVENUECAT_API_KEY') return;
+  const Purchases = window.Capacitor?.Plugins?.Purchases;
+  if (!Purchases) return;
+  try {
+    if (!_rcConfigured) {
+      await Purchases.configure({ apiKey: REVENUECAT_API_KEY });
+      _rcConfigured = true;
+      await Purchases.addCustomerInfoUpdateListener((info) => {
+        _premiumActive = !!info?.entitlements?.active?.[PREMIUM_ENTITLEMENT_ID];
+      });
+    }
+    if (currentUser?.id) {
+      await Purchases.logIn({ appUserID: currentUser.id });
+    }
+    const customerInfo = await Purchases.getCustomerInfo();
+    _premiumActive = !!customerInfo?.entitlements?.active?.[PREMIUM_ENTITLEMENT_ID];
+    const offerings = await Purchases.getOfferings();
+    _rcOfferings = offerings?.current || null;
+  } catch (e) {
+    console.log('RevenueCat init error:', e?.message);
   }
-  return localStorage.getItem('gj_premium_' + (currentUser?.id || '')) === '1';
+}
+
+// Synchronous premium check, backed by the RevenueCat customerInfo cache.
+// Returns false until initPurchases() completes; updated live by the listener
+// registered in initPurchases(). Safe to call from any UI handler.
+function isPremium() {
+  return _premiumActive;
 }
 
 function startTrial() {
@@ -39,15 +67,33 @@ function getTrialDaysLeft() {
   return Math.max(0, Math.ceil((trialMs - elapsed) / (24 * 60 * 60 * 1000)));
 }
 
-async function openStripeCheckout(priceId) {
-  const monthlyLink = 'https://buy.stripe.com/test_aFabJ36KW3fh7Fg6zOffy00';
-  const yearlyLink  = 'https://buy.stripe.com/test_cNibJ3fhs2bd2kW9M0ffy01';
-  const base = priceId === STRIPE_MONTHLY_PRICE ? monthlyLink : yearlyLink;
-  const url = currentUser ? base + '?client_reference_id=' + currentUser.id : base;
-  if (window.Capacitor && window.Capacitor.isNativePlatform()) {
-    window.open(url, '_system');
-  } else {
-    window.open(url, '_blank');
+// Initiate an IAP purchase. packageIdentifier is one of RevenueCat's default
+// package identifiers ('$rc_monthly', '$rc_annual') configured in the RC dashboard.
+async function purchasePlan(packageIdentifier) {
+  if (REVENUECAT_API_KEY === 'YOUR_REVENUECAT_API_KEY') {
+    alert('In-app purchases are not configured yet. The app needs a RevenueCat API key.');
+    return;
+  }
+  const Purchases = window.Capacitor?.Plugins?.Purchases;
+  if (!Purchases || !_rcOfferings) {
+    alert('Unable to load purchase options. Please check your connection and try again.');
+    return;
+  }
+  const pkg = _rcOfferings.availablePackages.find(p => p.identifier === packageIdentifier);
+  if (!pkg) {
+    alert('That plan is unavailable right now. Please try again later.');
+    return;
+  }
+  try {
+    const result = await Purchases.purchasePackage({ aPackage: pkg });
+    _premiumActive = !!result.customerInfo?.entitlements?.active?.[PREMIUM_ENTITLEMENT_ID];
+    if (_premiumActive) {
+      hidePaywall();
+      alert('✓ Welcome to Gratitude Premium!');
+    }
+  } catch (e) {
+    if (e?.userCancelled) return;
+    alert('Purchase failed: ' + (e?.message || 'Please try again.'));
   }
 }
 
@@ -61,12 +107,12 @@ function showPaywall() {
       <div class="paywall-title">Your free trial has ended</div>
       <div class="paywall-sub">Subscribe to keep journaling and building your practice.</div>
       <div class="paywall-plans">
-        <button class="paywall-plan featured" onclick="openStripeCheckout('${STRIPE_MONTHLY_PRICE}')">
+        <button class="paywall-plan featured" onclick="purchasePlan('$rc_monthly')">
           <div class="paywall-plan-name">Monthly</div>
           <div class="paywall-plan-price">$4.99<span>/month</span></div>
           <div class="paywall-plan-note">Billed monthly · cancel anytime</div>
         </button>
-        <button class="paywall-plan" onclick="openStripeCheckout('${STRIPE_YEARLY_PRICE}')">
+        <button class="paywall-plan" onclick="purchasePlan('$rc_annual')">
           <div class="paywall-plan-badge">Save 43%</div>
           <div class="paywall-plan-name">Annual</div>
           <div class="paywall-plan-price">$34.99<span>/year</span></div>
@@ -109,23 +155,22 @@ async function resetTrial() {
 }
 
 async function restorePurchase() {
-  const confirmed = confirm('After completing payment in your browser, tap OK to verify your subscription.');
-  if (!confirmed) return;
-  // Recheck from Supabase
+  const Purchases = window.Capacitor?.Plugins?.Purchases;
+  if (!Purchases || !_rcConfigured) {
+    alert('Restore is unavailable right now. Please make sure you are signed in and try again.');
+    return;
+  }
   try {
-    const { data } = await sb
-      .from('subscriptions')
-      .select('status')
-      .eq('user_id', currentUser.id)
-      .single();
-    if (data?.status === 'active') {
+    const customerInfo = await Purchases.restorePurchases();
+    _premiumActive = !!customerInfo?.entitlements?.active?.[PREMIUM_ENTITLEMENT_ID];
+    if (_premiumActive) {
       hidePaywall();
-      alert('✓ Subscription verified! Welcome to Gratitude Premium.');
+      alert('✓ Subscription restored! Welcome back to Gratitude Premium.');
     } else {
-      alert('We could not verify your subscription yet. Please wait a few minutes and try again, or contact gratitudejournaling101@gmail.com');
+      alert('No active subscription was found on this Apple ID.');
     }
   } catch(e) {
-    alert('Could not verify. Please contact gratitudejournaling101@gmail.com');
+    alert('Restore failed: ' + (e?.message || 'Please try again.'));
   }
 }
 
@@ -312,8 +357,9 @@ async function launchApp() {
       renderHome();
     }
   });
-  // Check premium access — show paywall if trial ended
-  setTimeout(() => checkPremiumAccess(), 1500);
+  // Initialize RevenueCat IAP and refresh entitlement cache.
+  // Premium gating happens at feature access time, not on app load.
+  setTimeout(() => initPurchases(), 1500);
 
   // Request notification permission on first launch (after short delay so UI settles)
   if (!localStorage.getItem('gj_notif_asked')) {
