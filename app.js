@@ -4845,7 +4845,12 @@ function renderHistory() {
     return;
   }
 
-  const es = getFilteredEntries();
+  const allFiltered = getFilteredEntries();
+  // Free tier shows last 7 days; older entries appear as a locked card below.
+  const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+  const es = isPremium() ? allFiltered : allFiltered.filter(e => new Date(e.date).getTime() >= cutoff);
+  const lockedCount = allFiltered.length - es.length;
+  const lockedCardHtml = lockedCount > 0 ? `<div onclick="showPaywall('Unlimited history')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;margin-top:14px;background:rgba(45,122,95,0.08);border:1px solid rgba(45,122,95,0.2);border-radius:14px;cursor:pointer;"><div style="font-size:28px;">🔒</div><div style="flex:1;"><div style="font-weight:600;color:var(--ink);margin-bottom:2px;">${lockedCount} older entr${lockedCount === 1 ? 'y is' : 'ies are'} locked</div><div style="font-size:13px;color:var(--ink60);">Premium unlocks your full archive — search every entry you've written.</div></div><div style="font-size:20px;color:var(--sage);">→</div></div>` : '';
   const isFiltered = histSearchQuery || histFilter !== 'all';
   const rl = document.getElementById('hist-results-label');
   if (rl) {
@@ -4857,7 +4862,9 @@ function renderHistory() {
   }
 
   if (!es.length) {
-    el.innerHTML = `<div class="search-no-results"><span>🔍</span>No entries match your search.<br>Try different keywords or clear the filters.</div>`;
+    el.innerHTML = lockedCount > 0
+      ? lockedCardHtml
+      : `<div class="search-no-results"><span>🔍</span>No entries match your search.<br>Try different keywords or clear the filters.</div>`;
     return;
   }
 
@@ -4895,7 +4902,7 @@ function renderHistory() {
         return `<div class="hist-qa"><div class="hist-q">${highlightMatch(q, histSearchQuery)}</div>${displayAns}</div>`;
       }).join('')}
     </div>`;
-  }).join('');
+  }).join('') + lockedCardHtml;
 }
 
 function startEdit(id) { editingId = id; renderHistory(); }
