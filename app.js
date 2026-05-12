@@ -97,15 +97,18 @@ async function purchasePlan(packageIdentifier) {
   }
 }
 
-function showPaywall() {
-  const daysLeft = getTrialDaysLeft();
+function showPaywall(featureName) {
   const overlay = document.createElement('div');
   overlay.id = 'paywall-overlay';
+  const title = featureName ? `${featureName} is a Premium feature` : 'Unlock Gratitude Premium';
+  const sub = featureName
+    ? `Subscribe to unlock ${featureName} and the rest of Gratitude Premium.`
+    : 'Insights, Year in Review, Apple Health, photo memories, and more.';
   overlay.innerHTML = `
     <div class="paywall-inner">
       <div class="paywall-icon">🌱</div>
-      <div class="paywall-title">Your free trial has ended</div>
-      <div class="paywall-sub">Subscribe to keep journaling and building your practice.</div>
+      <div class="paywall-title">${title}</div>
+      <div class="paywall-sub">${sub}</div>
       <div class="paywall-plans">
         <button class="paywall-plan featured" onclick="purchasePlan('$rc_monthly')">
           <div class="paywall-plan-name">Monthly</div>
@@ -2959,6 +2962,7 @@ function calculateTopWords(entries, limit = 25) {
 }
 
 function openInsights() {
+  if (!isPremium()) { showPaywall('Insights'); return; }
   const insights = calculateInsights();
   if (!insights) {
     alert('Complete your first entry to see your insights.');
@@ -3755,6 +3759,7 @@ async function isHealthAuthorized() {
 }
 
 async function requestHealthPermission() {
+  if (!isPremium()) { showPaywall('Apple Health'); return { ok: false, reason: 'premium-required' }; }
   const Health = getHealthPlugin();
   if (!Health) return { ok: false, reason: 'plugin' };
   try {
@@ -3809,6 +3814,7 @@ async function disconnectHealth() {
 // to understand WHY before the native popup appears.
 async function promptHealthOnFirstLaunch() {
   // Skip if already asked, not on iOS, or plugin not installed
+  if (!isPremium()) return; // Apple Health is a premium-only feature; don't auto-prompt free users
   if (!currentUser) return;
   if (localStorage.getItem('gj_health_asked_' + currentUser.id)) return;
   if (!window.Capacitor || !window.Capacitor.isNativePlatform()) return;
@@ -3868,6 +3874,7 @@ function declineHealthPrompt() {
 }
 
 async function acceptHealthPrompt() {
+  if (!isPremium()) { declineHealthPrompt(); showPaywall('Apple Health'); return; }
   const btn = document.querySelector('#health-prompt-overlay .btn.solid');
   if (btn) { btn.disabled = true; btn.textContent = 'Requesting…'; }
 
@@ -3901,6 +3908,7 @@ const SHAKE_THRESHOLD = 18; // m/s² delta — tuned to require deliberate shake
 const SHAKE_COOLDOWN = 2000; // ms between shake triggers
 
 async function initShakeDetection() {
+  if (!isPremium()) return; // Shake-to-capture is premium-only; never auto-init for free users
   if (shakeInitialized) return;
 
   // Respect user preference
@@ -3985,6 +3993,7 @@ function showShakeFeedback() {
 
 // Manual permission request — used if user enables shake from settings
 async function askShakePermission() {
+  if (!isPremium()) { showPaywall('Shake-to-capture'); return false; }
   if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
     try {
       const permission = await DeviceMotionEvent.requestPermission();
@@ -4669,6 +4678,7 @@ function setEntryPhoto(id, base64) {
 }
 
 function openPhotoPicker(entryId) {
+  if (!isPremium()) { showPaywall('Photo memories'); return; }
   const existing = document.getElementById('photo-input-temp');
   if (existing) existing.remove();
   const input = document.createElement('input');
@@ -5284,6 +5294,7 @@ let yearReviewData = null;
 const YEAR_REVIEW_TOTAL_SLIDES = 7;
 
 function openYearReview() {
+  if (!isPremium()) { showPaywall('Year in Review'); return; }
   const review = calculateYearReview();
   if (!review) {
     alert('Complete a few journal entries first to see your year in review.');
@@ -5481,6 +5492,7 @@ function applyNewGoal(goal) {
 
 // Saved affirmations viewer
 function openSavedAffirmations() {
+  if (!isPremium()) { showPaywall('Saved affirmations'); return; }
   const favs = getFavAffirmations();
   const overlay = document.createElement('div');
   overlay.id = 'saved-aff-overlay';
@@ -6257,7 +6269,15 @@ function skipToJournal() {
 // SESSION FLOW
 // ══════════════════════════════════════════════════
 let sessionQs = [], qIdx = 0, qAnswers = [], inputMode = 'voice';
-function beginSession() { moodBefore = null; moodAfter = null; sessionQs = pickQs(); qIdx = 0; qAnswers = Array(sessionQs.length).fill(''); inputMode = 'voice'; chosenEx = null; renderBreathOpts(); goPage('breath'); }
+function beginSession() {
+  // Free tier allows one entry per day; second+ entries require Premium.
+  if (!isPremium()) {
+    const todayStr = new Date().toDateString();
+    const journaledToday = getEntries().some(e => new Date(e.date).toDateString() === todayStr);
+    if (journaledToday) { showPaywall('Multiple entries per day'); return; }
+  }
+  moodBefore = null; moodAfter = null; sessionQs = pickQs(); qIdx = 0; qAnswers = Array(sessionQs.length).fill(''); inputMode = 'voice'; chosenEx = null; renderBreathOpts(); goPage('breath');
+}
 function goMoodBefore() { renderMoodPicker('mood-emojis-before', 'mood-label-before'); document.getElementById('mood-label-before').textContent = ''; document.getElementById('mood-before-next').disabled = true; goPage('mood-before'); }
 function confirmMoodBefore() { goPage('journal'); renderQ(); }
 function skipMood() { moodBefore = null; goPage('journal'); renderQ(); }
