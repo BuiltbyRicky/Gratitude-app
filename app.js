@@ -86,7 +86,7 @@ function showPaywall(featureName) {
   const title = featureName ? `${featureName} is a Premium feature` : 'Unlock Gratitude Premium';
   const sub = featureName
     ? `Subscribe to unlock ${featureName} and the rest of Gratitude Premium.`
-    : 'Insights, Year in Review, Apple Health, photo memories, and more.';
+    : 'Insights, Year in Review, Apple Health, photos, daily reminders, affirmations, and more.';
   overlay.innerHTML = `
     <button aria-label="Close" onclick="hidePaywall()" style="position:absolute;top:calc(env(safe-area-inset-top) + 12px);right:16px;background:rgba(0,0,0,0.06);border:0;color:var(--ink);width:36px;height:36px;border-radius:50%;font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:10;">✕</button>
     <div class="paywall-inner">
@@ -318,6 +318,7 @@ async function refreshNotifSchedule() {
 }
 
 async function requestNotifPermission() {
+  if (!isPremium()) return; // Daily reminders are premium-only; don't auto-prompt free users
   try {
     if (!window.Capacitor || !window.Capacitor.isNativePlatform()) return;
     const LocalNotifications = window.Capacitor?.Plugins?.LocalNotifications; if (!LocalNotifications) throw new Error('LocalNotifications plugin not available');
@@ -797,6 +798,7 @@ async function scheduleLocalNotif(LocalNotifications, hour = 20, minute = 0) {
 }
 
 async function enableNotifications() {
+  if (!isPremium()) { showPaywall('Daily reminders'); return; }
   const status = document.getElementById('notif-status');
   try {
     if (!window.Capacitor || !window.Capacitor.isNativePlatform()) {
@@ -3287,6 +3289,13 @@ function toggleFavAffirmation(text) {
 function renderAffirmation() {
   const wrap = document.getElementById('affirmation-wrap');
   if (!wrap) return;
+  if (!isPremium()) {
+    wrap.innerHTML = `<div class="affirmation-card" onclick="showPaywall('Daily affirmations')" style="cursor:pointer;">
+      <div class="affirmation-eyebrow"><span>✨ Daily affirmation 🔒</span></div>
+      <div class="affirmation-text" style="font-style:italic;color:var(--ink-60);">Tap to unlock today's affirmation — tailored to your reflection goal.</div>
+    </div>`;
+    return;
+  }
   const { text, goal } = getDailyAffirmation();
   const favs = getFavAffirmations();
   const isFav = favs.some(f => (typeof f === 'string' ? f : f.text) === text);
@@ -4765,12 +4774,7 @@ function renderHistory() {
     return;
   }
 
-  const allFiltered = getFilteredEntries();
-  // Free tier shows last 7 days; older entries appear as a locked card below.
-  const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
-  const es = isPremium() ? allFiltered : allFiltered.filter(e => new Date(e.date).getTime() >= cutoff);
-  const lockedCount = allFiltered.length - es.length;
-  const lockedCardHtml = lockedCount > 0 ? `<div onclick="showPaywall('Unlimited history')" style="display:flex;align-items:center;gap:14px;padding:18px 16px;margin-top:14px;background:rgba(45,122,95,0.08);border:1px solid rgba(45,122,95,0.2);border-radius:14px;cursor:pointer;"><div style="font-size:28px;">🔒</div><div style="flex:1;"><div style="font-weight:600;color:var(--ink);margin-bottom:2px;">${lockedCount} older entr${lockedCount === 1 ? 'y is' : 'ies are'} locked</div><div style="font-size:13px;color:var(--ink60);">Premium unlocks your full archive — search every entry you've written.</div></div><div style="font-size:20px;color:var(--sage);">→</div></div>` : '';
+  const es = getFilteredEntries();
   const isFiltered = histSearchQuery || histFilter !== 'all';
   const rl = document.getElementById('hist-results-label');
   if (rl) {
@@ -4782,9 +4786,7 @@ function renderHistory() {
   }
 
   if (!es.length) {
-    el.innerHTML = lockedCount > 0
-      ? lockedCardHtml
-      : `<div class="search-no-results"><span>🔍</span>No entries match your search.<br>Try different keywords or clear the filters.</div>`;
+    el.innerHTML = `<div class="search-no-results"><span>🔍</span>No entries match your search.<br>Try different keywords or clear the filters.</div>`;
     return;
   }
 
@@ -4822,7 +4824,7 @@ function renderHistory() {
         return `<div class="hist-qa"><div class="hist-q">${highlightMatch(q, histSearchQuery)}</div>${displayAns}</div>`;
       }).join('')}
     </div>`;
-  }).join('') + lockedCardHtml;
+  }).join('');
 }
 
 function startEdit(id) { editingId = id; renderHistory(); }
@@ -6196,15 +6198,7 @@ function skipToJournal() {
 // SESSION FLOW
 // ══════════════════════════════════════════════════
 let sessionQs = [], qIdx = 0, qAnswers = [], inputMode = 'voice';
-function beginSession() {
-  // Free tier allows one entry per day; second+ entries require Premium.
-  if (!isPremium()) {
-    const todayStr = new Date().toDateString();
-    const journaledToday = getEntries().some(e => new Date(e.date).toDateString() === todayStr);
-    if (journaledToday) { showPaywall('Multiple entries per day'); return; }
-  }
-  moodBefore = null; moodAfter = null; sessionQs = pickQs(); qIdx = 0; qAnswers = Array(sessionQs.length).fill(''); inputMode = 'voice'; chosenEx = null; renderBreathOpts(); goPage('breath');
-}
+function beginSession() { moodBefore = null; moodAfter = null; sessionQs = pickQs(); qIdx = 0; qAnswers = Array(sessionQs.length).fill(''); inputMode = 'voice'; chosenEx = null; renderBreathOpts(); goPage('breath'); }
 function goMoodBefore() { renderMoodPicker('mood-emojis-before', 'mood-label-before'); document.getElementById('mood-label-before').textContent = ''; document.getElementById('mood-before-next').disabled = true; goPage('mood-before'); }
 function confirmMoodBefore() { goPage('journal'); renderQ(); }
 function skipMood() { moodBefore = null; goPage('journal'); renderQ(); }
